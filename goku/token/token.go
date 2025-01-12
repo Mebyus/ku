@@ -9,7 +9,7 @@ type Token struct {
 	//
 	// For tokens obtained from regular string literals (as in "some string")
 	// this field contains unescaped string value.
-	Lit string
+	Data string
 
 	// Meaning of this value is dependant on token Kind
 	//

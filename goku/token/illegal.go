@@ -9,9 +9,12 @@ const (
 	MalformedBinaryInteger
 	MalformedOctalInteger
 	MalformedDecimalInteger
+	MalformedDecimalFloat
 	MalformedHexadecimalInteger
 	MalformedBlockComment
 	MalformedMacro
+
+	DecimalIntegerOverflow
 
 	BadEscapeInString
 

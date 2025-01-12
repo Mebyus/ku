@@ -157,12 +157,12 @@ func (t Token) String() string {
 
 	switch t.Kind {
 	case Word:
-		return t.Lit
+		return t.Data
 	case Illegal:
 		if t.Val == LengthOverflow {
 			return "Illegal(token length overflow)"
 		}
-		return "[[" + t.Lit + "]]"
+		return "[[" + t.Data + "]]"
 	case BinInteger:
 		return "0b" + strconv.FormatUint(t.Val, 2)
 	case OctInteger:
@@ -172,10 +172,10 @@ func (t Token) String() string {
 	case HexInteger:
 		return "0x" + strconv.FormatUint(t.Val, 16)
 	case DecFloat:
-		return t.Lit
+		return t.Data
 	case Rune:
-		if t.Lit != "" {
-			return "'" + t.Lit + "'"
+		if t.Data != "" {
+			return "'" + t.Data + "'"
 		}
 		switch t.Val {
 		case '\\':
@@ -191,7 +191,7 @@ func (t Token) String() string {
 		}
 		return "'" + string([]rune{rune(t.Val)}) + "'"
 	case String:
-		return "\"" + char.Escape(t.Lit) + "\""
+		return "\"" + char.Escape(t.Data) + "\""
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" token kind (=%d)", t.Kind, t.Kind))
 	}

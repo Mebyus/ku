@@ -2,6 +2,7 @@ package lexer
 
 import (
 	"github.com/mebyus/ku/goku/source"
+	"github.com/mebyus/ku/goku/token"
 )
 
 type Lexer struct {
@@ -11,6 +12,11 @@ type Lexer struct {
 
 	// Byte offset into text.
 	pos uint32
+
+	// Mark byte offset into text.
+	//
+	// Mark is used to slice input text for token literals.
+	mark uint32
 }
 
 func FromText(text *source.Text) *Lexer {
@@ -22,6 +28,16 @@ func FromText(text *source.Text) *Lexer {
 
 func (lx *Lexer) pin() source.Pin {
 	return lx.mask | source.Pin(lx.pos)
+}
+
+// Create token (without literal) of specified kind at current lexer position.
+//
+// Does not advance lexer scan position.
+func (lx *Lexer) emit(k token.Kind) token.Token {
+	return token.Token{
+		Kind: k,
+		Pin:  lx.pin(),
+	}
 }
 
 func (lx *Lexer) eof() bool {

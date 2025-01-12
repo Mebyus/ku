@@ -23,4 +23,3 @@ func (d Dirty) Span() source.Span {
 func (Dirty) String() string {
 	return "dirty"
 }
-
