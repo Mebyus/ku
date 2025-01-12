@@ -1,6 +1,6 @@
 package token
 
-import "github.com/mebyus/ku/goku/source"
+import "github.com/mebyus/ku/goku/compiler/source"
 
 type Token struct {
 	// Not empty only for tokens which do not have static literal.

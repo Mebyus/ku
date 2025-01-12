@@ -1,7 +1,7 @@
 package bok
 
 import (
-	"github.com/mebyus/ku/goku/token"
+	"github.com/mebyus/ku/goku/compiler/token"
 )
 
 // Kind indicates binary operator kind.

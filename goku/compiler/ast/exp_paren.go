@@ -1,8 +1,8 @@
 package ast
 
 import (
-	"github.com/mebyus/ku/goku/enums/exk"
-	"github.com/mebyus/ku/goku/source"
+	"github.com/mebyus/ku/goku/compiler/enums/exk"
+	"github.com/mebyus/ku/goku/compiler/source"
 )
 
 type Paren struct {

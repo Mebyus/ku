@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mebyus/ku/goku/source"
-	"github.com/mebyus/ku/goku/token"
+	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/token"
 )
 
 func TestLex(t *testing.T) {

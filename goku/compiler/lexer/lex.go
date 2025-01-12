@@ -1,8 +1,8 @@
 package lexer
 
 import (
-	"github.com/mebyus/ku/goku/char"
-	"github.com/mebyus/ku/goku/token"
+	"github.com/mebyus/ku/goku/compiler/char"
+	"github.com/mebyus/ku/goku/compiler/token"
 )
 
 func (lx *Lexer) Lex() token.Token {

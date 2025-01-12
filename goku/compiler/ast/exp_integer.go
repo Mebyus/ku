@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/mebyus/ku/goku/enums/exk"
-	"github.com/mebyus/ku/goku/source"
+	"github.com/mebyus/ku/goku/compiler/enums/exk"
+	"github.com/mebyus/ku/goku/compiler/source"
 )
 
 // IntKind indicates integer literal kind.

@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mebyus/ku/goku/char"
-	"github.com/mebyus/ku/goku/source"
+	"github.com/mebyus/ku/goku/compiler/char"
+	"github.com/mebyus/ku/goku/compiler/source"
 )
 
 // literal maps Kind to token static literal or code string.

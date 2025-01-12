@@ -3,7 +3,7 @@ package ast
 import (
 	"fmt"
 
-	"github.com/mebyus/ku/goku/char"
+	"github.com/mebyus/ku/goku/compiler/char"
 )
 
 func (g *Printer) Exp(exp Exp) {

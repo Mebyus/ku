@@ -1,6 +1,6 @@
 package lexer
 
-import "github.com/mebyus/ku/goku/char"
+import "github.com/mebyus/ku/goku/compiler/char"
 
 // Shift lexer scan position one byte forward.
 func (lx *Lexer) advance() {

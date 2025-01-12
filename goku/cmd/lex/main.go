@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mebyus/ku/goku/lexer"
-	"github.com/mebyus/ku/goku/source"
+	"github.com/mebyus/ku/goku/compiler/lexer"
+	"github.com/mebyus/ku/goku/compiler/source"
 )
 
 func main() {

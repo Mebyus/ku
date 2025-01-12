@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/mebyus/ku/goku/char"
+	"github.com/mebyus/ku/goku/compiler/char"
 )
 
 type RenderParams struct {
