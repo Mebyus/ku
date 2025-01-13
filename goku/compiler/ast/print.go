@@ -4,7 +4,7 @@ import (
 	"io"
 )
 
-func PrintText(w io.Writer, text *Text) error {
+func Render(w io.Writer, text *Text) error {
 	var p Printer
 	p.Text(text)
 	_, err := p.WriteTo(w)

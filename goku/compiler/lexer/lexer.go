@@ -26,6 +26,12 @@ func FromText(text *source.Text) *Lexer {
 	}
 }
 
+// FromBytes creates Lexer from raw text bytes. This function should be used
+// for tests, since it does not set text id needed for pins.
+func FromBytes(data []byte) *Lexer {
+	return &Lexer{text: data}
+}
+
 func (lx *Lexer) pin() source.Pin {
 	return lx.mask | source.Pin(lx.pos)
 }

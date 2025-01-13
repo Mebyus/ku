@@ -22,7 +22,7 @@ func main() {
 	}
 
 	lx := lexer.FromText(text)
-	err = lexer.ListTokens(os.Stdout, lx, pool)
+	err = lexer.Render(os.Stdout, lx, pool)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
