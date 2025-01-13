@@ -21,7 +21,7 @@ func (g *Printer) WriteTo(w io.Writer) (int64, error) {
 	return int64(n), err
 }
 
-func (g *Printer) Str() string {
+func (g *Printer) Output() string {
 	return string(g.buf)
 }
 

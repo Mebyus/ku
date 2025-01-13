@@ -12,6 +12,7 @@ type String struct {
 	Pin source.Pin
 }
 
+// Explicit interface implementation check.
 var _ Exp = String{}
 
 func (String) Kind() exk.Kind {
@@ -25,5 +26,5 @@ func (s String) Span() source.Span {
 func (s String) String() string {
 	var g Printer
 	g.String(s)
-	return g.Str()
+	return g.Output()
 }

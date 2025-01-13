@@ -16,6 +16,7 @@ type Binary struct {
 	B Exp
 }
 
+// Explicit interface implementation check.
 var _ Exp = Binary{}
 
 func (Binary) Kind() exk.Kind {
@@ -29,7 +30,7 @@ func (b Binary) Span() source.Span {
 func (b Binary) String() string {
 	var g Printer
 	g.Binary(b)
-	return g.Str()
+	return g.Output()
 }
 
 // BinOp represents binary operator inside expression.

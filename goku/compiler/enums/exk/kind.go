@@ -14,14 +14,14 @@ const (
 
 	// Operand.
 	//
-	// AST only. For valid STG this will be transformed to Symbol.
+	// AST and STG.
 	//
 	// Indicates operand which consists of single word token usage.
 	//
 	// AST examples:
-	//	foo + bar // Name(foo) + Name(bar)
-	//	a[i]      // a[Name(i)]
-	Name
+	//	foo + bar // Symbol(foo) + Symbol(bar)
+	//	a[i]      // a[Symbol(i)]
+	Symbol
 
 	// Operand.
 	//
@@ -37,7 +37,7 @@ const (
 	//	2 + 5 - 3  // Integer(2) + Integer(5) - Integer(3)
 	//	-10        // -Integer(10)
 	//	a[1]       // a[Integer(1)]
-	//	foo & 0xFF // Name(foo) & Integer(0xFF)
+	//	foo & 0xFF // Symbol(foo) & Integer(0xFF)
 	//
 	// STG examples:
 	//	4    // Integer(4)
@@ -116,7 +116,7 @@ const (
 	//
 	// Examples:
 	//	-10 // Unary(Minus, Integer(10))
-	//	a || !b // Name(a) || Unary(Not, Name(b))
+	//	a || !b // Symbol(a) || Unary(Not, Symbol(b))
 	Unary
 
 	// Expression.
@@ -127,7 +127,7 @@ const (
 	//
 	// Examples:
 	//	1 - 2 // Binary(Sub, Integer(1), Integer(2))
-	//	a & b // Binary(BitAnd, Name(a), Name(b))
+	//	a & b // Binary(BitAnd, Symbol(a), Symbol(b))
 	Binary
 
 	// Operand.
@@ -138,7 +138,7 @@ const (
 	//
 	// Examples:
 	//	(1 - 2)         // Paren(Binary(Sub, Integer(1), Integer(2)))
-	//	a * (c - a + 2) // Binary(Mul, Name(a), Paren(Binary(Add, Binary(Sub, Name(c), Name(a)), Integer(2))))
+	//	a * (c - a + 2) // Binary(Mul, Symbol(a), Paren(Binary(Add, Binary(Sub, Symbol(c), Symbol(a)), Integer(2))))
 	Paren
 
 	// Operand.
@@ -205,7 +205,7 @@ const (
 	//	a.foo[1] // Chain(a, Select(foo), Index(1))
 	//	a[5]     // Chain(a, Index(Integer(5)))
 	//	a[0].foo // Chain(a, Index(Integer(0)), Select(foo))
-	//	foo[a]   // Chain(foo, Index(Name(a)))
+	//	foo[a]   // Chain(foo, Index(Symbol(a)))
 	Index
 
 	// Chain part.
@@ -217,7 +217,7 @@ const (
 	// Examples:
 	//	a.[1]        // Chain(a, DerefIndex(Integer(0)))
 	//	a.foo.[1]    // Chain(a, Select(foo), DerefIndex(Integer(0)))
-	//	a[i].foo.[0] // Chain(a, Index(Name(a)), Select(foo), DerefIndex(Integer(0)))
+	//	a[i].foo.[0] // Chain(a, Index(Symbol(a)), Select(foo), DerefIndex(Integer(0)))
 	//	a.[1].foo    // Chain(a, DerefIndex(Integer(0)), Select(foo))
 	DerefIndex
 
@@ -231,7 +231,7 @@ const (
 	//	a.&        // Ref(Chain(a))
 	//	a.foo.&    // Ref(Chain(a, Select(foo)))
 	//	a[5].&     // Ref(Chain(a, Index(Integer(5))))
-	//	a[i].foo.& // Ref(Chain(a, Index(Name(i)), Select(foo)))
+	//	a[i].foo.& // Ref(Chain(a, Index(Symbol(i)), Select(foo)))
 	Ref
 
 	// Operand. Terminates chain.
@@ -242,7 +242,7 @@ const (
 	//
 	// Examples:
 	//	foo()       // Call(Chain(foo))
-	//	a.foo(4, b) // Call(Chain(a, Select(foo)), Arg(Integer(4)), Arg(Name(b)))
+	//	a.foo(4, b) // Call(Chain(a, Select(foo)), Arg(Integer(4)), Arg(Symbol(b)))
 	//	a[6].foo(0) // Call(Chain(a, Index(Integer(6)), Select(foo)), Arg(Integer(0)))
 	Call
 

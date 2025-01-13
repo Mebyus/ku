@@ -36,6 +36,7 @@ type Integer struct {
 	Aux uint32
 }
 
+// Explicit interface implementation check.
 var _ Exp = Integer{}
 
 func (Integer) Kind() exk.Kind {

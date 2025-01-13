@@ -10,6 +10,7 @@ type Paren struct {
 	Exp Exp
 }
 
+// Explicit interface implementation check.
 var _ Exp = Paren{}
 
 func (Paren) Kind() exk.Kind {
@@ -23,5 +24,5 @@ func (p Paren) Span() source.Span {
 func (p Paren) String() string {
 	var g Printer
 	g.Paren(p)
-	return g.Str()
+	return g.Output()
 }

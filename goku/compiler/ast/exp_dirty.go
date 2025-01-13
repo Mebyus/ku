@@ -10,6 +10,7 @@ type Dirty struct {
 	Pin source.Pin
 }
 
+// Explicit interface implementation check.
 var _ Exp = Dirty{}
 
 func (Dirty) Kind() exk.Kind {

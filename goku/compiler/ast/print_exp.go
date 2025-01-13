@@ -8,8 +8,8 @@ import (
 
 func (g *Printer) Exp(exp Exp) {
 	switch e := exp.(type) {
-	case Name:
-		g.Name(e)
+	case Symbol:
+		g.Symbol(e)
 	case Dirty:
 		g.Dirty(e)
 	case Integer:
@@ -39,8 +39,8 @@ func (g *Printer) Paren(p Paren) {
 	g.puts(")")
 }
 
-func (g *Printer) Name(n Name) {
-	g.puts(n.Word)
+func (g *Printer) Symbol(n Symbol) {
+	g.puts(n.Name)
 }
 
 func (g *Printer) Integer(n Integer) {
