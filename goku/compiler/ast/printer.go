@@ -17,12 +17,16 @@ type Printer struct {
 }
 
 func (g *Printer) WriteTo(w io.Writer) (int64, error) {
-	n, err := w.Write(g.buf)
+	n, err := w.Write(g.Bytes())
 	return int64(n), err
 }
 
 func (g *Printer) Output() string {
-	return string(g.buf)
+	return string(g.Bytes())
+}
+
+func (g *Printer) Bytes() []byte {
+	return g.buf
 }
 
 // put decimal formatted integer into output buffer

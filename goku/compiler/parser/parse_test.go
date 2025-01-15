@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"bytes"
 	"os"
 	"path/filepath"
 	"strings"
@@ -57,14 +56,14 @@ func TestParse(t *testing.T) {
 				return
 			}
 
-			var buf bytes.Buffer
-			_ = ast.Render(&buf, text) // since we use in-memory buffer, error is always nil
+			var printer ast.Printer
+			printer.Text(text)
 
 			lx1.Reset()
-			lx2 := lexer.FromBytes(buf.Bytes())
-			err = lexer.Compare(lx2, lx1)
-			if err != nil {
-				t.Error(err)
+			lx2 := lexer.FromBytes(printer.Bytes())
+			c := lexer.Compare(lx2, lx1)
+			if c != nil {
+				t.Error(c)
 				return
 			}
 		})

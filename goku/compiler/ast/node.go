@@ -2,6 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
+	"github.com/mebyus/ku/goku/compiler/enums/stk"
 	"github.com/mebyus/ku/goku/compiler/enums/tnk"
 	"github.com/mebyus/ku/goku/compiler/enums/tsk"
 	"github.com/mebyus/ku/goku/compiler/source"
@@ -13,7 +14,7 @@ type Node interface {
 	String() string
 }
 
-// Exp node that represents expression.
+// Exp node that represents an arbitrary expression.
 type Exp interface {
 	Node
 
@@ -32,6 +33,13 @@ type TypeSpec interface {
 	Node
 
 	Kind() tsk.Kind
+}
+
+// Statement node that represents statement of any kind.
+type Statement interface {
+	Node
+
+	Kind() stk.Kind
 }
 
 // Word represents a single word token usage inside a tree.

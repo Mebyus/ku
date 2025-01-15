@@ -29,10 +29,10 @@ type Text struct {
 	Variables []TopVar
 
 	// List of top function definition nodes.
-	Functions []Function
+	Functions []Fun
 
 	// List of unit test functions.
-	Tests []Function
+	Tests []Fun
 
 	// List of top function declaration nodes.
 	FunStubs []FunStub

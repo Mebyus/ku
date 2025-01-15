@@ -20,8 +20,18 @@ func (g *Printer) Exp(exp Exp) {
 		g.Binary(e)
 	case Paren:
 		g.Paren(e)
+	case Pack:
+		g.Pack(e)
 	default:
-		panic(fmt.Sprintf("unexpected \"%s\" (=%d) expression", e.Kind(), e.Kind()))
+		panic(fmt.Sprintf("unexpected \"%s\" (=%d) expression (%T)", e.Kind(), e.Kind(), e))
+	}
+}
+
+func (g *Printer) Pack(p Pack) {
+	g.Exp(p.List[0])
+	for _, exp := range p.List[1:] {
+		g.puts(", ")
+		g.Exp(exp)
 	}
 }
 

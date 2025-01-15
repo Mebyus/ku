@@ -7,7 +7,7 @@ import (
 
 // Formal definition:
 //
-//	Method = "fun" "(" Receiver ")" Name Signature Body
+//	Method => "fun" "(" Receiver ")" Name Signature Body
 type Method struct {
 	Signature Signature
 
@@ -37,7 +37,7 @@ func (m Method) String() string {
 
 // Formal definition:
 //
-//	Receiver = [ "*" ] TypeName
+//	Receiver => [ "*" ] TypeName
 type Receiver struct {
 	Name Word
 	Ptr  bool

@@ -2,10 +2,10 @@ package ast
 
 // Formal definition:
 //
-//	Function => "fun" Name Signature Body
-//	Body     => Block
-//	Name     => word
-type Function struct {
+//	Fun  => "fun" Name Signature Body
+//	Body => Block
+//	Name => word
+type Fun struct {
 	Signature Signature
 
 	Body Block

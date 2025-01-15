@@ -246,6 +246,9 @@ const (
 	//	a[6].foo(0) // Call(Chain(a, Index(Integer(6)), Select(foo)), Arg(Integer(0)))
 	Call
 
+	// Special form.
+	Pack
+
 	// Operand.
 	//
 	// AST and STG.
