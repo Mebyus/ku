@@ -5,6 +5,12 @@ import (
 	"github.com/mebyus/ku/goku/compiler/source"
 )
 
+// Block represents a sequence of statements inside a block.
+// Block can be a statement, function body, branch body, etc.
+//
+// Formal definition:
+//
+//	Block => "{" { Statement } "}"
 type Block struct {
 	Nodes []Statement
 

@@ -16,6 +16,8 @@ func (g *Printer) Exp(exp Exp) {
 		g.Integer(e)
 	case String:
 		g.String(e)
+	case Unary:
+		g.Unary(e)
 	case Binary:
 		g.Binary(e)
 	case Paren:
@@ -41,6 +43,11 @@ func (g *Printer) Binary(b Binary) {
 	g.puts(b.Op.Kind.String())
 	g.space()
 	g.Exp(b.B)
+}
+
+func (g *Printer) Unary(u Unary) {
+	g.puts(u.Op.Kind.String())
+	g.Exp(u.Exp)
 }
 
 func (g *Printer) Paren(p Paren) {

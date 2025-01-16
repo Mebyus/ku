@@ -16,8 +16,8 @@ type Text struct {
 	// List of (Kind, Index) pairs for all top level nodes.
 	// Elements in this list are in the same order as they appear in source text.
 	//
-	// Kind determines to which slice of nodes applies Index.
-	TopList []TopNodeIndex
+	// Kind determines to which slice of nodes Index applies.
+	OrderIndex []TopNodeIndex
 
 	// List of top custom type definition nodes.
 	Types []Type
@@ -44,4 +44,32 @@ type Text struct {
 type TopNodeIndex struct {
 	Index uint32
 	Kind  tnk.Kind
+}
+
+func New() *Text {
+	return &Text{}
+}
+
+func (t *Text) AddVar(v Var) {
+	t.OrderIndex = append(t.OrderIndex, TopNodeIndex{
+		Kind:  tnk.Var,
+		Index: uint32(len(t.Variables)),
+	})
+	t.Variables = append(t.Variables, TopVar{Var: v})
+}
+
+func (t *Text) AddLet(l Let) {
+	t.OrderIndex = append(t.OrderIndex, TopNodeIndex{
+		Kind:  tnk.Let,
+		Index: uint32(len(t.Constants)),
+	})
+	t.Constants = append(t.Constants, TopLet{Let: l})
+}
+
+func (t *Text) AddFun(f Fun) {
+	t.OrderIndex = append(t.OrderIndex, TopNodeIndex{
+		Kind:  tnk.Fun,
+		Index: uint32(len(t.Functions)),
+	})
+	t.Functions = append(t.Functions, f)
 }

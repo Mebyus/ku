@@ -8,6 +8,12 @@ func (g *Printer) Statement(s Statement) {
 		g.Block(s)
 	case Ret:
 		g.Ret(s)
+	case Var:
+		g.Var(s)
+	case Let:
+		g.Let(s)
+	case Assign:
+		g.Assign(s)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) statement (%T)", s.Kind(), s.Kind(), s))
 	}
@@ -46,17 +52,44 @@ func (g *Printer) Ret(r Ret) {
 }
 
 func (g *Printer) TopLet(l TopLet) {
-
+	g.Let(l.Let)
 }
 
 func (g *Printer) Let(l Let) {
-
+	g.puts("let ")
+	g.puts(l.Name.Str)
+	g.puts(": ")
+	g.TypeSpec(l.Type)
+	g.puts(" = ")
+	g.Exp(l.Exp)
+	g.semi()
 }
 
-func (g *Printer) TopVar(l TopVar) {
-
+func (g *Printer) TopVar(v TopVar) {
+	g.Var(v.Var)
 }
 
-func (g *Printer) Var(l Var) {
+func (g *Printer) Var(v Var) {
+	g.puts("var ")
+	g.puts(v.Name.Str)
+	g.puts(": ")
+	g.TypeSpec(v.Type)
 
+	if v.Exp == nil {
+		g.semi()
+		return
+	}
+
+	g.puts(" = ")
+	g.Exp(v.Exp)
+	g.semi()
+}
+
+func (g *Printer) Assign(a Assign) {
+	g.Exp(a.Target)
+	g.space()
+	g.puts(a.Op.Kind.String())
+	g.space()
+	g.Exp(a.Value)
+	g.semi()
 }

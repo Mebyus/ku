@@ -5,8 +5,14 @@ import (
 	"github.com/mebyus/ku/goku/compiler/source"
 )
 
+// Paren represents an expression which consists of another expression and
+// parenthesis surrounding it.
+//
+// Formal definition:
+//
+//	Paren => "(" Exp ")"
 type Paren struct {
-	// Expression inside parenthesis.
+	// Expression surrounded by parenthesis.
 	Exp Exp
 }
 
