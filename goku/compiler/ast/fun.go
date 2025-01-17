@@ -42,10 +42,7 @@ type Signature struct {
 	Never bool
 }
 
-// Param can represent a single:
-//
-//   - parameter in function signature
-//   - field in struct definition
+// Param represents a single parameter in function signature.
 //
 // Formal definition:
 //

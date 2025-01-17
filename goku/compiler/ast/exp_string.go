@@ -6,6 +6,8 @@ import (
 )
 
 type String struct {
+	nodeOperand
+
 	// String literal value represented by token.
 	Val string
 
@@ -13,7 +15,7 @@ type String struct {
 }
 
 // Explicit interface implementation check.
-var _ Exp = String{}
+var _ Operand = String{}
 
 func (String) Kind() exk.Kind {
 	return exk.String

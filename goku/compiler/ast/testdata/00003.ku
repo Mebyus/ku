@@ -1,6 +1,6 @@
-let x: uint = 0x10;
+let x: u64 = 0x10;
 
 fun foo_bar(a: str) => never {
-    print(a);
-    crash();
+	print(a);
+	crash();
 }

@@ -27,6 +27,8 @@ const (
 
 // Integer represents a single integer token usage inside the tree.
 type Integer struct {
+	nodeOperand
+
 	// Integer value represented by token.
 	Val uint64
 
@@ -37,7 +39,7 @@ type Integer struct {
 }
 
 // Explicit interface implementation check.
-var _ Exp = Integer{}
+var _ Operand = Integer{}
 
 func (Integer) Kind() exk.Kind {
 	return exk.Integer

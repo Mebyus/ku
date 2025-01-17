@@ -22,7 +22,7 @@ func (g *Printer) Signature(s Signature) {
 	g.puts(")")
 
 	if s.Never {
-		g.puts(" => never ")
+		g.puts(" => never")
 		return
 	}
 

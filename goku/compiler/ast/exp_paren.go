@@ -12,12 +12,14 @@ import (
 //
 //	Paren => "(" Exp ")"
 type Paren struct {
+	nodeOperand
+
 	// Expression surrounded by parenthesis.
 	Exp Exp
 }
 
 // Explicit interface implementation check.
-var _ Exp = Paren{}
+var _ Operand = Paren{}
 
 func (Paren) Kind() exk.Kind {
 	return exk.Paren

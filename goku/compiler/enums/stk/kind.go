@@ -15,7 +15,7 @@ const (
 	Let
 	Var
 	If
-	Call
+	Invoke
 	Loop
 	While
 	ForRange
@@ -40,7 +40,7 @@ var text = [...]string{
 	Let:       "let",
 	Var:       "var",
 	If:        "if",
-	Call:      "call",
+	Invoke:    "invoke",
 	Loop:      "loop",
 	While:     "while",
 	ForRange:  "for.range",

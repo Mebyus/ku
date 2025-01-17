@@ -7,6 +7,8 @@ import (
 
 // Dirty represents usage of "dirty" keyword as expression.
 type Dirty struct {
+	nodeExp
+
 	Pin source.Pin
 }
 

@@ -14,6 +14,8 @@ func (g *Printer) Statement(s Statement) {
 		g.Let(s)
 	case Assign:
 		g.Assign(s)
+	case Invoke:
+		g.Invoke(s)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) statement (%T)", s.Kind(), s.Kind(), s))
 	}
@@ -38,6 +40,11 @@ func (g *Printer) Block(b Block) {
 	g.dec()
 	g.indent()
 	g.puts("}")
+}
+
+func (g *Printer) Invoke(i Invoke) {
+	g.Call(i.Call)
+	g.semi()
 }
 
 func (g *Printer) Ret(r Ret) {

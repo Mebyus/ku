@@ -21,6 +21,7 @@ const (
 	Bag
 	Fun
 	Tuple
+	Trivial
 )
 
 var text = [...]string{
@@ -37,6 +38,7 @@ var text = [...]string{
 	Bag:          "bag",
 	Fun:          "fun",
 	Tuple:        "tuple",
+	Trivial:      "trivial",
 
 	AnyPointer: "pointer.any",
 }

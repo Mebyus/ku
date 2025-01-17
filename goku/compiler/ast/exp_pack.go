@@ -39,6 +39,8 @@ import (
 //
 //	Pack => Exp "," Exp { "," Exp } // trailing comma is not allowed
 type Pack struct {
+	nodeExp
+
 	// Always contains at least two elements.
 	List []Exp
 }

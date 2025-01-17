@@ -19,6 +19,40 @@ type Exp interface {
 	Node
 
 	Kind() exk.Kind
+
+	// Discriminator method for interface implementations.
+	// Only serves as a trick to enhance Go typechecking in
+	// type assertions.
+	//
+	// Does nothing when called.
+	_exp()
+}
+
+type Operand interface {
+	Exp
+
+	// Discriminator method for interface implementations.
+	// Only serves as a trick to enhance Go typechecking in
+	// type assertions.
+	//
+	// Does nothing when called.
+	_operand()
+}
+
+// Part bag for chain parts.
+//
+// Note that Part does not have _exp() and therefore should not be an expression.
+type Part interface {
+	Node
+
+	Kind() exk.Kind
+
+	// Discriminator method for interface implementations.
+	// Only serves as a trick to enhance Go typechecking in
+	// type assertions.
+	//
+	// Does nothing when called.
+	_part()
 }
 
 // Top node that represents top level node.
@@ -65,3 +99,23 @@ type Traits struct {
 }
 
 type Prop struct{}
+
+// Embed this to quickly implement _exp() discriminator from Exp interface.
+// Do not use it for anything else.
+type nodeExp struct{}
+
+func (nodeExp) _exp() {}
+
+// Embed this to quickly implement _exp() and _operand() discriminators from Operand interface.
+// Do not use it for anything else.
+type nodeOperand struct{}
+
+func (nodeOperand) _exp() {}
+
+func (nodeOperand) _operand() {}
+
+// Embed this to quickly implement _part() discriminator from Part interface.
+// Do not use it for anything else.
+type nodePart struct{}
+
+func (nodePart) _part() {}

@@ -5,31 +5,80 @@ import "fmt"
 func (g *Printer) Type(typ Type) {
 	g.puts("type ")
 	g.puts(typ.Name.Str)
-	g.space()
+	g.puts(" => ")
 	g.TypeSpec(typ.Spec)
 }
 
-func (g *Printer) TypeSpec(spec TypeSpec) {
-	switch s := spec.(type) {
+func (g *Printer) TypeSpec(typ TypeSpec) {
+	switch t := typ.(type) {
 	case TypeName:
-		g.TypeName(s)
+		g.TypeName(t)
 	case TypeFullName:
-		g.TypeFullName(s)
+		g.TypeFullName(t)
 	case Tuple:
-		g.Tuple(s)
+		g.Tuple(t)
+	case Chunk:
+		g.Chunk(t)
+	case Struct:
+		g.Struct(t)
+	case Trivial:
+		g.Trivial(t)
+	case Pointer:
+		g.Pointer(t)
 	default:
-		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier", s.Kind(), s.Kind()))
+		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier", t.Kind(), t.Kind()))
 	}
 }
 
-func (g *Printer) TypeName(name TypeName) {
-	g.puts(name.Name.Str)
+func (g *Printer) Trivial(t Trivial) {
+	g.puts("()")
 }
 
-func (g *Printer) TypeFullName(name TypeFullName) {
-	g.puts(name.Import.Str)
+func (g *Printer) Pointer(p Pointer) {
+	g.puts("*")
+	g.TypeSpec(p.Type)
+}
+
+func (g *Printer) Chunk(c Chunk) {
+	g.puts("[]")
+	g.TypeSpec(c.Type)
+}
+
+func (g *Printer) TypeName(t TypeName) {
+	g.puts(t.Name.Str)
+}
+
+func (g *Printer) TypeFullName(t TypeFullName) {
+	g.puts(t.Import.Str)
 	g.puts(".")
-	g.puts(name.Name.Str)
+	g.puts(t.Name.Str)
+}
+
+func (g *Printer) Struct(s Struct) {
+	if len(s.Fields) == 0 {
+		g.puts("struct {}")
+		return
+	}
+
+	g.puts("struct {")
+	g.nl()
+	g.inc()
+
+	for _, f := range s.Fields {
+		g.indent()
+		g.Field(f)
+		g.puts(",")
+		g.nl()
+	}
+
+	g.dec()
+	g.puts("}")
+}
+
+func (g *Printer) Field(f Field) {
+	g.puts(f.Name.Str)
+	g.puts(": ")
+	g.TypeSpec(f.Type)
 }
 
 func (g *Printer) Tuple(tuple Tuple) {

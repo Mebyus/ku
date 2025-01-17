@@ -7,6 +7,8 @@ import (
 
 // Symbol represents a single word token usage inside an expression.
 type Symbol struct {
+	nodeOperand
+
 	// Symbol name. Single word.
 	Name string
 
@@ -14,7 +16,7 @@ type Symbol struct {
 }
 
 // Explicit interface implementation check.
-var _ Exp = Symbol{}
+var _ Operand = Symbol{}
 
 func (Symbol) Kind() exk.Kind {
 	return exk.Symbol

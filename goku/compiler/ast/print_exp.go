@@ -24,9 +24,62 @@ func (g *Printer) Exp(exp Exp) {
 		g.Paren(e)
 	case Pack:
 		g.Pack(e)
+	case Chain:
+		g.Chain(e)
+	case Call:
+		g.Call(e)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) expression (%T)", e.Kind(), e.Kind(), e))
 	}
+}
+
+func (g *Printer) Call(c Call) {
+	g.Chain(c.Chain)
+	g.puts("(")
+	g.Args(c.Args)
+	g.puts(")")
+}
+
+func (g *Printer) Args(args []Exp) {
+	if len(args) == 0 {
+		return
+	}
+
+	g.Exp(args[0])
+	for _, arg := range args[1:] {
+		g.puts(", ")
+		g.Exp(arg)
+	}
+}
+
+func (g *Printer) Chain(c Chain) {
+	g.puts(c.Start.Str)
+
+	for _, p := range c.Parts {
+		g.Part(p)
+	}
+}
+
+func (g *Printer) Part(p Part) {
+	switch p := p.(type) {
+	case Index:
+		g.Index(p)
+	case Select:
+		g.Select(p)
+	default:
+		panic(fmt.Sprintf("unexpected \"%s\" (=%d) chain part (%T)", p.Kind(), p.Kind(), p))
+	}
+}
+
+func (g *Printer) Select(s Select) {
+	g.puts(".")
+	g.puts(s.Name.Str)
+}
+
+func (g *Printer) Index(x Index) {
+	g.puts("[")
+	g.Exp(x.Exp)
+	g.puts("]")
 }
 
 func (g *Printer) Pack(p Pack) {

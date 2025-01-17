@@ -12,6 +12,8 @@ import (
 //
 //	Unary => UnaryOp ( Operand | Unary )
 type Unary struct {
+	nodeExp
+
 	// Expression to which operator applies.
 	//
 	// Can be either:

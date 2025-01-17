@@ -50,6 +50,14 @@ func New() *Text {
 	return &Text{}
 }
 
+func (t *Text) AddType(typ Type) {
+	t.OrderIndex = append(t.OrderIndex, TopNodeIndex{
+		Kind:  tnk.Type,
+		Index: uint32(len(t.Types)),
+	})
+	t.Types = append(t.Types, typ)
+}
+
 func (t *Text) AddVar(v Var) {
 	t.OrderIndex = append(t.OrderIndex, TopNodeIndex{
 		Kind:  tnk.Var,

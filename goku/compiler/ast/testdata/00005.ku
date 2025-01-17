@@ -1,0 +1,16 @@
+type Foo => struct {
+	bar: str,
+}
+
+type Bar => str
+
+type Hello => ()
+
+type FooError => u32 {
+	BIG   = 1,
+	SMALL = 2,
+}
+
+fun modify(foo: *Foo) {
+	foo.bar = "hello, foo!";
+}

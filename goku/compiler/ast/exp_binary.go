@@ -7,6 +7,8 @@ import (
 )
 
 type Binary struct {
+	nodeExp
+
 	Op BinOp
 
 	// Left side of binary expression.
