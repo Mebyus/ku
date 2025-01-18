@@ -2,14 +2,19 @@ package ast
 
 func (g *Printer) Fun(f Fun) {
 	g.puts("fun ")
+	g.fun(f)
+}
+
+func (g *Printer) Test(t Fun) {
+	g.puts("test ")
+	g.fun(t)
+}
+
+func (g *Printer) fun(f Fun) {
 	g.puts(f.Name.Str)
 	g.Signature(f.Signature)
 	g.space()
 	g.Block(f.Body)
-}
-
-func (g *Printer) Test(t Fun) {
-
 }
 
 func (g *Printer) FunStub(s FunStub) {
@@ -51,4 +56,18 @@ func (g *Printer) Param(p Param) {
 	g.puts(p.Name.Str)
 	g.puts(": ")
 	g.TypeSpec(p.Type)
+}
+
+func (g *Printer) Method(m Method) {
+	g.puts("fun ")
+	g.puts("(")
+	if m.Receiver.Ptr {
+		g.puts("*")
+	}
+	g.puts(m.Receiver.Name.Str)
+	g.puts(") ")
+	g.puts(m.Name.Str)
+	g.Signature(m.Signature)
+	g.space()
+	g.Block(m.Body)
 }

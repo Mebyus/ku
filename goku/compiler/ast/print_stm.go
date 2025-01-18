@@ -16,9 +16,16 @@ func (g *Printer) Statement(s Statement) {
 		g.Assign(s)
 	case Invoke:
 		g.Invoke(s)
+	case Loop:
+		g.Loop(s)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) statement (%T)", s.Kind(), s.Kind(), s))
 	}
+}
+
+func (g *Printer) Loop(l Loop) {
+	g.puts("for ")
+	g.Block(l.Body)
 }
 
 func (g *Printer) Block(b Block) {

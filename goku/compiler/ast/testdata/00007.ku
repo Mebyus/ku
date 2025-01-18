@@ -1,0 +1,5 @@
+type CustomError => erval {
+	Error1 = 1,
+	Error2 = 2,
+	Error3,
+}

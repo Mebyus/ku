@@ -81,3 +81,19 @@ func (t *Text) AddFun(f Fun) {
 	})
 	t.Functions = append(t.Functions, f)
 }
+
+func (t *Text) AddTest(f Fun) {
+	t.OrderIndex = append(t.OrderIndex, TopNodeIndex{
+		Kind:  tnk.Test,
+		Index: uint32(len(t.Tests)),
+	})
+	t.Tests = append(t.Tests, f)
+}
+
+func (t *Text) AddMethod(m Method) {
+	t.OrderIndex = append(t.OrderIndex, TopNodeIndex{
+		Kind:  tnk.Method,
+		Index: uint32(len(t.Methods)),
+	})
+	t.Methods = append(t.Methods, m)
+}

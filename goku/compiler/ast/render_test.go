@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/mebyus/ku/goku/compiler/enums/aok"
 	"github.com/mebyus/ku/goku/compiler/enums/bok"
 )
 
@@ -97,7 +98,13 @@ func text5() *Text {
 		Name: word("Hello"),
 		Spec: triv,
 	})
-	// t.AddType(Type{})
+	t.AddType(Type{
+		Name: word("FooError"),
+		Spec: enum("u32",
+			ee("BIG", dec(1)),
+			ee("SMALL", dec(2)),
+		),
+	})
 	t.AddFun(Fun{
 		Name: word("modify"),
 		Signature: Signature{
@@ -105,6 +112,48 @@ func text5() *Text {
 				param("foo", ptr(typename("Foo"))),
 			},
 		},
+		Body: block(
+			asimp(
+				chain("foo", sel("bar")),
+				slit("hello, foo!"),
+			),
+		),
+	})
+	return t
+}
+
+func text6() *Text {
+	t := New()
+	t.AddMethod(Method{
+		Receiver: Receiver{
+			Name: word("Foo"),
+			Ptr:  true,
+		},
+		Name: word("write"),
+		Signature: Signature{
+			Params: []Param{
+				param("data", chunk(u8)),
+			},
+			Result: tuple(u64, typename("error")),
+		},
+		Body: block(
+			ret(pack(chain("data", sel("len")), Nil{})),
+		),
+	})
+	t.AddMethod(Method{
+		Receiver: Receiver{
+			Name: word("Foo"),
+		},
+		Name: word("string"),
+		Signature: Signature{
+			Params: []Param{
+				param("al", full("mem", "Allocator")),
+			},
+			Result: str,
+		},
+		Body: block(
+			ret(slit("")),
+		),
 	})
 	return t
 }
@@ -134,6 +183,10 @@ func prepareRenderTestCases() []RenderTestCase {
 		{
 			File: "00005.ku",
 			Text: text5(),
+		},
+		{
+			File: "00006.ku",
+			Text: text6(),
 		},
 	}
 }
@@ -166,6 +219,13 @@ func typename(s string) TypeName {
 	return TypeName{Name: word(s)}
 }
 
+func full(imp string, name string) TypeFullName {
+	return TypeFullName{
+		Import: word(imp),
+		Name:   word(name),
+	}
+}
+
 func field(name string, typ TypeSpec) Field {
 	return Field{
 		Name: word(name),
@@ -177,12 +237,30 @@ func typestruct(fields ...Field) Struct {
 	return Struct{Fields: fields}
 }
 
+func ee(name string, exp Exp) EnumEntry {
+	return EnumEntry{
+		Name: word(name),
+		Exp:  exp,
+	}
+}
+
+func enum(base string, entries ...EnumEntry) Enum {
+	return Enum{
+		Base:    typename(base),
+		Entries: entries,
+	}
+}
+
 func ptr(typ TypeSpec) Pointer {
 	return Pointer{Type: typ}
 }
 
 func chunk(typ TypeSpec) Chunk {
 	return Chunk{Type: typ}
+}
+
+func slit(s string) String {
+	return String{Val: s}
 }
 
 func dec(n uint64) Integer {
@@ -239,8 +317,12 @@ func chain(start string, parts ...Part) Chain {
 	}
 }
 
-func index(exp Exp) Part {
+func index(exp Exp) Index {
 	return Index{Exp: exp}
+}
+
+func sel(name string) Select {
+	return Select{Name: word(name)}
 }
 
 func invoke(chain Chain, args ...Exp) Invoke {
@@ -252,7 +334,27 @@ func invoke(chain Chain, args ...Exp) Invoke {
 	}
 }
 
+func asimp(target Exp, value Exp) Assign {
+	return Assign{
+		Op:     AssignOp{Kind: aok.Simple},
+		Target: target,
+		Value:  value,
+	}
+}
+
+func tuple(typs ...TypeSpec) Tuple {
+	return Tuple{Types: typs}
+}
+
+func pack(exps ...Exp) Pack {
+	if len(exps) < 2 {
+		panic("not enough elements to form a pack")
+	}
+	return Pack{List: exps}
+}
+
 var (
+	u8  = typename("u8")
 	u32 = typename("u32")
 	u64 = typename("u64")
 

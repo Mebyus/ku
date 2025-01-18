@@ -90,6 +90,16 @@ const (
 	//	5 == 3 => false // Integer(5) == Integer(3) => Boolean(false)
 	Boolean
 
+	// Operand.
+	//
+	// AST and STG.
+	//
+	// In AST represents nil literal.
+	//
+	// Examples:
+	//	p = nil;
+	Nil
+
 	// Special form.
 	//
 	// AST only.
@@ -289,6 +299,8 @@ const (
 	//	#size(u32)
 	//	#size(Foo)
 	Size
+
+	maxKind
 )
 
 var text = [...]string{
@@ -301,6 +313,7 @@ var text = [...]string{
 	Unary:  "unary",
 	Binary: "binary",
 	Paren:  "paren",
+	Pack:   "pack",
 
 	Chain:  "chain",
 	Index:  "index",
@@ -311,10 +324,12 @@ var text = [...]string{
 
 	DerefIndex: "deref.index",
 
+	Symbol:  "symbol",
 	Integer: "integer",
 	Float:   "float",
 	String:  "string",
 	Boolean: "boolean",
+	Nil:     "nil",
 	Dirty:   "dirty",
 }
 

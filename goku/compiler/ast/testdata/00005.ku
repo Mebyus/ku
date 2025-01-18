@@ -7,7 +7,7 @@ type Bar => str
 type Hello => ()
 
 type FooError => u32 {
-	BIG   = 1,
+	BIG = 1,
 	SMALL = 2,
 }
 

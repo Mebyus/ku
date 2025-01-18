@@ -25,9 +25,43 @@ func (g *Printer) TypeSpec(typ TypeSpec) {
 		g.Trivial(t)
 	case Pointer:
 		g.Pointer(t)
+	case Enum:
+		g.Enum(t)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier", t.Kind(), t.Kind()))
 	}
+}
+
+func (g *Printer) Enum(e Enum) {
+	g.puts(e.Base.Name.Str)
+	if len(e.Entries) == 0 {
+		g.puts(" {}")
+		return
+	}
+
+	g.puts(" {")
+	g.nl()
+	g.inc()
+
+	for _, entry := range e.Entries {
+		g.indent()
+		g.EnumEntry(entry)
+		g.puts(",")
+		g.nl()
+	}
+
+	g.dec()
+	g.puts("}")
+}
+
+func (g *Printer) EnumEntry(entry EnumEntry) {
+	g.puts(entry.Name.Str)
+	if entry.Exp == nil {
+		return
+	}
+
+	g.puts(" = ")
+	g.Exp(entry.Exp)
 }
 
 func (g *Printer) Trivial(t Trivial) {

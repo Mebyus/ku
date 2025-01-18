@@ -1,4 +1,4 @@
-package stk
+package exk
 
 import "testing"
 

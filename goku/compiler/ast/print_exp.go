@@ -16,6 +16,8 @@ func (g *Printer) Exp(exp Exp) {
 		g.Integer(e)
 	case String:
 		g.String(e)
+	case Nil:
+		g.Nil(e)
 	case Unary:
 		g.Unary(e)
 	case Binary:
@@ -121,6 +123,10 @@ func (g *Printer) String(s String) {
 	g.puts("\"")
 	g.puts(char.Escape(s.Val))
 	g.puts("\"")
+}
+
+func (g *Printer) Nil(n Nil) {
+	g.puts("nil")
 }
 
 func (g *Printer) Dirty(d Dirty) {
