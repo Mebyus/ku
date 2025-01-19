@@ -3,3 +3,14 @@ type CustomError => erval {
 	Error2 = 2,
 	Error3,
 }
+
+fun count() => s32 {
+	var i: s32 = 0;
+	for {
+		if i > 10 {
+			ret i;
+		}
+		i += 1;
+	}
+	ret -0x3;
+}

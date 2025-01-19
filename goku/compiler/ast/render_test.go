@@ -8,6 +8,8 @@ import (
 
 	"github.com/mebyus/ku/goku/compiler/enums/aok"
 	"github.com/mebyus/ku/goku/compiler/enums/bok"
+	"github.com/mebyus/ku/goku/compiler/enums/uok"
+	"github.com/mebyus/ku/goku/compiler/source/origin"
 )
 
 type RenderTestCase struct {
@@ -113,7 +115,7 @@ func text5() *Text {
 			},
 		},
 		Body: block(
-			asimp(
+			assign(
 				chain("foo", sel("bar")),
 				slit("hello, foo!"),
 			),
@@ -158,6 +160,58 @@ func text6() *Text {
 	return t
 }
 
+func text7() *Text {
+	t := New()
+	t.AddType(Type{
+		Name: word("CustomError"),
+		Spec: enum("erval",
+			ee("Error1", dec(1)),
+			ee("Error2", dec(2)),
+			ee("Error3", nil),
+		),
+	})
+	t.AddFun(Fun{
+		Name: word("count"),
+		Signature: Signature{
+			Params: nil,
+			Result: s32,
+		},
+		Body: block(
+			vardef("i", s32, dec(0)),
+			loop(
+				ifbr(
+					ifcl(bin(bok.Greater, sym("i"), dec(10)),
+						block(
+							ret(sym("i"))),
+					),
+					nil,
+				),
+				assignAdd(sym("i"), dec(1)),
+			),
+			ret(unary(uok.Minus, hex(0x3))),
+		),
+	})
+	return t
+}
+
+func text8() *Text {
+	t := New()
+	t.ImportBlocks = []ImportBlock{
+		makeImportBlock(origin.Std,
+			makeImport("mem", "mem"),
+			makeImport("json", "json"),
+		),
+		makeImportBlock(origin.Pkg,
+			makeImport("pk", "another/person/package"),
+		),
+		makeImportBlock(origin.Loc,
+			makeImport("bar", "foo/bar"),
+			makeImport("hello", "example/hello"),
+		),
+	}
+	return t
+}
+
 func prepareRenderTestCases() []RenderTestCase {
 	return []RenderTestCase{
 		{
@@ -187,6 +241,14 @@ func prepareRenderTestCases() []RenderTestCase {
 		{
 			File: "00006.ku",
 			Text: text6(),
+		},
+		{
+			File: "00007.ku",
+			Text: text7(),
+		},
+		{
+			File: "00008.ku",
+			Text: text8(),
 		},
 	}
 }
@@ -282,12 +344,39 @@ func block(nodes ...Statement) Block {
 	return Block{Nodes: nodes}
 }
 
+func loop(nodes ...Statement) Loop {
+	return Loop{Body: block(nodes...)}
+}
+
+func ifcl(exp Exp, body Block) IfClause {
+	return IfClause{
+		Exp:  exp,
+		Body: body,
+	}
+}
+
+func ifbr(ifclause IfClause, elseBody *Block, elseifs ...IfClause) If {
+	return If{
+		If:      ifclause,
+		ElseIfs: elseifs,
+		Else:    elseBody,
+	}
+}
+
 func ret(exp Exp) Ret {
 	return Ret{Exp: exp}
 }
 
 func let(name string, typ TypeSpec, exp Exp) Let {
 	return Let{
+		Name: word(name),
+		Type: typ,
+		Exp:  exp,
+	}
+}
+
+func vardef(name string, typ TypeSpec, exp Exp) Var {
+	return Var{
 		Name: word(name),
 		Type: typ,
 		Exp:  exp,
@@ -303,6 +392,27 @@ func bin(op bok.Kind, a Exp, b Exp) Binary {
 		Op: BinOp{Kind: op},
 		A:  a,
 		B:  b,
+	}
+}
+
+func unary(op uok.Kind, exp Exp) Unary {
+	return Unary{
+		Op:  UnaryOp{Kind: op},
+		Exp: exp,
+	}
+}
+
+func makeImport(name string, s string) Import {
+	return Import{
+		Name:   word(name),
+		String: ImportString{Str: s},
+	}
+}
+
+func makeImportBlock(o origin.Origin, imports ...Import) ImportBlock {
+	return ImportBlock{
+		Imports: imports,
+		Origin:  o,
 	}
 }
 
@@ -334,9 +444,17 @@ func invoke(chain Chain, args ...Exp) Invoke {
 	}
 }
 
-func asimp(target Exp, value Exp) Assign {
+func assign(target Exp, value Exp) Assign {
 	return Assign{
 		Op:     AssignOp{Kind: aok.Simple},
+		Target: target,
+		Value:  value,
+	}
+}
+
+func assignAdd(target Exp, value Exp) Assign {
+	return Assign{
+		Op:     AssignOp{Kind: aok.Add},
 		Target: target,
 		Value:  value,
 	}

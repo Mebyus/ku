@@ -15,6 +15,8 @@ func Render(w io.Writer, text *Text) error {
 }
 
 func (g *Printer) Text(text *Text) {
+	g.ImportBlocks(text.ImportBlocks)
+
 	if len(text.OrderIndex) == 0 {
 		return
 	}

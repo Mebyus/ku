@@ -18,9 +18,30 @@ func (g *Printer) Statement(s Statement) {
 		g.Invoke(s)
 	case Loop:
 		g.Loop(s)
+	case If:
+		g.If(s)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) statement (%T)", s.Kind(), s.Kind(), s))
 	}
+}
+
+func (g *Printer) If(i If) {
+	g.ifClause(i.If)
+	for _, c := range i.ElseIfs {
+		g.puts(" else ")
+		g.ifClause(c)
+	}
+	if i.Else != nil {
+		g.puts(" else ")
+		g.Block(*i.Else)
+	}
+}
+
+func (g *Printer) ifClause(c IfClause) {
+	g.puts("if ")
+	g.Exp(c.Exp)
+	g.space()
+	g.Block(c.Body)
 }
 
 func (g *Printer) Loop(l Loop) {

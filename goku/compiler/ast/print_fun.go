@@ -41,7 +41,6 @@ func (g *Printer) Signature(s Signature) {
 
 func (g *Printer) Params(params []Param) {
 	if len(params) == 0 {
-		g.puts("()")
 		return
 	}
 
