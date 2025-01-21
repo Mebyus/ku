@@ -19,12 +19,18 @@ func (g *Printer) TypeSpec(typ TypeSpec) {
 		g.Tuple(t)
 	case Chunk:
 		g.Chunk(t)
+	case Array:
+		g.Array(t)
 	case Struct:
 		g.Struct(t)
 	case Trivial:
 		g.Trivial(t)
 	case Pointer:
 		g.Pointer(t)
+	case AnyPointer:
+		g.AnyPointer(t)
+	case ArrayPointer:
+		g.ArrayPointer(t)
 	case Enum:
 		g.Enum(t)
 	default:
@@ -73,9 +79,25 @@ func (g *Printer) Pointer(p Pointer) {
 	g.TypeSpec(p.Type)
 }
 
+func (g *Printer) AnyPointer(p AnyPointer) {
+	g.puts("*any")
+}
+
+func (g *Printer) ArrayPointer(p ArrayPointer) {
+	g.puts("[*]")
+	g.TypeSpec(p.Type)
+}
+
 func (g *Printer) Chunk(c Chunk) {
 	g.puts("[]")
 	g.TypeSpec(c.Type)
+}
+
+func (g *Printer) Array(a Array) {
+	g.puts("[")
+	g.Exp(a.Size)
+	g.puts("]")
+	g.TypeSpec(a.Type)
 }
 
 func (g *Printer) TypeName(t TypeName) {

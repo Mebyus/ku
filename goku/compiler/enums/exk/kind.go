@@ -193,6 +193,11 @@ const (
 
 	// Chain part.
 	//
+	// AST only.
+	SelectTest
+
+	// Chain part.
+	//
 	// AST (TODO: complete usage annotation).
 	//
 	// Represents chain part which dereferences a pointer.
@@ -255,6 +260,8 @@ const (
 	//	a.foo(4, b) // Call(Chain(a, Select(foo)), Arg(Integer(4)), Arg(Symbol(b)))
 	//	a[6].foo(0) // Call(Chain(a, Index(Integer(6)), Select(foo)), Arg(Integer(0)))
 	Call
+
+	Slice
 
 	// Special form.
 	Pack
@@ -321,8 +328,10 @@ var text = [...]string{
 	Ref:    "ref",
 	Deref:  "deref",
 	Select: "select",
+	Slice:  "slice",
 
 	DerefIndex: "deref.index",
+	SelectTest: "select.test",
 
 	Symbol:  "symbol",
 	Integer: "integer",

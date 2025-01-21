@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/mebyus/ku/goku/compiler/ast"
+	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/lexer"
 	"github.com/mebyus/ku/goku/compiler/source"
 )
@@ -24,7 +25,8 @@ import (
 // cases (struct fields, function parameters and args, etc.). We will avoid such
 // texts in test data.
 func TestParse(t *testing.T) {
-	entries, err := os.ReadDir("testdata")
+	const dir = "../ast/testdata"
+	entries, err := os.ReadDir(dir)
 	if err != nil {
 		t.Error(err)
 		return
@@ -40,7 +42,7 @@ func TestParse(t *testing.T) {
 
 	pool := source.New()
 	for _, file := range files {
-		path := filepath.Join("testdata", file)
+		path := filepath.Join(dir, file)
 		src, err := pool.Load(path)
 		if err != nil {
 			t.Error(err)
@@ -52,7 +54,7 @@ func TestParse(t *testing.T) {
 			lx1 := lexer.FromTokens(tokens)
 			text, err := ParseStream(lx1)
 			if err != nil {
-				t.Error(err)
+				t.Error(diag.Stringify(pool, err))
 				return
 			}
 

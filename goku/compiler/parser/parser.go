@@ -2,7 +2,7 @@ package parser
 
 import (
 	"github.com/mebyus/ku/goku/compiler/ast"
-	"github.com/mebyus/ku/goku/compiler/cerp"
+	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/lexer"
 	"github.com/mebyus/ku/goku/compiler/token"
 )
@@ -10,21 +10,27 @@ import (
 type Parser struct {
 	text ast.Text
 
-	s lexer.Stream
+	lx lexer.Stream
 
 	c token.Token
 	n token.Token
+
+	props []ast.Prop
 }
 
-func (p *Parser) Imports() ([]ast.ImportBlock, cerp.Error) {
+func (p *Parser) Imports() ([]ast.ImportBlock, diag.Error) {
 	return nil, nil
 }
 
-func (p *Parser) Nodes() (*ast.Text, cerp.Error) {
+func (p *Parser) Nodes() (*ast.Text, diag.Error) {
+	err := p.parse()
+	if err != nil {
+		return nil, err
+	}
 	return &p.text, nil
 }
 
-func (p *Parser) Text() (*ast.Text, cerp.Error) {
+func (p *Parser) Text() (*ast.Text, diag.Error) {
 	_, err := p.Imports()
 	if err != nil {
 		return nil, err
@@ -33,11 +39,11 @@ func (p *Parser) Text() (*ast.Text, cerp.Error) {
 }
 
 func FromStream(stream lexer.Stream) *Parser {
-	p := Parser{s: stream}
+	p := Parser{lx: stream}
 	p.init()
 	return &p
 }
 
-func ParseStream(stream lexer.Stream) (*ast.Text, cerp.Error) {
+func ParseStream(stream lexer.Stream) (*ast.Text, diag.Error) {
 	return FromStream(stream).Text()
 }

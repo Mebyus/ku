@@ -58,12 +58,12 @@ func (t *Text) AddType(typ Type) {
 	t.Types = append(t.Types, typ)
 }
 
-func (t *Text) AddVar(v Var) {
+func (t *Text) AddVar(v TopVar) {
 	t.OrderIndex = append(t.OrderIndex, TopNodeIndex{
 		Kind:  tnk.Var,
 		Index: uint32(len(t.Variables)),
 	})
-	t.Variables = append(t.Variables, TopVar{Var: v})
+	t.Variables = append(t.Variables, v)
 }
 
 func (t *Text) AddLet(l Let) {

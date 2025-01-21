@@ -13,6 +13,8 @@ import (
 //	Var => "var" Name ":" TypeSpec [ "=" Exp ] ";"
 type TopVar struct {
 	Var
+
+	Traits
 }
 
 var _ Top = TopVar{}

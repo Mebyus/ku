@@ -19,10 +19,12 @@ type RenderTestCase struct {
 
 func text1() *Text {
 	t := New()
-	t.AddVar(Var{
-		Name: word("foo"),
-		Type: u32,
-		Exp:  dec(42),
+	t.AddVar(TopVar{
+		Var: Var{
+			Name: word("foo"),
+			Type: u32,
+			Exp:  dec(42),
+		},
 	})
 	return t
 }

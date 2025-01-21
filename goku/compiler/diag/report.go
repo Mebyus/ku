@@ -1,7 +1,8 @@
-package cerp
+package diag
 
 import (
 	"io"
+	"strings"
 
 	"github.com/mebyus/ku/goku/compiler/source"
 )
@@ -33,4 +34,10 @@ func Render(w io.Writer, m source.PinMap, r Report) error {
 		}
 	}
 	return nil
+}
+
+func Stringify(m source.PinMap, e Error) string {
+	var buf strings.Builder
+	e.Render(&buf, m)
+	return buf.String()
 }

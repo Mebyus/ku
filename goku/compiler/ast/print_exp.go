@@ -30,9 +30,31 @@ func (g *Printer) Exp(exp Exp) {
 		g.Chain(e)
 	case Call:
 		g.Call(e)
+	case Ref:
+		g.Ref(e)
+	case Slice:
+		g.Slice(e)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) expression (%T)", e.Kind(), e.Kind(), e))
 	}
+}
+
+func (g *Printer) Slice(s Slice) {
+	g.Chain(s.Chain)
+	g.puts("[")
+	if s.Start != nil {
+		g.Exp(s.Start)
+	}
+	g.puts(":")
+	if s.End != nil {
+		g.Exp(s.End)
+	}
+	g.puts("]")
+}
+
+func (g *Printer) Ref(r Ref) {
+	g.Chain(r.Chain)
+	g.puts(".&")
 }
 
 func (g *Printer) Call(c Call) {
@@ -68,9 +90,22 @@ func (g *Printer) Part(p Part) {
 		g.Index(p)
 	case Select:
 		g.Select(p)
+	case Deref:
+		g.Deref(p)
+	case SelectTest:
+		g.SelectTest(p)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) chain part (%T)", p.Kind(), p.Kind(), p))
 	}
+}
+
+func (g *Printer) SelectTest(s SelectTest) {
+	g.puts(".test.")
+	g.puts(s.Name.Str)
+}
+
+func (g *Printer) Deref(d Deref) {
+	g.puts(".@")
 }
 
 func (g *Printer) Select(s Select) {
@@ -80,6 +115,12 @@ func (g *Printer) Select(s Select) {
 
 func (g *Printer) Index(x Index) {
 	g.puts("[")
+	g.Exp(x.Exp)
+	g.puts("]")
+}
+
+func (g *Printer) DerefIndex(x DerefIndex) {
+	g.puts(".[")
 	g.Exp(x.Exp)
 	g.puts("]")
 }

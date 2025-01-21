@@ -30,3 +30,52 @@ func (p Pointer) String() string {
 	g.Pointer(p)
 	return g.Output()
 }
+
+// AnyPointer represents pointer to an unknown type.
+//
+// Formal definition:
+//
+//	AnyPointer => "*" "any"
+type AnyPointer struct {
+	Pin source.Pin
+}
+
+var _ TypeSpec = Pointer{}
+
+func (AnyPointer) Kind() tsk.Kind {
+	return tsk.AnyPointer
+}
+
+func (p AnyPointer) Span() source.Span {
+	return source.Span{Pin: p.Pin}
+}
+
+func (p AnyPointer) String() string {
+	return "*any"
+}
+
+// ArrayPointer represents array pointer type specifier.
+//
+// Formal definition:
+//
+//	Pointer => "[*]" TypeSpec
+type ArrayPointer struct {
+	// Type to which pointer refers to.
+	Type TypeSpec
+}
+
+var _ TypeSpec = Pointer{}
+
+func (ArrayPointer) Kind() tsk.Kind {
+	return tsk.ArrayPointer
+}
+
+func (p ArrayPointer) Span() source.Span {
+	return p.Type.Span()
+}
+
+func (p ArrayPointer) String() string {
+	var g Printer
+	g.ArrayPointer(p)
+	return g.Output()
+}

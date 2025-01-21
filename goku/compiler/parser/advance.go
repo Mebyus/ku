@@ -2,7 +2,7 @@ package parser
 
 func (p *Parser) advance() {
 	p.c = p.n
-	p.n = p.s.Lex()
+	p.n = p.lx.Lex()
 }
 
 func (p *Parser) init() {
