@@ -6,6 +6,19 @@ import (
 	"github.com/mebyus/ku/goku/compiler/token"
 )
 
+func (p *Parser) TopLet(traits ast.Traits) diag.Error {
+	l, err := p.Let()
+	if err != nil {
+		return err
+	}
+
+	p.text.AddLet(ast.TopLet{
+		Let:    l,
+		Traits: traits,
+	})
+	return nil
+}
+
 func (p *Parser) Let() (ast.Let, diag.Error) {
 	p.advance() // skip "let"
 

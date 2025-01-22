@@ -28,8 +28,8 @@ func (p *Parser) Statement() (ast.Statement, diag.Error) {
 	// 	return p.stubStatement()
 	// case token.Defer:
 	// 	return p.deferStatement()
-	// case token.Identifier:
-	// 	return p.identifierStartStatement()
+	case token.Word:
+		return p.AssignOrInvoke()
 	default:
 		return nil, p.unexpected()
 	}

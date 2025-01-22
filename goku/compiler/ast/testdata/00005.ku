@@ -4,7 +4,7 @@ type Foo => struct {
 
 type Bar => str
 
-type Hello => ()
+type Hello => {}
 
 type FooError => u32 {
 	BIG = 1,

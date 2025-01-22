@@ -3,6 +3,7 @@ package parser
 import (
 	"github.com/mebyus/ku/goku/compiler/ast"
 	"github.com/mebyus/ku/goku/compiler/diag"
+	"github.com/mebyus/ku/goku/compiler/enums/aok"
 	"github.com/mebyus/ku/goku/compiler/token"
 )
 
@@ -43,5 +44,9 @@ func (p *Parser) Pack() (ast.Exp, diag.Error) {
 
 // Pack expression should be terminated by one of these: ";", "=", ":=".
 func isPackEnd(k token.Kind) bool {
-	return k == token.Semicolon || k == token.Assign || k == token.Walrus
+	if k == token.Semicolon {
+		return true
+	}
+	_, ok := aok.FromToken(k)
+	return ok
 }

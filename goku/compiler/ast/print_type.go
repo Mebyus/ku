@@ -71,7 +71,7 @@ func (g *Printer) EnumEntry(entry EnumEntry) {
 }
 
 func (g *Printer) Trivial(t Trivial) {
-	g.puts("()")
+	g.puts("{}")
 }
 
 func (g *Printer) Pointer(p Pointer) {

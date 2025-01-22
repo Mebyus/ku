@@ -66,12 +66,12 @@ func (t *Text) AddVar(v TopVar) {
 	t.Variables = append(t.Variables, v)
 }
 
-func (t *Text) AddLet(l Let) {
+func (t *Text) AddLet(l TopLet) {
 	t.OrderIndex = append(t.OrderIndex, TopNodeIndex{
 		Kind:  tnk.Let,
 		Index: uint32(len(t.Constants)),
 	})
-	t.Constants = append(t.Constants, TopLet{Let: l})
+	t.Constants = append(t.Constants, l)
 }
 
 func (t *Text) AddFun(f Fun) {

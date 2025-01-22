@@ -7,7 +7,7 @@ import (
 )
 
 func (p *Parser) Fun(traits ast.Traits) diag.Error {
-	if p.n.Kind == token.LeftSquare {
+	if p.n.Kind == token.LeftParen {
 		return p.Method(traits)
 	}
 
@@ -67,7 +67,7 @@ func (p *Parser) signature() (ast.Signature, diag.Error) {
 		}, nil
 	}
 
-	result, err := p.TypeSpec()
+	result, err := p.ResultTypeSpec()
 	if err != nil {
 		return ast.Signature{}, err
 	}

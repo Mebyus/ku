@@ -18,10 +18,6 @@ type Parser struct {
 	props []ast.Prop
 }
 
-func (p *Parser) Imports() ([]ast.ImportBlock, diag.Error) {
-	return nil, nil
-}
-
 func (p *Parser) Nodes() (*ast.Text, diag.Error) {
 	err := p.parse()
 	if err != nil {
@@ -31,7 +27,7 @@ func (p *Parser) Nodes() (*ast.Text, diag.Error) {
 }
 
 func (p *Parser) Text() (*ast.Text, diag.Error) {
-	_, err := p.Imports()
+	_, err := p.ImportBlocks()
 	if err != nil {
 		return nil, err
 	}

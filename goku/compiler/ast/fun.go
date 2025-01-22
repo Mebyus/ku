@@ -32,13 +32,13 @@ type FunStub struct {
 //	ParamList => { Param "," } // last comma is optional
 //	Result    => TypeSpec
 type Signature struct {
-	// Equals nil if there are no parameters in signature
+	// Equals nil if there are no parameters in signature.
 	Params []Param
 
-	// Equals nil if function returns nothing or never returns
+	// Equals nil if function returns nothing or never returns.
 	Result TypeSpec
 
-	// Equals true if function never returns
+	// Equals true if function never returns.
 	Never bool
 }
 

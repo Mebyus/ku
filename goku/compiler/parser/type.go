@@ -63,6 +63,16 @@ func (p *Parser) TypeSpec() (ast.TypeSpec, diag.Error) {
 	}
 }
 
+// ResultTypeSpec parses type specifier in function signature return type.
+//
+// This form includes tuples.
+func (p *Parser) ResultTypeSpec() (ast.TypeSpec, diag.Error) {
+	if p.c.Kind == token.LeftParen {
+		return p.Tuple()
+	}
+	return p.TypeSpec()
+}
+
 // CustomTypeSpec parses type specifier in extended form.
 //
 // It includes all forms allowed in regular form as well those
@@ -74,6 +84,14 @@ func (p *Parser) CustomTypeSpec() (ast.TypeSpec, diag.Error) {
 			return p.Enum()
 		}
 	case token.Struct:
+		return p.Struct()
+	case token.LeftCurly:
+		if p.n.Kind == token.RightCurly {
+			pin := p.c.Pin
+			p.advance() // skip "{"
+			p.advance() // skip "}"
+			return ast.Trivial{Pin: pin}, nil
+		}
 	}
 	return p.TypeSpec()
 }

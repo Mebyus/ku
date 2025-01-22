@@ -32,12 +32,12 @@ func (p *Parser) top() diag.Error {
 	switch p.c.Kind {
 	case token.Type:
 		return p.Type(traits)
-	case token.Var:
-		return p.TopVar(traits)
 	case token.Fun:
 		return p.Fun(traits)
-	// case token.Let:
-	// 	return p.topConstant(traits)
+	case token.Let:
+		return p.TopLet(traits)
+	case token.Var:
+		return p.TopVar(traits)
 	// case token.Test:
 	// 	return p.topTest(traits)
 	// case token.Pub:

@@ -8,6 +8,8 @@ import (
 
 type TopLet struct {
 	Let
+
+	Traits
 }
 
 var _ Top = TopLet{}

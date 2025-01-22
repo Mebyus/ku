@@ -49,10 +49,12 @@ func text2() *Text {
 
 func text3() *Text {
 	t := New()
-	t.AddLet(Let{
-		Name: word("x"),
-		Type: u64,
-		Exp:  hex(0x10),
+	t.AddLet(TopLet{
+		Let: Let{
+			Name: word("x"),
+			Type: u64,
+			Exp:  hex(0x10),
+		},
 	})
 	t.AddFun(Fun{
 		Name: word("foo_bar"),
