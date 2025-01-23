@@ -171,5 +171,5 @@ func (g *Printer) Nil(n Nil) {
 }
 
 func (g *Printer) Dirty(d Dirty) {
-	g.puts("dirty")
+	g.puts("?")
 }

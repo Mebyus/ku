@@ -97,3 +97,11 @@ func (t *Text) AddMethod(m Method) {
 	})
 	t.Methods = append(t.Methods, m)
 }
+
+func (t *Text) AddStub(s FunStub) {
+	t.OrderIndex = append(t.OrderIndex, TopNodeIndex{
+		Kind:  tnk.FunStub,
+		Index: uint32(len(t.FunStubs)),
+	})
+	t.FunStubs = append(t.FunStubs, s)
+}

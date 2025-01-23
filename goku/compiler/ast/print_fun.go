@@ -18,7 +18,11 @@ func (g *Printer) fun(f Fun) {
 }
 
 func (g *Printer) FunStub(s FunStub) {
-
+	g.puts("#stub")
+	g.nl()
+	g.puts("fun ")
+	g.puts(s.Name.Str)
+	g.Signature(s.Signature)
 }
 
 func (g *Printer) Signature(s Signature) {
@@ -27,7 +31,7 @@ func (g *Printer) Signature(s Signature) {
 	g.puts(")")
 
 	if s.Never {
-		g.puts(" => never")
+		g.puts(" => #never")
 		return
 	}
 

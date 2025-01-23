@@ -38,8 +38,10 @@ func (p *Parser) top() diag.Error {
 		return p.TopLet(traits)
 	case token.Var:
 		return p.TopVar(traits)
-	// case token.Test:
-	// 	return p.topTest(traits)
+	case token.Test:
+		return p.Test(traits)
+	case token.Stub:
+		return p.Stub(traits)
 	// case token.Pub:
 	// 	traits.Pub = true
 	// 	return p.topPub(traits)

@@ -1,0 +1,3 @@
+test inc(t: *Test) {
+	ret;
+}

@@ -98,16 +98,15 @@ var literal = [...]string{
 
 	// Special literals
 
-	Never: "never",
-	Stub:  "stub",
-	Dirty: "dirty",
 	Nil:   "nil",
 	True:  "true",
 	False: "false",
 
-	Cast: "#cast",
-	Tint: "#tint",
-	Size: "#size",
+	Stub:  "#stub",
+	Never: "#never",
+	Cast:  "#cast",
+	Tint:  "#tint",
+	Size:  "#size",
 
 	Any: "any",
 

@@ -43,7 +43,7 @@ fun hex_prefix_zeroes_u16(buf: []u8, x: u16) => uint {
 	if buf.len < max_u16_hex_length {
 		ret 0;
 	}
-	#must(buf.ptr != nil);
+	must(buf.ptr != nil);
 
 	ret unsafe_hex_prefix_zeroes_u16(buf, x);
 }
@@ -76,7 +76,7 @@ fun hex_prefix_zeroes_u64(buf: []u8, x: u64) => uint {
 	if buf.len < max_u64_hex_length {
 		ret 0;
 	}
-	#must(buf.ptr != nil);
+	must(buf.ptr != nil);
 
 	ret unsafe_hex_prefix_zeroes_u64(buf, x);
 }
@@ -127,7 +127,7 @@ fun dec_u64(buf: []u8, x: u64) => uint {
 	if buf.len == 0 {
 		ret 0;
 	}
-	#must(buf.ptr != nil);
+	must(buf.ptr != nil);
 	
 	if buf.len >= max_u64_dec_length {
 		ret unsafe_dec_u64(buf, x);

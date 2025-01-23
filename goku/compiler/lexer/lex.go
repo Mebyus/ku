@@ -397,6 +397,10 @@ func (lx *Lexer) static() token.Token {
 		tok.Kind = token.Tint
 	case "size":
 		tok.Kind = token.Size
+	case "never":
+		tok.Kind = token.Never
+	case "stub":
+		tok.Kind = token.Stub
 	default:
 		tok.SetIllegalError(token.UnknownDirective)
 	}

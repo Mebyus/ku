@@ -113,16 +113,15 @@ const (
 
 	// Special literals
 
-	Never
-	Stub
-	Dirty
 	Nil
 	True
 	False
 
-	Cast // #cast
-	Tint // #tint - truncate (cast with storage size change) integer
-	Size // #size - query type size
+	Never // #never
+	Stub  // #stub
+	Cast  // #cast
+	Tint  // #tint - truncate (cast with storage size change) integer
+	Size  // #size - query type size
 
 	Any // designator to use as *any (void* analog)
 

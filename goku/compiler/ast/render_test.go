@@ -216,6 +216,53 @@ func text8() *Text {
 	return t
 }
 
+func text9() *Text {
+	t := New()
+	t.AddFun(Fun{
+		Name: word("return_one"),
+		Signature: Signature{
+			Result: u32,
+		},
+		Body: block(
+			vardef("x", u32, Dirty{}),
+			assign(sym("x"), dec(1)),
+			ret(sym("x")),
+		),
+	})
+	return t
+}
+
+func text10() *Text {
+	t := New()
+	t.AddTest(Fun{
+		Name: word("inc"),
+		Signature: Signature{
+			Params: []Param{
+				param("t", ptr(typename("Test"))),
+			},
+		},
+		Body: block(
+			ret(nil),
+		),
+	})
+	return t
+}
+
+func text11() *Text {
+	t := New()
+	t.AddStub(FunStub{
+		Name: word("example"),
+		Signature: Signature{
+			Params: []Param{
+				param("a", u32),
+				param("b", u32),
+			},
+			Result: tuple(u32, typename("bool")),
+		},
+	})
+	return t
+}
+
 func prepareRenderTestCases() []RenderTestCase {
 	return []RenderTestCase{
 		{
@@ -253,6 +300,18 @@ func prepareRenderTestCases() []RenderTestCase {
 		{
 			File: "00008.ku",
 			Text: text8(),
+		},
+		{
+			File: "00009.ku",
+			Text: text9(),
+		},
+		{
+			File: "00010.ku",
+			Text: text10(),
+		},
+		{
+			File: "00011.ku",
+			Text: text11(),
 		},
 	}
 }

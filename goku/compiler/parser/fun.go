@@ -13,6 +13,37 @@ func (p *Parser) Fun(traits ast.Traits) diag.Error {
 
 	p.advance() // skip "fun"
 
+	f, err := p.fun()
+	if err != nil {
+		return err
+	}
+
+	f.Traits = traits
+	p.text.AddFun(f)
+	return nil
+}
+
+func (p *Parser) Test(traits ast.Traits) diag.Error {
+	p.advance() // skip "test"
+
+	t, err := p.fun()
+	if err != nil {
+		return err
+	}
+
+	t.Traits = traits
+	p.text.AddTest(t)
+	return nil
+}
+
+func (p *Parser) Stub(traits ast.Traits) diag.Error {
+	p.advance() // skip "#stub"
+
+	if p.c.Kind != token.Fun {
+		return p.unexpected()
+	}
+	p.advance() // skip "fun"
+
 	if p.c.Kind != token.Word {
 		return p.unexpected()
 	}
@@ -23,28 +54,39 @@ func (p *Parser) Fun(traits ast.Traits) diag.Error {
 		return err
 	}
 
+	p.text.AddStub(ast.FunStub{
+		Name:      name,
+		Signature: signature,
+		Traits:    traits,
+	})
+	return nil
+}
+
+func (p *Parser) fun() (ast.Fun, diag.Error) {
+	if p.c.Kind != token.Word {
+		return ast.Fun{}, p.unexpected()
+	}
+	name := p.word()
+
+	signature, err := p.signature()
+	if err != nil {
+		return ast.Fun{}, err
+	}
+
 	if p.c.Kind != token.LeftCurly {
-		// d := ast.FunStub{
-		// 	Signature: signature,
-		// 	Name:      name,
-		// 	Traits:    traits,
-		// }
-		// p.atom.Nodes = append(p.atom.Nodes, ast.TopIndex{Kind: ast.NodeStub, Index: uint32(len(p.atom.Decs))})
-		// p.atom.Decs = append(p.atom.Decs, d)
-		return p.unexpected()
+		return ast.Fun{}, p.unexpected()
 	}
 
 	body, err := p.Block()
 	if err != nil {
-		return err
+		return ast.Fun{}, err
 	}
-	p.text.AddFun(ast.Fun{
-		Signature: signature,
+
+	return ast.Fun{
 		Name:      name,
+		Signature: signature,
 		Body:      body,
-		Traits:    traits,
-	})
-	return nil
+	}, nil
 }
 
 func (p *Parser) signature() (ast.Signature, diag.Error) {

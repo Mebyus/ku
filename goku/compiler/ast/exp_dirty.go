@@ -5,7 +5,16 @@ import (
 	"github.com/mebyus/ku/goku/compiler/source"
 )
 
-// Dirty represents usage of "dirty" keyword as expression.
+// Dirty represents usage of "?" as expression.
+//
+// When used as init expression tells the compiler to skip variable
+// initialization (even with default value). When used as return expression
+// tells the compiler that returned value will not be used by the caller and
+// thus anything can be placed in this value at runtime.
+//
+// Formal definition:
+//
+//	Dirty => "?"
 type Dirty struct {
 	nodeExp
 
@@ -24,5 +33,5 @@ func (d Dirty) Span() source.Span {
 }
 
 func (Dirty) String() string {
-	return "dirty"
+	return "?"
 }

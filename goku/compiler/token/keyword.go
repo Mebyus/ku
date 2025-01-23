@@ -20,9 +20,6 @@ var kw = map[string]Kind{
 	"struct": Struct,
 	"pub":    Pub,
 
-	"never": Never,
-	"stub":  Stub,
-	"dirty": Dirty,
 	"nil":   Nil,
 	"true":  True,
 	"false": False,
