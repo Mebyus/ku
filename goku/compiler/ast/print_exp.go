@@ -10,6 +10,8 @@ func (g *Printer) Exp(exp Exp) {
 	switch e := exp.(type) {
 	case Symbol:
 		g.Symbol(e)
+	case DotName:
+		g.DotName(e)
 	case Dirty:
 		g.Dirty(e)
 	case Integer:
@@ -154,6 +156,11 @@ func (g *Printer) Paren(p Paren) {
 
 func (g *Printer) Symbol(n Symbol) {
 	g.puts(n.Name)
+}
+
+func (g *Printer) DotName(d DotName) {
+	g.puts(".")
+	g.puts(d.Name)
 }
 
 func (g *Printer) Integer(n Integer) {

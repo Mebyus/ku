@@ -1,0 +1,9 @@
+#build {
+	if g.target.os == .WINDOWS {
+		g.skip();
+	}
+}
+
+import std {
+	win => "os/windows"
+}

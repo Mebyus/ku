@@ -29,6 +29,10 @@ func (g *Printer) Bytes() []byte {
 	return g.buf
 }
 
+func (g *Printer) empty() bool {
+	return len(g.buf) == 0
+}
+
 // put decimal formatted integer into output buffer
 func (g *Printer) putn(n uint64) {
 	g.puts(strconv.FormatUint(n, 10))

@@ -25,6 +25,11 @@ const (
 
 	// Operand.
 	//
+	// AST only.
+	DotName
+
+	// Operand.
+	//
 	// AST and STG.
 	//
 	// In AST represents unsigned integer literal of any kind (decimal, binary,
@@ -332,6 +337,7 @@ var text = [...]string{
 
 	DerefIndex: "deref.index",
 	SelectTest: "select.test",
+	DotName:    "dot.name",
 
 	Symbol:  "symbol",
 	Integer: "integer",

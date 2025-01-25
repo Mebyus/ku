@@ -39,6 +39,9 @@ type Text struct {
 
 	// List of method nodes.
 	Methods []Method
+
+	// Optional build block. Always comes before imports.
+	Build *Build
 }
 
 type TopNodeIndex struct {

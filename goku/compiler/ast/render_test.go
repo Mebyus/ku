@@ -201,16 +201,16 @@ func text7() *Text {
 func text8() *Text {
 	t := New()
 	t.ImportBlocks = []ImportBlock{
-		makeImportBlock(origin.Std,
-			makeImport("mem", "mem"),
-			makeImport("json", "json"),
+		importBlock(origin.Std,
+			imp("mem", "mem"),
+			imp("json", "json"),
 		),
-		makeImportBlock(origin.Pkg,
-			makeImport("pk", "another/person/package"),
+		importBlock(origin.Pkg,
+			imp("pk", "another/person/package"),
 		),
-		makeImportBlock(origin.Loc,
-			makeImport("bar", "foo/bar"),
-			makeImport("hello", "example/hello"),
+		importBlock(origin.Loc,
+			imp("bar", "foo/bar"),
+			imp("hello", "example/hello"),
 		),
 	}
 	return t
@@ -263,6 +263,25 @@ func text11() *Text {
 	return t
 }
 
+func text12() *Text {
+	t := New()
+	t.Build = build(
+		ifbr(
+			ifcl(eq(chain("g", sel("target"), sel("os")), dotname("WINDOWS")),
+				block(
+					invoke(chain("g", sel("skip"))),
+				)),
+			nil,
+		),
+	)
+	t.ImportBlocks = []ImportBlock{
+		importBlock(origin.Std,
+			imp("win", "os/windows"),
+		),
+	}
+	return t
+}
+
 func prepareRenderTestCases() []RenderTestCase {
 	return []RenderTestCase{
 		{
@@ -312,6 +331,10 @@ func prepareRenderTestCases() []RenderTestCase {
 		{
 			File: "00011.ku",
 			Text: text11(),
+		},
+		{
+			File: "00012.ku",
+			Text: text12(),
 		},
 	}
 }
@@ -465,22 +488,34 @@ func unary(op uok.Kind, exp Exp) Unary {
 	}
 }
 
-func makeImport(name string, s string) Import {
+func imp(name string, s string) Import {
 	return Import{
 		Name:   word(name),
 		String: ImportString{Str: s},
 	}
 }
 
-func makeImportBlock(o origin.Origin, imports ...Import) ImportBlock {
+func importBlock(o origin.Origin, imports ...Import) ImportBlock {
 	return ImportBlock{
 		Imports: imports,
 		Origin:  o,
 	}
 }
 
+func build(nodes ...Statement) *Build {
+	return &Build{Body: block(nodes...)}
+}
+
 func add(a Exp, b Exp) Binary {
 	return bin(bok.Add, a, b)
+}
+
+func eq(a Exp, b Exp) Binary {
+	return bin(bok.Equal, a, b)
+}
+
+func dotname(name string) DotName {
+	return DotName{Name: name}
 }
 
 func chain(start string, parts ...Part) Chain {

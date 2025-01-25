@@ -11,7 +11,7 @@ type Text struct {
 	Path string
 
 	// Assigned automatically when text is loaded by Pool.
-	// Zero value is reserved for texts which are used for consist testing.
+	// Zero value is reserved for texts which are used for consistent testing.
 	ID uint32
 }
 

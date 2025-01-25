@@ -15,6 +15,7 @@ func Render(w io.Writer, text *Text) error {
 }
 
 func (g *Printer) Text(text *Text) {
+	g.Build(text.Build)
 	g.ImportBlocks(text.ImportBlocks)
 
 	if len(text.OrderIndex) == 0 {
@@ -51,5 +52,15 @@ func (g *Printer) topByIndex(text *Text, x TopNodeIndex) {
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) top level node (i=%d)", k, k, i))
 	}
+	g.nl()
+}
+
+func (g *Printer) Build(b *Build) {
+	if b == nil {
+		return
+	}
+
+	g.puts("#build ")
+	g.Block(b.Body)
 	g.nl()
 }

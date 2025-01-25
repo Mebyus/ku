@@ -7,6 +7,9 @@ func (g *Printer) ImportBlocks(blocks []ImportBlock) {
 		return
 	}
 
+	if !g.empty() {
+		g.nl()
+	}
 	g.ImportBlock(blocks[0])
 	g.nl()
 	for _, block := range blocks[1:] {
