@@ -401,6 +401,8 @@ func (lx *Lexer) static() token.Token {
 		tok.Kind = token.Never
 	case "stub":
 		tok.Kind = token.Stub
+	case "build":
+		tok.Kind = token.Build
 	default:
 		tok.SetIllegalError(token.UnknownDirective)
 	}

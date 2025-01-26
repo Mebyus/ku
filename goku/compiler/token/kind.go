@@ -110,6 +110,7 @@ const (
 	Var
 
 	Pub
+	Unsafe
 
 	// Special literals
 
@@ -117,6 +118,7 @@ const (
 	True
 	False
 
+	Build // #build
 	Never // #never
 	Stub  // #stub
 	Cast  // #cast

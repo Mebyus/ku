@@ -93,6 +93,7 @@ var literal = [...]string{
 	Enum:   "enum",
 	Struct: "struct",
 	Pub:    "pub",
+	Unsafe: "unsafe",
 	Unit:   "unit",
 	Let:    "let",
 
@@ -102,6 +103,7 @@ var literal = [...]string{
 	True:  "true",
 	False: "false",
 
+	Build: "#build",
 	Stub:  "#stub",
 	Never: "#never",
 	Cast:  "#cast",

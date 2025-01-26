@@ -282,6 +282,28 @@ func text12() *Text {
 	return t
 }
 
+func text13() *Text {
+	t := New()
+	t.AddFun(Fun{
+		Name: word("copy"),
+		Traits: Traits{
+			Pub:    true,
+			Unsafe: true,
+		},
+		Signature: Signature{
+			Params: []Param{
+				param("dst", arrptr(u8)),
+				param("src", arrptr(u8)),
+				param("n", typename("uint")),
+			},
+		},
+		Body: block(
+			Stub{},
+		),
+	})
+	return t
+}
+
 func prepareRenderTestCases() []RenderTestCase {
 	return []RenderTestCase{
 		{
@@ -335,6 +357,10 @@ func prepareRenderTestCases() []RenderTestCase {
 		{
 			File: "00012.ku",
 			Text: text12(),
+		},
+		{
+			File: "00013.ku",
+			Text: text13(),
 		},
 	}
 }
@@ -401,6 +427,10 @@ func enum(base string, entries ...EnumEntry) Enum {
 
 func ptr(typ TypeSpec) Pointer {
 	return Pointer{Type: typ}
+}
+
+func arrptr(typ TypeSpec) ArrayPointer {
+	return ArrayPointer{Type: typ}
 }
 
 func chunk(typ TypeSpec) Chunk {

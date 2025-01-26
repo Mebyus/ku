@@ -41,10 +41,28 @@ func (p *Parser) top() diag.Error {
 	case token.Test:
 		return p.Test(traits)
 	case token.Stub:
-		return p.Stub(traits)
-	// case token.Pub:
-	// 	traits.Pub = true
-	// 	return p.topPub(traits)
+		return p.FunStub(traits)
+	case token.Pub:
+		traits.Pub = true
+		p.advance() // skip "pub"
+		return p.pub(traits)
+	default:
+		return p.unexpected()
+	}
+}
+
+func (p *Parser) pub(traits ast.Traits) diag.Error {
+	switch p.c.Kind {
+	case token.Type:
+		return p.Type(traits)
+	case token.Fun:
+		return p.Fun(traits)
+	case token.Let:
+		return p.TopLet(traits)
+	case token.Var:
+		return p.TopVar(traits)
+	case token.Stub:
+		return p.FunStub(traits)
 	default:
 		return p.unexpected()
 	}

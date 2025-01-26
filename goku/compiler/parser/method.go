@@ -14,30 +14,21 @@ func (p *Parser) Method(traits ast.Traits) diag.Error {
 		return err
 	}
 
-	if p.c.Kind != token.Word {
-		return p.unexpected()
-	}
-	name := p.word()
-
-	signature, err := p.signature()
+	err = p.unsafe(&traits)
 	if err != nil {
 		return err
 	}
 
-	if p.c.Kind != token.LeftCurly {
-		return p.unexpected()
-	}
-
-	body, err := p.Block()
+	f, err := p.fun()
 	if err != nil {
 		return err
 	}
 
 	p.text.AddMethod(ast.Method{
 		Receiver:  receiver,
-		Name:      name,
-		Signature: signature,
-		Body:      body,
+		Name:      f.Name,
+		Signature: f.Signature,
+		Body:      f.Body,
 		Traits:    traits,
 	})
 	return nil

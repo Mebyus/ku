@@ -13,6 +13,11 @@ func (p *Parser) Fun(traits ast.Traits) diag.Error {
 
 	p.advance() // skip "fun"
 
+	err := p.unsafe(&traits)
+	if err != nil {
+		return err
+	}
+
 	f, err := p.fun()
 	if err != nil {
 		return err
@@ -36,7 +41,7 @@ func (p *Parser) Test(traits ast.Traits) diag.Error {
 	return nil
 }
 
-func (p *Parser) Stub(traits ast.Traits) diag.Error {
+func (p *Parser) FunStub(traits ast.Traits) diag.Error {
 	p.advance() // skip "#stub"
 
 	if p.c.Kind != token.Fun {
@@ -169,4 +174,21 @@ func (p *Parser) Param() (ast.Param, diag.Error) {
 		Name: name,
 		Type: typ,
 	}, nil
+}
+
+// check for unsafe trait before function or method name
+func (p *Parser) unsafe(traits *ast.Traits) diag.Error {
+	if p.c.Kind != token.Unsafe {
+		return nil
+	}
+
+	p.advance() // skip "unsafe"
+
+	if p.c.Kind != token.Period {
+		return p.unexpected()
+	}
+	p.advance() // skip "."
+
+	traits.Unsafe = true
+	return nil
 }

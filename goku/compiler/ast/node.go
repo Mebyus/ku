@@ -96,6 +96,9 @@ type Traits struct {
 
 	// True for public top level nodes.
 	Pub bool
+
+	// True for unsafe functions and methods.
+	Unsafe bool
 }
 
 type Prop struct{}

@@ -19,6 +19,7 @@ var kw = map[string]Kind{
 	"enum":   Enum,
 	"struct": Struct,
 	"pub":    Pub,
+	"unsafe": Unsafe,
 
 	"nil":   Nil,
 	"true":  True,

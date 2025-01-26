@@ -1,7 +1,17 @@
 package ast
 
 func (g *Printer) Fun(f Fun) {
+	if f.Pub {
+		g.puts("pub")
+		g.nl()
+	}
+
 	g.puts("fun ")
+
+	if f.Unsafe {
+		g.puts("unsafe.")
+	}
+
 	g.fun(f)
 }
 
@@ -62,6 +72,11 @@ func (g *Printer) Param(p Param) {
 }
 
 func (g *Printer) Method(m Method) {
+	if m.Pub {
+		g.puts("pub")
+		g.nl()
+	}
+
 	g.puts("fun ")
 	g.puts("(")
 	if m.Receiver.Ptr {
@@ -69,6 +84,11 @@ func (g *Printer) Method(m Method) {
 	}
 	g.puts(m.Receiver.Name.Str)
 	g.puts(") ")
+
+	if m.Unsafe {
+		g.puts("unsafe.")
+	}
+
 	g.puts(m.Name.Str)
 	g.Signature(m.Signature)
 	g.space()

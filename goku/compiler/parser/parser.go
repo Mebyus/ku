@@ -27,7 +27,11 @@ func (p *Parser) Nodes() (*ast.Text, diag.Error) {
 }
 
 func (p *Parser) Text() (*ast.Text, diag.Error) {
-	_, err := p.ImportBlocks()
+	_, err := p.Build()
+	if err != nil {
+		return nil, err
+	}
+	_, err = p.ImportBlocks()
 	if err != nil {
 		return nil, err
 	}

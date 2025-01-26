@@ -20,6 +20,8 @@ func (g *Printer) Statement(s Statement) {
 		g.Loop(s)
 	case If:
 		g.If(s)
+	case Stub:
+		g.Stub(s)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) statement (%T)", s.Kind(), s.Kind(), s))
 	}
@@ -47,6 +49,10 @@ func (g *Printer) ifClause(c IfClause) {
 func (g *Printer) Loop(l Loop) {
 	g.puts("for ")
 	g.Block(l.Body)
+}
+
+func (g *Printer) Stub(s Stub) {
+	g.puts("#stub;")
 }
 
 func (g *Printer) Block(b Block) {

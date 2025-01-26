@@ -24,8 +24,8 @@ func (p *Parser) Statement() (ast.Statement, diag.Error) {
 	// 	return p.jumpStatement()
 	// case token.Never:
 	// 	return p.neverStatement()
-	// case token.Stub:
-	// 	return p.stubStatement()
+	case token.Stub:
+		return p.Stub()
 	// case token.Defer:
 	// 	return p.deferStatement()
 	case token.Word:

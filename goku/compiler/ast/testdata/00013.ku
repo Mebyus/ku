@@ -1,0 +1,4 @@
+pub
+fun unsafe.copy(dst: [*]u8, src: [*]u8, n: uint) {
+	#stub;
+}
