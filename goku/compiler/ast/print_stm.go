@@ -22,6 +22,8 @@ func (g *Printer) Statement(s Statement) {
 		g.If(s)
 	case Stub:
 		g.Stub(s)
+	case Never:
+		g.Never(s)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) statement (%T)", s.Kind(), s.Kind(), s))
 	}
@@ -53,6 +55,10 @@ func (g *Printer) Loop(l Loop) {
 
 func (g *Printer) Stub(s Stub) {
 	g.puts("#stub;")
+}
+
+func (g *Printer) Never(n Never) {
+	g.puts("#never;")
 }
 
 func (g *Printer) Block(b Block) {

@@ -1,0 +1,13 @@
+import std {
+	mem => "mem"
+}
+
+fun use_copy(a: []u64) => u64 {
+	if a.len == 0 {
+		#never;
+	}
+	var i: u32;
+	unsafe.copy(a, nil);
+	mem.unsafe.copy(a, nil);
+	ret a[i];
+}

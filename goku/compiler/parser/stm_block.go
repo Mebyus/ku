@@ -22,13 +22,13 @@ func (p *Parser) Statement() (ast.Statement, diag.Error) {
 		return p.For()
 	// case token.Jump:
 	// 	return p.jumpStatement()
-	// case token.Never:
-	// 	return p.neverStatement()
+	case token.Never:
+		return p.Never()
 	case token.Stub:
 		return p.Stub()
 	// case token.Defer:
 	// 	return p.deferStatement()
-	case token.Word:
+	case token.Word, token.Unsafe:
 		return p.AssignOrInvoke()
 	default:
 		return nil, p.unexpected()

@@ -17,11 +17,17 @@ func Render(w io.Writer, text *Text) error {
 func (g *Printer) Text(text *Text) {
 	g.Build(text.Build)
 	g.ImportBlocks(text.ImportBlocks)
+	g.Nodes(text)
+}
 
+func (g *Printer) Nodes(text *Text) {
 	if len(text.OrderIndex) == 0 {
 		return
 	}
 
+	if !g.empty() {
+		g.nl()
+	}
 	g.topByIndex(text, text.OrderIndex[0])
 	for _, x := range text.OrderIndex[1:] {
 		g.nl()

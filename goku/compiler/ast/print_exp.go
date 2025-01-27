@@ -80,8 +80,22 @@ func (g *Printer) Args(args []Exp) {
 
 func (g *Printer) Chain(c Chain) {
 	g.puts(c.Start.Str)
-
-	for _, p := range c.Parts {
+	if len(c.Parts) == 0 {
+		return
+	}
+	if c.Start.Str == "" {
+		p := c.Parts[0]
+		u, ok := p.(Unsafe)
+		if ok {
+			g.puts("unsafe.")
+			g.puts(u.Name)
+		} else {
+			g.Part(p)
+		}
+	} else {
+		g.Part(c.Parts[0])
+	}
+	for _, p := range c.Parts[1:] {
 		g.Part(p)
 	}
 }
@@ -96,6 +110,8 @@ func (g *Printer) Part(p Part) {
 		g.Deref(p)
 	case SelectTest:
 		g.SelectTest(p)
+	case Unsafe:
+		g.Unsafe(p)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) chain part (%T)", p.Kind(), p.Kind(), p))
 	}
@@ -113,6 +129,11 @@ func (g *Printer) Deref(d Deref) {
 func (g *Printer) Select(s Select) {
 	g.puts(".")
 	g.puts(s.Name.Str)
+}
+
+func (g *Printer) Unsafe(u Unsafe) {
+	g.puts(".unsafe.")
+	g.puts(u.Name)
 }
 
 func (g *Printer) Index(x Index) {

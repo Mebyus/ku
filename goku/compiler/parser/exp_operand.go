@@ -59,7 +59,7 @@ func (p *Parser) Operand() (ast.Operand, diag.Error) {
 	// 	return p.memcast()
 	// case token.LeftCurly:
 	// 	return p.objectLiteral()
-	case token.Word:
+	case token.Word, token.Unsafe:
 		return p.Chain()
 	case token.LeftParen:
 		return p.Paren()
@@ -88,8 +88,27 @@ func (p *Parser) Paren() (ast.Paren, diag.Error) {
 }
 
 func (p *Parser) Chain() (ast.Operand, diag.Error) {
-	start := p.word()
-	chain := ast.Chain{Start: start}
+	var chain ast.Chain
+	switch p.c.Kind {
+	case token.Word:
+		start := p.word()
+		chain = ast.Chain{Start: start}
+	case token.Unsafe:
+		unsafe, err := p.Unsafe()
+		if err != nil {
+			return nil, err
+		}
+		chain = ast.Chain{Parts: []ast.Part{unsafe}}
+	case token.Test:
+		test, err := p.SelectTest()
+		if err != nil {
+			return nil, err
+		}
+		chain = ast.Chain{Parts: []ast.Part{test}}
+	default:
+		return nil, p.unexpected()
+	}
+
 	for {
 		var err diag.Error
 		var part ast.Part
@@ -98,10 +117,17 @@ func (p *Parser) Chain() (ast.Operand, diag.Error) {
 		case token.LeftParen:
 			return p.call(chain)
 		case token.Period:
-			if p.n.Kind == token.Test {
+			p.advance() // skip "."
+
+			switch p.c.Kind {
+			case token.Test:
 				part, err = p.SelectTest()
-			} else {
-				part, err = p.Select()
+			case token.Unsafe:
+				part, err = p.Unsafe()
+			case token.Word:
+				part = p.Select()
+			default:
+				return nil, p.unexpected()
 			}
 		// case token.DerefSelect:
 		// 	part, err = p.indirectFieldPart()
@@ -184,19 +210,12 @@ func (p *Parser) DerefIndex() (ast.DerefIndex, diag.Error) {
 	return ast.DerefIndex{Exp: exp}, nil
 }
 
-func (p *Parser) Select() (ast.Select, diag.Error) {
-	p.advance() // skip "."
-
-	if p.c.Kind != token.Word {
-		return ast.Select{}, p.unexpected()
-	}
+func (p *Parser) Select() ast.Select {
 	name := p.word()
-
-	return ast.Select{Name: name}, nil
+	return ast.Select{Name: name}
 }
 
 func (p *Parser) SelectTest() (ast.SelectTest, diag.Error) {
-	p.advance() // skip "."
 	p.advance() // skip "test"
 
 	if p.c.Kind != token.Period {
@@ -210,6 +229,27 @@ func (p *Parser) SelectTest() (ast.SelectTest, diag.Error) {
 
 	name := p.word()
 	return ast.SelectTest{Name: name}, nil
+}
+
+func (p *Parser) Unsafe() (ast.Unsafe, diag.Error) {
+	pin := p.c.Pin
+
+	p.advance() // skip "unsafe"
+
+	if p.c.Kind != token.Period {
+		return ast.Unsafe{}, p.unexpected()
+	}
+	p.advance() // skip "."
+
+	if p.c.Kind != token.Word {
+		return ast.Unsafe{}, p.unexpected()
+	}
+
+	name := p.word()
+	return ast.Unsafe{
+		Pin:  pin,
+		Name: name.Str,
+	}, nil
 }
 
 func (p *Parser) call(chain ast.Chain) (ast.Call, diag.Error) {

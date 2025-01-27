@@ -18,3 +18,16 @@ func (p *Parser) Stub() (ast.Stub, diag.Error) {
 
 	return ast.Stub{Pin: pin}, nil
 }
+
+func (p *Parser) Never() (ast.Never, diag.Error) {
+	pin := p.c.Pin
+
+	p.advance() // skip "#never"
+
+	if p.c.Kind != token.Semicolon {
+		return ast.Never{}, p.unexpected()
+	}
+	p.advance() // skip ";"
+
+	return ast.Never{Pin: pin}, nil
+}

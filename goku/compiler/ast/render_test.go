@@ -304,6 +304,35 @@ func text13() *Text {
 	return t
 }
 
+func text14() *Text {
+	t := New()
+	t.ImportBlocks = []ImportBlock{
+		importBlock(origin.Std,
+			imp("mem", "mem"),
+		),
+	}
+	t.AddFun(Fun{
+		Name: word("use_copy"),
+		Signature: Signature{
+			Params: []Param{
+				param("a", chunk(u64)),
+			},
+			Result: u64,
+		},
+		Body: block(
+			ifbr(
+				ifcl(eq(chain("a", sel("len")), dec(0)),
+					block(Never{})),
+				nil),
+			vardef("i", u32, nil),
+			invoke(unsafechain("copy"), sym("a"), Nil{}),
+			invoke(chain("mem", unsafe("copy")), sym("a"), Nil{}),
+			ret(chain("a", index(sym("i")))),
+		),
+	})
+	return t
+}
+
 func prepareRenderTestCases() []RenderTestCase {
 	return []RenderTestCase{
 		{
@@ -361,6 +390,10 @@ func prepareRenderTestCases() []RenderTestCase {
 		{
 			File: "00013.ku",
 			Text: text13(),
+		},
+		{
+			File: "00014.ku",
+			Text: text14(),
 		},
 	}
 }
@@ -553,6 +586,15 @@ func chain(start string, parts ...Part) Chain {
 		Start: word(start),
 		Parts: parts,
 	}
+}
+
+func unsafechain(name string, parts ...Part) Chain {
+	s := []Part{Unsafe{Name: name}}
+	return chain("", append(s, parts...)...)
+}
+
+func unsafe(name string) Unsafe {
+	return Unsafe{Name: name}
 }
 
 func index(exp Exp) Index {

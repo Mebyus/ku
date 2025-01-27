@@ -31,3 +31,30 @@ func (s Stub) String() string {
 	g.Stub(s)
 	return g.Output()
 }
+
+// Never represents never statement.
+// It means that by programmer's logic execution must never reach this point.
+// Program execution will panic on this statement.
+//
+// Formal definition:
+//
+//	Never => "#never" ";"
+type Never struct {
+	Pin source.Pin
+}
+
+var _ Statement = Never{}
+
+func (Never) Kind() stk.Kind {
+	return stk.Never
+}
+
+func (n Never) Span() source.Span {
+	return source.Span{Pin: n.Pin}
+}
+
+func (n Never) String() string {
+	var g Printer
+	g.Never(n)
+	return g.Output()
+}
