@@ -22,7 +22,7 @@ func (p Path) IsEmpty() bool {
 }
 
 func (p Path) String() string {
-	return fmt.Sprintf("%s: %s", p.Origin, p.Import)
+	return fmt.Sprintf("<%s> %s", p.Origin, p.Import)
 }
 
 func Sort(p []Path) {

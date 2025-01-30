@@ -4,6 +4,7 @@ import (
 	"github.com/mebyus/ku/goku/compiler/ast"
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/lexer"
+	"github.com/mebyus/ku/goku/compiler/source"
 	"github.com/mebyus/ku/goku/compiler/token"
 )
 
@@ -42,6 +43,10 @@ func FromStream(stream lexer.Stream) *Parser {
 	p := Parser{lx: stream}
 	p.init()
 	return &p
+}
+
+func FromText(text *source.Text) *Parser {
+	return FromStream(lexer.FromText(text))
 }
 
 func ParseStream(stream lexer.Stream) (*ast.Text, diag.Error) {

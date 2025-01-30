@@ -1,0 +1,178 @@
+package builder
+
+import (
+	"fmt"
+
+	"github.com/mebyus/ku/goku/compiler/diag"
+	"github.com/mebyus/ku/goku/compiler/parser"
+	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/source/origin"
+	"github.com/mebyus/ku/goku/compiler/typer/stg"
+)
+
+func Walk(cfg WalkConfig, init ...QueueItem) (*Bundle, diag.Error) {
+	w := Walker{
+		WalkConfig: cfg,
+
+		pool: source.New(),
+	}
+
+	err := w.WalkFrom(init...)
+	if err != nil {
+		return nil, err
+	}
+
+	cycle := w.Bundle.makeGraph()
+	if cycle != nil {
+		panic("not implemented")
+		return nil, nil
+	}
+
+	w.Bundle.Global = stg.NewGlobalScope()
+	return &w.Bundle, nil
+}
+
+type BaseDirs struct {
+	// Base directory for standard library units lookup.
+	Std string
+
+	// Base directory for local units lookup.
+	Loc string
+}
+
+type WalkConfig struct {
+	Dir BaseDirs
+}
+
+type Walker struct {
+	Bundle Bundle
+
+	WalkConfig
+
+	pool *source.Pool
+}
+
+func (w *Walker) WalkFrom(init ...QueueItem) diag.Error {
+	if len(init) == 0 {
+		panic("no init items")
+	}
+
+	q := NewUnitQueue()
+
+	for _, item := range init {
+		q.Add(item)
+	}
+
+	for {
+		var item QueueItem
+		if !q.Next(&item) {
+			w.Bundle.Units = q.Sorted()
+			return nil
+		}
+
+		u, err := w.AnalyzeUnit(item)
+		if err != nil {
+			return err
+		}
+
+		if u.HasMain() {
+			if u.DiscoveryIndex != 0 {
+				panic("not implemented")
+				// return fmt.Errorf("main unit [%s] cannot be imported", u.Path)
+			}
+			if w.Bundle.Main != nil {
+				panic("multiple main units in uwalk graph")
+			}
+			w.Bundle.Main = u
+		}
+		q.AddUnit(u)
+	}
+}
+
+func (w *Walker) AnalyzeUnit(item QueueItem) (*stg.Unit, diag.Error) {
+	path := item.Path
+
+	dir, err := w.Resolve(path)
+	if err != nil {
+		return nil, err
+	}
+	files, loadErr := w.pool.LoadDir(dir, &source.DirScanParams{IncludeTestFiles: item.IncludeTestFiles})
+	if loadErr != nil {
+		panic("not implemented")
+		return nil, nil
+	}
+
+	var imports []stg.ImportSite
+	parsers := make([]*parser.Parser, 0, len(files))
+	pset := origin.NewSet()
+	for _, file := range files {
+		p := parser.FromText(file)
+		build, err := p.Build()
+		if err != nil {
+			return nil, err
+		}
+		if build != nil {
+			panic("not implemented")
+		}
+		blocks, err := p.ImportBlocks()
+		if err != nil {
+			return nil, err
+		}
+
+		for _, block := range blocks {
+			for _, m := range block.Imports {
+				p := origin.Path{
+					Origin: block.Origin,
+					Import: m.String.Str,
+				}
+				if p == path {
+					return nil, &diag.SimpleMessageError{
+						Pin:  m.String.Pin,
+						Text: fmt.Sprintf("unit \"%s\" imports itself", p),
+					}
+				}
+				if pset.Has(p) {
+					return nil, &diag.SimpleMessageError{
+						Pin:  m.String.Pin,
+						Text: fmt.Sprintf("multiple imports of the same unit \"%s\"", p),
+					}
+				}
+				pset.Add(p)
+				imports = append(imports, stg.ImportSite{
+					Path: p,
+					Name: m.Name.Str,
+					Pin:  m.Name.Pin,
+				})
+			}
+		}
+		parsers = append(parsers, p)
+	}
+
+	stg.SortImports(imports)
+	w.Bundle.Source = append(w.Bundle.Source, parsers)
+	return &stg.Unit{
+		Path:    path,
+		Imports: imports,
+	}, nil
+}
+
+// Resolve returns system path to directory which contains unit source files.
+func (w *Walker) Resolve(path origin.Path) (string, diag.Error) {
+	o := path.Origin
+	switch path.Origin {
+	case 0:
+		panic("empty path")
+	case origin.Std:
+		return w.Dir.Std + "/" + path.Import, nil
+	case origin.Pkg:
+		panic("not implemented")
+	case origin.Loc:
+		return w.Dir.Loc + "/" + path.Import, nil
+	default:
+		panic(fmt.Sprintf("unexpected \"%s\" (=%d) origin", o, o))
+	}
+}
+
+func (b *Bundle) GetUnitParsers(unit *stg.Unit) ParserSet {
+	return b.Source[unit.DiscoveryIndex]
+}
