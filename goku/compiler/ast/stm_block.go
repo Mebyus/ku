@@ -33,3 +33,28 @@ func (b Block) String() string {
 	g.Block(b)
 	return g.Output()
 }
+
+// Debug represents a block statement under debug compile-time condition.
+//
+// Formal definition:
+//
+//	Debug => "#debug" Block
+type Debug struct {
+	Block Block
+}
+
+var _ Statement = Debug{}
+
+func (Debug) Kind() stk.Kind {
+	return stk.Debug
+}
+
+func (d Debug) Span() source.Span {
+	return d.Block.Span()
+}
+
+func (d Debug) String() string {
+	var g Printer
+	g.Debug(d)
+	return g.Output()
+}

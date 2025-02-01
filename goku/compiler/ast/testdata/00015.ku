@@ -1,0 +1,9 @@
+fun example_debug(a: str) {
+	#debug {
+		print("debug: ");
+		print(a);
+		if a.len > 0 {
+			ret;
+		}
+	}
+}

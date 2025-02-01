@@ -24,6 +24,8 @@ func (g *Printer) Statement(s Statement) {
 		g.Stub(s)
 	case Never:
 		g.Never(s)
+	case Debug:
+		g.Debug(s)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) statement (%T)", s.Kind(), s.Kind(), s))
 	}
@@ -80,6 +82,11 @@ func (g *Printer) Block(b Block) {
 	g.dec()
 	g.indent()
 	g.puts("}")
+}
+
+func (g *Printer) Debug(d Debug) {
+	g.puts("#debug ")
+	g.Block(d.Block)
 }
 
 func (g *Printer) Invoke(i Invoke) {

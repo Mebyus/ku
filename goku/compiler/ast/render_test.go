@@ -333,6 +333,30 @@ func text14() *Text {
 	return t
 }
 
+func text15() *Text {
+	t := New()
+	t.AddFun(Fun{
+		Name: word("example_debug"),
+		Signature: Signature{
+			Params: []Param{
+				param("a", str),
+			},
+		},
+		Body: block(
+			debug(
+				invoke(chain("print"), slit("debug: ")),
+				invoke(chain("print"), sym("a")),
+				ifbr(
+					ifcl(great(chain("a", sel("len")), dec(0)),
+						block(ret(nil))),
+					nil,
+				),
+			),
+		),
+	})
+	return t
+}
+
 func prepareRenderTestCases() []RenderTestCase {
 	return []RenderTestCase{
 		{
@@ -394,6 +418,10 @@ func prepareRenderTestCases() []RenderTestCase {
 		{
 			File: "00014.ku",
 			Text: text14(),
+		},
+		{
+			File: "00015.ku",
+			Text: text15(),
 		},
 	}
 }
@@ -569,12 +597,20 @@ func build(nodes ...Statement) *Build {
 	return &Build{Body: block(nodes...)}
 }
 
+func debug(nodes ...Statement) Debug {
+	return Debug{Block: block(nodes...)}
+}
+
 func add(a Exp, b Exp) Binary {
 	return bin(bok.Add, a, b)
 }
 
 func eq(a Exp, b Exp) Binary {
 	return bin(bok.Equal, a, b)
+}
+
+func great(a Exp, b Exp) Binary {
+	return bin(bok.Greater, a, b)
 }
 
 func dotname(name string) DotName {

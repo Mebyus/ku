@@ -24,6 +24,7 @@ const (
 	Jump
 	Never
 	Stub
+	Debug
 
 	// Defer function or method call.
 	Defer
@@ -50,6 +51,7 @@ var text = [...]string{
 	Jump:      "jump",
 	Never:     "never",
 	Stub:      "stub",
+	Debug:     "debug",
 }
 
 func (k Kind) String() string {

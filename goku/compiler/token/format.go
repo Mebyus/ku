@@ -103,6 +103,7 @@ var literal = [...]string{
 	True:  "true",
 	False: "false",
 
+	Debug: "#debug",
 	Build: "#build",
 	Stub:  "#stub",
 	Never: "#never",

@@ -26,6 +26,8 @@ func (p *Parser) Statement() (ast.Statement, diag.Error) {
 		return p.Never()
 	case token.Stub:
 		return p.Stub()
+	case token.Debug:
+		return p.Debug()
 	// case token.Defer:
 	// 	return p.deferStatement()
 	case token.Word, token.Unsafe:
@@ -55,4 +57,19 @@ func (p *Parser) Block() (ast.Block, diag.Error) {
 		}
 		nodes = append(nodes, s)
 	}
+}
+
+func (p *Parser) Debug() (ast.Debug, diag.Error) {
+	p.advance() // skip "#debug"
+
+	if p.c.Kind != token.LeftCurly {
+		return ast.Debug{}, p.unexpected()
+	}
+
+	block, err := p.Block()
+	if err != nil {
+		return ast.Debug{}, err
+	}
+
+	return ast.Debug{Block: block}, nil
 }

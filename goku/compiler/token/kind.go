@@ -118,6 +118,7 @@ const (
 	True
 	False
 
+	Debug // #debug
 	Build // #build
 	Never // #never
 	Stub  // #stub
