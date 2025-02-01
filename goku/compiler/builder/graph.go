@@ -373,3 +373,26 @@ func (s *Scout) save(d uint32) {
 	tip.des = d
 	s.path[len(s.path)-1] = tip
 }
+
+func convertImportCycle(c *Cycle, units []*stg.Unit) []stg.ImportSite {
+	if len(c.Nodes) < 2 {
+		panic("bad cycle data")
+	}
+
+	sites := make([]stg.ImportSite, 0, len(c.Nodes))
+	for i := 0; i < len(c.Nodes)-1; i += 1 {
+		j := c.Nodes[i]
+		k := c.Nodes[i+1]
+
+		u := units[j]
+		next := units[k]
+
+		s, ok := u.FindImportSite(next.Path)
+		if !ok {
+			panic(fmt.Sprintf("unable to find \"%s\" import inside \"%s\"", next.Path, u.Path))
+		}
+
+		sites = append(sites, s)
+	}
+	return sites
+}

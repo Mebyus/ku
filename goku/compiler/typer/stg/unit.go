@@ -73,3 +73,12 @@ func SortImports(ss []ImportSite) {
 func (u *Unit) HasMain() bool {
 	return false
 }
+
+func (u *Unit) FindImportSite(path origin.Path) (ImportSite, bool) {
+	for _, s := range u.Imports {
+		if s.Path == path {
+			return s, true
+		}
+	}
+	return ImportSite{}, false
+}

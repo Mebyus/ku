@@ -6,6 +6,7 @@ import (
 
 	"github.com/mebyus/ku/goku/compiler/ast"
 	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/typer/stg"
 )
 
 type UnknownOriginError struct {
@@ -33,4 +34,64 @@ func (e *UnknownOriginError) Render(w io.Writer, m source.PinMap) error {
 	}
 	_, err = io.WriteString(w, e.Error())
 	return err
+}
+
+type ImportCycleError struct {
+	Sites []stg.ImportSite
+}
+
+var _ Error = &ImportCycleError{}
+
+func (e *ImportCycleError) Error() string {
+	return "import cycle detected"
+}
+
+func (e *ImportCycleError) Render(w io.Writer, m source.PinMap) error {
+	_, err := io.WriteString(w, "import cycle detected:\n")
+	if err != nil {
+		return err
+	}
+	for _, s := range e.Sites {
+		err = renderImport(w, m, s)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func renderImport(w io.Writer, m source.PinMap, site stg.ImportSite) error {
+	pos, err := m.DecodePin(site.Pin)
+	if err != nil {
+		return err
+	}
+	_, err = io.WriteString(w, "    ")
+	if err != nil {
+		return err
+	}
+	_, err = io.WriteString(w, pos.String())
+	if err != nil {
+		return err
+	}
+	_, err = io.WriteString(w, ": ")
+	if err != nil {
+		return err
+	}
+	_, err = io.WriteString(w, site.Name)
+	if err != nil {
+		return err
+	}
+	_, err = io.WriteString(w, " => \"")
+	if err != nil {
+		return err
+	}
+	_, err = io.WriteString(w, site.Path.String())
+	if err != nil {
+		return err
+	}
+	_, err = io.WriteString(w, "\"\n")
+	if err != nil {
+		return err
+	}
+	return nil
 }

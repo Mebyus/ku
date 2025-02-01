@@ -153,8 +153,6 @@ func TestGraph(t *testing.T) {
 			slices.Sort(c)
 		}
 
-		// TODO: sort test output cohorts
-
 		var b Bundle
 		b.Units = tt.Units
 		cycle := dumpCycleForTest(b.makeGraph(), tt.Units)

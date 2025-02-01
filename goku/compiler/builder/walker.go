@@ -24,8 +24,9 @@ func Walk(cfg WalkConfig, init ...QueueItem) (*Bundle, diag.Error) {
 
 	cycle := w.Bundle.makeGraph()
 	if cycle != nil {
-		panic("not implemented")
-		return nil, nil
+		return nil, &diag.ImportCycleError{
+			Sites: convertImportCycle(cycle, w.Bundle.Units),
+		}
 	}
 
 	w.Bundle.Global = stg.NewGlobalScope()
@@ -98,8 +99,10 @@ func (w *Walker) AnalyzeUnit(item QueueItem) (*stg.Unit, diag.Error) {
 	}
 	files, loadErr := w.pool.LoadDir(dir, &source.DirScanParams{IncludeTestFiles: item.IncludeTestFiles})
 	if loadErr != nil {
-		panic("not implemented")
-		return nil, nil
+		return nil, &diag.SimpleMessageError{
+			Text: fmt.Sprintf("load unit \"%s\": %s", item.Path, loadErr),
+			Pin:  item.Pin,
+		}
 	}
 
 	var imports []stg.ImportSite

@@ -27,10 +27,5 @@ func (p *Parser) Loop() (ast.Loop, diag.Error) {
 		return ast.Loop{}, err
 	}
 
-	// TODO: maybe generate warning
-	// if len(body.Nodes) == 0 {
-	// 	return ast.Loop{}, fmt.Errorf("%s for loop without condition cannot have empty body", pos.Short())
-	// }
-
 	return ast.Loop{Body: body}, nil
 }

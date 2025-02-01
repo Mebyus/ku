@@ -1,13 +1,23 @@
 package builder
 
 import (
+	"github.com/mebyus/ku/goku/compiler/source"
 	"github.com/mebyus/ku/goku/compiler/source/origin"
 	"github.com/mebyus/ku/goku/compiler/typer/stg"
 )
 
 type QueueItem struct {
+	// Path to unit inside the queue.
 	Path origin.Path
 
+	// Place where unit with this path is imported.
+	//
+	// There may be more than one import place for a specific unit inside the
+	// whole program. This field tracks the first one we encounter during unit
+	// walk phase.
+	Pin source.Pin
+
+	// If true, then test files should be loaded alongside unit source files.
 	IncludeTestFiles bool
 }
 
@@ -69,6 +79,9 @@ func (q *UnitQueue) AddUnit(unit *stg.Unit) {
 	q.units = append(q.units, unit)
 
 	for _, m := range unit.Imports {
-		q.Add(QueueItem{Path: m.Path})
+		q.Add(QueueItem{
+			Path: m.Path,
+			Pin:  m.Pin,
+		})
 	}
 }
