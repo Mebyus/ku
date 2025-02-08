@@ -51,7 +51,7 @@ func (p *Pool) LoadDir(dir string, params *DirScanParams) ([]*Text, error) {
 		}
 
 		name := entry.Name()
-		if strings.HasSuffix(name, ".ku") {
+		if !strings.HasSuffix(name, ".ku") {
 			continue
 		}
 		if !params.IncludeTestFiles && strings.HasSuffix(name, ".test.ku") {

@@ -15,7 +15,7 @@ import (
 type Array struct {
 	Size Exp
 
-	// Chunk element type specifier.
+	// Array element type specifier.
 	Type TypeSpec
 }
 

@@ -1,0 +1,7 @@
+import {
+	fmt => "fmt"
+}
+
+fun main() {
+	fmt.print("Hello, world!\n");
+}

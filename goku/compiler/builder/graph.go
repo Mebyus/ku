@@ -84,7 +84,7 @@ func (b *Bundle) mapGraphNodes() {
 	m := make(map[origin.Path]*stg.Unit, len(b.Units))
 	b.Graph.Nodes = make([]Node, len(b.Units))
 	b.Graph.Rank = make([]uint32, len(b.Units))
-	b.Map = m
+	b.Context.Map = m
 
 	for _, unit := range b.Units {
 		m[unit.Path] = unit

@@ -8,6 +8,8 @@ import (
 
 func (g *Printer) Exp(exp Exp) {
 	switch e := exp.(type) {
+	case nil:
+		panic("nil exp")
 	case Symbol:
 		g.Symbol(e)
 	case DotName:

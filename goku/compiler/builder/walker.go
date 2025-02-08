@@ -29,7 +29,6 @@ func Walk(cfg WalkConfig, init ...QueueItem) (*Bundle, diag.Error) {
 		}
 	}
 
-	w.Bundle.Global = stg.NewGlobalScope()
 	return &w.Bundle, nil
 }
 
@@ -174,8 +173,4 @@ func (w *Walker) Resolve(path origin.Path) (string, diag.Error) {
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) origin", o, o))
 	}
-}
-
-func (b *Bundle) GetUnitParsers(unit *stg.Unit) ParserSet {
-	return b.Source[unit.DiscoveryIndex]
 }
