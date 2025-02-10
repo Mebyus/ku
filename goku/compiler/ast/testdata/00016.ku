@@ -1,0 +1,28 @@
+gen maps(T: type, n: int) #{
+	must(n < 16);
+	must(T in Writer);
+}
+
+gen maps(...) {
+
+fun index(s: []T) => uint {
+	ret s.len;
+}
+
+type Map => {
+	a: T,
+	b: uint,
+}
+
+fun (*Map) init(x: T) {
+	g.a = x;
+	g.b = n;
+}
+
+}
+
+fun use_index(a: []u32) => uint {
+	let m => maps(u32, 10);
+	len := m.index(a);
+	ret len + 1;
+}

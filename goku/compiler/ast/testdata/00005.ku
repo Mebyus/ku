@@ -1,4 +1,4 @@
-type Foo => struct {
+type Foo => {
 	bar: str,
 }
 

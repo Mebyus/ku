@@ -58,3 +58,15 @@ func (d Debug) String() string {
 	g.Debug(d)
 	return g.Output()
 }
+
+// Static represents a block statement executed at compile-time.
+//
+// Formal definition:
+//
+//	Static => "#{" { Statement } "}"
+type Static struct {
+	Nodes []Statement
+
+	// Opening brace pin of this block.
+	Pin source.Pin
+}

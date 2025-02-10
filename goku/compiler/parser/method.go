@@ -6,32 +6,40 @@ import (
 	"github.com/mebyus/ku/goku/compiler/token"
 )
 
-func (p *Parser) Method(traits ast.Traits) diag.Error {
+func (p *Parser) topMethod(traits ast.Traits) diag.Error {
+	m, err := p.Method(traits)
+	if err != nil {
+		return err
+	}
+	p.text.AddMethod(m)
+	return nil
+}
+
+func (p *Parser) Method(traits ast.Traits) (ast.Method, diag.Error) {
 	p.advance() // skip "fun"
 
 	receiver, err := p.Receiver()
 	if err != nil {
-		return err
+		return ast.Method{}, err
 	}
 
 	err = p.unsafe(&traits)
 	if err != nil {
-		return err
+		return ast.Method{}, err
 	}
 
 	f, err := p.fun()
 	if err != nil {
-		return err
+		return ast.Method{}, err
 	}
 
-	p.text.AddMethod(ast.Method{
+	return ast.Method{
 		Receiver:  receiver,
 		Name:      f.Name,
 		Signature: f.Signature,
 		Body:      f.Body,
 		Traits:    traits,
-	})
-	return nil
+	}, nil
 }
 
 func (p *Parser) Receiver() (ast.Receiver, diag.Error) {

@@ -35,7 +35,7 @@ func (g *Printer) Nodes(text *Text) {
 	}
 }
 
-func (g *Printer) topByIndex(text *Text, x TopNodeIndex) {
+func (g *Printer) topByIndex(text *Text, x NodeIndex) {
 	k := x.Kind
 	i := x.Index
 	switch k {

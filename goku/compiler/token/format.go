@@ -43,7 +43,7 @@ var literal = [...]string{
 	BitAndNot:      "&^",
 	Assign:         "=",
 	Colon:          ":",
-	DoubleColon:    "::",
+	Ellipsis:       "...",
 	Semicolon:      ";",
 	Asterisk:       "*",
 	Quest:          "?",
@@ -61,7 +61,7 @@ var literal = [...]string{
 	RightSquare:    "]",
 	LeftParen:      "(",
 	RightParen:     ")",
-	PropStart:      "#[",
+	HashCurly:      "#{",
 	Compound:       ".{",
 	DerefIndex:     ".[",
 	BagSelect:      ".(",
@@ -90,12 +90,11 @@ var literal = [...]string{
 	Var:    "var",
 	Type:   "type",
 	Test:   "test",
-	Enum:   "enum",
-	Struct: "struct",
+	Union:  "union",
 	Pub:    "pub",
 	Unsafe: "unsafe",
-	Unit:   "unit",
 	Let:    "let",
+	Gen:    "gen",
 
 	// Special literals
 

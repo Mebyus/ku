@@ -37,8 +37,8 @@ func (lx *Lexer) lex() token.Token {
 
 	if lx.c() == '#' {
 		switch lx.n() {
-		case '[':
-			return lx.twoBytesToken(token.PropStart)
+		case '{':
+			return lx.twoBytesToken(token.HashCurly)
 		default:
 			if char.IsLatinLetter(lx.n()) {
 				return lx.static()
@@ -671,14 +671,26 @@ func (lx *Lexer) other() token.Token {
 		if lx.n() == '=' {
 			return lx.twoBytesToken(token.Walrus)
 		}
-		if lx.n() == ':' {
-			return lx.twoBytesToken(token.DoubleColon)
-		}
 		return lx.oneByteToken(token.Colon)
 	case ';':
 		return lx.oneByteToken(token.Semicolon)
 	case '.':
 		switch lx.n() {
+		case '.':
+			pin := lx.pin()
+			lx.advance() // skip "."
+			lx.advance() // skip "."
+			if lx.c() != '.' {
+				return token.Token{
+					Pin:  pin,
+					Kind: token.Illegal,
+				}
+			}
+			lx.advance() // skip "."
+			return token.Token{
+				Pin:  pin,
+				Kind: token.Ellipsis,
+			}
 		case '&':
 			return lx.twoBytesToken(token.Address)
 		case '@':

@@ -22,6 +22,7 @@ const (
 	Fun
 	Tuple
 	Trivial
+	Type
 )
 
 var text = [...]string{
@@ -39,6 +40,7 @@ var text = [...]string{
 	Fun:          "fun",
 	Tuple:        "tuple",
 	Trivial:      "trivial",
+	Type:         "type",
 
 	AnyPointer: "pointer.any",
 }

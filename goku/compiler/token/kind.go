@@ -35,11 +35,11 @@ const (
 	RightShift // >>
 	BitAndNot  // &^
 
-	Semicolon   // ;
-	Period      // .
-	Colon       // :
-	Comma       // ,
-	DoubleColon // ::
+	Semicolon // ;
+	Period    // .
+	Colon     // :
+	Comma     // ,
+	Ellipsis  // ...
 
 	Equal          // ==
 	NotEqual       // !=
@@ -71,7 +71,7 @@ const (
 	LeftParen   // (
 	RightParen  // )
 
-	PropStart // #[
+	HashCurly // #{
 
 	Compound     // .{
 	Insist       // .!
@@ -97,13 +97,12 @@ const (
 	Import
 	Test
 
+	Gen
 	Bag
 
-	Unit
 	Ret
 
-	Enum
-	Struct
+	Union
 
 	Type
 	Let

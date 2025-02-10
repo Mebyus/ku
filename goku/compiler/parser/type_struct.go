@@ -9,8 +9,6 @@ import (
 func (p *Parser) Struct() (ast.Struct, diag.Error) {
 	pin := p.c.Pin
 
-	p.advance() // skip "struct"
-
 	fields, err := p.fields()
 	if err != nil {
 		return ast.Struct{}, err

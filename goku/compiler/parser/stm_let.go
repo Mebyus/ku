@@ -6,7 +6,7 @@ import (
 	"github.com/mebyus/ku/goku/compiler/token"
 )
 
-func (p *Parser) TopLet(traits ast.Traits) diag.Error {
+func (p *Parser) topConst(traits ast.Traits) diag.Error {
 	l, err := p.Let()
 	if err != nil {
 		return err

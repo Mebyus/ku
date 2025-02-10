@@ -14,7 +14,7 @@ type Scope struct {
 	Parent *Scope
 
 	// Symbol map. Maps name to its local symbol.
-	sm map[string]*Symbol
+	m map[string]*Symbol
 
 	// Unit where this scope is located.
 	// Always nil for global scope.
@@ -65,7 +65,7 @@ func (s *Scope) Init(kind sck.Kind, parent *Scope) {
 
 	s.Kind = kind
 	s.Parent = parent
-	s.sm = make(map[string]*Symbol)
+	s.m = make(map[string]*Symbol)
 }
 
 func (s *Scope) InitGlobal() {
@@ -74,7 +74,7 @@ func (s *Scope) InitGlobal() {
 
 // Has checks if symbol with a given name already exists inside the scope.
 func (s *Scope) Has(name string) bool {
-	return s.sm[name] != nil
+	return s.m[name] != nil
 }
 
 // Alloc allocates new symbol inside the scope.
@@ -87,6 +87,6 @@ func (s *Scope) Alloc(kind smk.Kind, name string, pin source.Pin) *Symbol {
 		Kind:  kind,
 	})
 	symbol := &s.Symbols[i]
-	s.sm[name] = symbol
+	s.m[name] = symbol
 	return symbol
 }

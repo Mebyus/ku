@@ -112,11 +112,11 @@ func (g *Printer) TypeFullName(t TypeFullName) {
 
 func (g *Printer) Struct(s Struct) {
 	if len(s.Fields) == 0 {
-		g.puts("struct {}")
+		g.puts("{}")
 		return
 	}
 
-	g.puts("struct {")
+	g.puts("{")
 	g.nl()
 	g.inc()
 

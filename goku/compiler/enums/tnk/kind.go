@@ -12,10 +12,12 @@ const (
 	Fun
 	Let
 	Var
+	Gen
 	Type
 	Test
 	Method
 	FunStub
+	GenBind
 )
 
 var text = [...]string{
@@ -24,12 +26,14 @@ var text = [...]string{
 	Fun: "fun",
 	Let: "let",
 	Var: "var",
+	Gen: "gen",
 
 	Type:   "type",
 	Test:   "test",
 	Method: "method",
 
 	FunStub: "fun.stub",
+	GenBind: "gen.bind",
 }
 
 func (k Kind) String() string {

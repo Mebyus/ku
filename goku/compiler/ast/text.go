@@ -17,7 +17,7 @@ type Text struct {
 	// Elements in this list are in the same order as they appear in source text.
 	//
 	// Kind determines to which slice of nodes Index applies.
-	OrderIndex []TopNodeIndex
+	OrderIndex []NodeIndex
 
 	// List of top custom type definition nodes.
 	Types []Type
@@ -40,11 +40,17 @@ type Text struct {
 	// List of method nodes.
 	Methods []Method
 
+	// List of generic definition nodes.
+	Generics []Gen
+
+	// List of generic binds.
+	GenBinds []GenBind
+
 	// Optional build block. Always comes before imports.
 	Build *Build
 }
 
-type TopNodeIndex struct {
+type NodeIndex struct {
 	Index uint32
 	Kind  tnk.Kind
 }
@@ -54,7 +60,7 @@ func New() *Text {
 }
 
 func (t *Text) AddType(typ Type) {
-	t.OrderIndex = append(t.OrderIndex, TopNodeIndex{
+	t.OrderIndex = append(t.OrderIndex, NodeIndex{
 		Kind:  tnk.Type,
 		Index: uint32(len(t.Types)),
 	})
@@ -62,7 +68,7 @@ func (t *Text) AddType(typ Type) {
 }
 
 func (t *Text) AddVar(v TopVar) {
-	t.OrderIndex = append(t.OrderIndex, TopNodeIndex{
+	t.OrderIndex = append(t.OrderIndex, NodeIndex{
 		Kind:  tnk.Var,
 		Index: uint32(len(t.Variables)),
 	})
@@ -70,7 +76,7 @@ func (t *Text) AddVar(v TopVar) {
 }
 
 func (t *Text) AddLet(l TopLet) {
-	t.OrderIndex = append(t.OrderIndex, TopNodeIndex{
+	t.OrderIndex = append(t.OrderIndex, NodeIndex{
 		Kind:  tnk.Let,
 		Index: uint32(len(t.Constants)),
 	})
@@ -78,7 +84,7 @@ func (t *Text) AddLet(l TopLet) {
 }
 
 func (t *Text) AddFun(f Fun) {
-	t.OrderIndex = append(t.OrderIndex, TopNodeIndex{
+	t.OrderIndex = append(t.OrderIndex, NodeIndex{
 		Kind:  tnk.Fun,
 		Index: uint32(len(t.Functions)),
 	})
@@ -86,7 +92,7 @@ func (t *Text) AddFun(f Fun) {
 }
 
 func (t *Text) AddTest(f Fun) {
-	t.OrderIndex = append(t.OrderIndex, TopNodeIndex{
+	t.OrderIndex = append(t.OrderIndex, NodeIndex{
 		Kind:  tnk.Test,
 		Index: uint32(len(t.Tests)),
 	})
@@ -94,7 +100,7 @@ func (t *Text) AddTest(f Fun) {
 }
 
 func (t *Text) AddMethod(m Method) {
-	t.OrderIndex = append(t.OrderIndex, TopNodeIndex{
+	t.OrderIndex = append(t.OrderIndex, NodeIndex{
 		Kind:  tnk.Method,
 		Index: uint32(len(t.Methods)),
 	})
@@ -102,9 +108,25 @@ func (t *Text) AddMethod(m Method) {
 }
 
 func (t *Text) AddStub(s FunStub) {
-	t.OrderIndex = append(t.OrderIndex, TopNodeIndex{
+	t.OrderIndex = append(t.OrderIndex, NodeIndex{
 		Kind:  tnk.FunStub,
 		Index: uint32(len(t.FunStubs)),
 	})
 	t.FunStubs = append(t.FunStubs, s)
+}
+
+func (t *Text) AddGen(g Gen) {
+	t.OrderIndex = append(t.OrderIndex, NodeIndex{
+		Kind:  tnk.Gen,
+		Index: uint32(len(t.Generics)),
+	})
+	t.Generics = append(t.Generics, g)
+}
+
+func (t *Text) AddGenBind(b GenBind) {
+	t.OrderIndex = append(t.OrderIndex, NodeIndex{
+		Kind:  tnk.GenBind,
+		Index: uint32(len(t.GenBinds)),
+	})
+	t.GenBinds = append(t.GenBinds, b)
 }

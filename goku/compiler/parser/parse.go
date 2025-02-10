@@ -28,41 +28,29 @@ func (p *Parser) top() diag.Error {
 		return err
 	}
 	traits := ast.Traits{Props: p.takeProps()}
+	if p.c.Kind == token.Pub {
+		traits.Pub = true
+		p.advance() // skip "pub"
+	}
 
 	switch p.c.Kind {
 	case token.Type:
-		return p.Type(traits)
+		return p.topType(traits)
 	case token.Fun:
-		return p.Fun(traits)
+		if p.n.Kind == token.LeftParen {
+			return p.topMethod(traits)
+		}
+		return p.topFun(traits)
 	case token.Let:
-		return p.TopLet(traits)
+		return p.topConst(traits)
 	case token.Var:
 		return p.TopVar(traits)
 	case token.Test:
 		return p.Test(traits)
 	case token.Stub:
 		return p.FunStub(traits)
-	case token.Pub:
-		traits.Pub = true
-		p.advance() // skip "pub"
-		return p.pub(traits)
-	default:
-		return p.unexpected()
-	}
-}
-
-func (p *Parser) pub(traits ast.Traits) diag.Error {
-	switch p.c.Kind {
-	case token.Type:
-		return p.Type(traits)
-	case token.Fun:
-		return p.Fun(traits)
-	case token.Let:
-		return p.TopLet(traits)
-	case token.Var:
-		return p.TopVar(traits)
-	case token.Stub:
-		return p.FunStub(traits)
+	case token.Gen:
+		return p.Gen(traits)
 	default:
 		return p.unexpected()
 	}
@@ -70,7 +58,7 @@ func (p *Parser) pub(traits ast.Traits) diag.Error {
 
 func (p *Parser) gatherProps() diag.Error {
 	for {
-		if p.c.Kind != token.PropStart {
+		if p.c.Kind != token.HashCurly {
 			return nil
 		}
 

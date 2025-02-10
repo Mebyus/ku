@@ -23,6 +23,7 @@ const (
 
 	And // &&
 	Or  // ||
+	In
 
 	Add // +
 	Sub // -
@@ -51,6 +52,7 @@ var text = [...]string{
 
 	And: "&&",
 	Or:  "||",
+	In:  "in",
 
 	Add: "+",
 	Sub: "-",
@@ -93,6 +95,8 @@ var precedence = [...]int{
 	LessOrEqual:    3,
 	GreaterOrEqual: 3,
 
+	In: 3,
+
 	And: 4,
 
 	Or: 5,
@@ -103,7 +107,7 @@ var precedence = [...]int{
 //
 //	1 :  *  /  %  <<  >>  &  &^
 //	2 :  +  -  ^  |
-//	3 :  ==  !=  <  <=  >  >=
+//	3 :  ==  !=  <  <=  >  >=  in
 //	4 :  &&
 //	5 :  ||
 func (k Kind) Precedence() int {
@@ -133,6 +137,8 @@ func FromToken(t token.Kind) (Kind, bool) {
 		k = And
 	case token.Or:
 		k = Or
+	case token.In:
+		k = In
 	case token.Plus:
 		k = Add
 	case token.Minus:

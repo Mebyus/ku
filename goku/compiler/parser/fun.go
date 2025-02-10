@@ -6,26 +6,30 @@ import (
 	"github.com/mebyus/ku/goku/compiler/token"
 )
 
-func (p *Parser) Fun(traits ast.Traits) diag.Error {
-	if p.n.Kind == token.LeftParen {
-		return p.Method(traits)
+func (p *Parser) topFun(traits ast.Traits) diag.Error {
+	f, err := p.Fun(traits)
+	if err != nil {
+		return err
 	}
+	p.text.AddFun(f)
+	return nil
+}
 
+func (p *Parser) Fun(traits ast.Traits) (ast.Fun, diag.Error) {
 	p.advance() // skip "fun"
 
 	err := p.unsafe(&traits)
 	if err != nil {
-		return err
+		return ast.Fun{}, err
 	}
 
 	f, err := p.fun()
 	if err != nil {
-		return err
+		return ast.Fun{}, err
 	}
 
 	f.Traits = traits
-	p.text.AddFun(f)
-	return nil
+	return f, nil
 }
 
 func (p *Parser) Test(traits ast.Traits) diag.Error {

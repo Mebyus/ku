@@ -6,30 +6,38 @@ import (
 	"github.com/mebyus/ku/goku/compiler/token"
 )
 
-func (p *Parser) Type(traits ast.Traits) diag.Error {
+func (p *Parser) topType(traits ast.Traits) diag.Error {
+	t, err := p.Type(traits)
+	if err != nil {
+		return err
+	}
+	p.text.AddType(t)
+	return nil
+}
+
+func (p *Parser) Type(traits ast.Traits) (ast.Type, diag.Error) {
 	p.advance() // skip "type"
 
 	if p.c.Kind != token.Word {
-		return p.unexpected()
+		return ast.Type{}, p.unexpected()
 	}
 	name := p.word()
 
 	if p.c.Kind != token.RightArrow {
-		return p.unexpected()
+		return ast.Type{}, p.unexpected()
 	}
 	p.advance() // skip "=>"
 
 	spec, err := p.CustomTypeSpec()
 	if err != nil {
-		return err
+		return ast.Type{}, err
 	}
 
-	p.text.AddType(ast.Type{
+	return ast.Type{
 		Name:   name,
 		Spec:   spec,
 		Traits: traits,
-	})
-	return nil
+	}, nil
 }
 
 // TypeSpec parses type specifier in regular usage form.
@@ -58,6 +66,8 @@ func (p *Parser) TypeSpec() (ast.TypeSpec, diag.Error) {
 		return p.Chunk()
 	case token.LeftSquare:
 		return p.Array()
+	case token.Type:
+		return p.AnyType(), nil
 	default:
 		return nil, p.unexpected()
 	}
@@ -83,8 +93,8 @@ func (p *Parser) CustomTypeSpec() (ast.TypeSpec, diag.Error) {
 		if p.n.Kind == token.LeftCurly {
 			return p.Enum()
 		}
-	case token.Struct:
-		return p.Struct()
+	case token.Union:
+		panic("not implemented")
 	case token.LeftCurly:
 		if p.n.Kind == token.RightCurly {
 			pin := p.c.Pin
@@ -92,6 +102,7 @@ func (p *Parser) CustomTypeSpec() (ast.TypeSpec, diag.Error) {
 			p.advance() // skip "}"
 			return ast.Trivial{Pin: pin}, nil
 		}
+		return p.Struct()
 	}
 	return p.TypeSpec()
 }
@@ -160,6 +171,14 @@ func (p *Parser) AnyPointer() ast.AnyPointer {
 	p.advance() // skip "any"
 
 	return ast.AnyPointer{Pin: pin}
+}
+
+func (p *Parser) AnyType() ast.AnyType {
+	pin := p.c.Pin
+
+	p.advance() // skip "type"
+
+	return ast.AnyType{Pin: pin}
 }
 
 func (p *Parser) TypeFullName() (ast.TypeFullName, diag.Error) {
