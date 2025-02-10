@@ -23,7 +23,7 @@ type Text struct {
 	Types []Type
 
 	// List of top constant definition nodes.
-	Constants []TopLet
+	Constants []TopConst
 
 	// List of top variable definition nodes.
 	Variables []TopVar
@@ -75,9 +75,9 @@ func (t *Text) AddVar(v TopVar) {
 	t.Variables = append(t.Variables, v)
 }
 
-func (t *Text) AddLet(l TopLet) {
+func (t *Text) AddConst(l TopConst) {
 	t.OrderIndex = append(t.OrderIndex, NodeIndex{
-		Kind:  tnk.Let,
+		Kind:  tnk.Const,
 		Index: uint32(len(t.Constants)),
 	})
 	t.Constants = append(t.Constants, l)

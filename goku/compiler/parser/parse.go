@@ -41,7 +41,7 @@ func (p *Parser) top() diag.Error {
 			return p.topMethod(traits)
 		}
 		return p.topFun(traits)
-	case token.Let:
+	case token.Const:
 		return p.topConst(traits)
 	case token.Var:
 		return p.TopVar(traits)

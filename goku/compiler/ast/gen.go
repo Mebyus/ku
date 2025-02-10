@@ -43,7 +43,7 @@ type GenBlock struct {
 	Types []Type
 
 	// List of constant definition nodes.
-	Constants []TopLet
+	Constants []TopConst
 
 	// List of function definition nodes.
 	Functions []Fun
@@ -76,9 +76,9 @@ func (b *GenBlock) AddType(typ Type) {
 	b.Types = append(b.Types, typ)
 }
 
-func (b *GenBlock) AddConst(l TopLet) {
+func (b *GenBlock) AddConst(l TopConst) {
 	b.OrderIndex = append(b.OrderIndex, NodeIndex{
-		Kind:  tnk.Let,
+		Kind:  tnk.Const,
 		Index: uint32(len(b.Constants)),
 	})
 	b.Constants = append(b.Constants, l)

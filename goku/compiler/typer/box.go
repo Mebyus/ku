@@ -8,7 +8,7 @@ type Box struct {
 	Types []ast.Type
 
 	// List of top constant definition nodes.
-	Constants []ast.TopLet
+	Constants []ast.TopConst
 
 	// List of top variable definition nodes.
 	Variables []ast.TopVar
@@ -70,7 +70,7 @@ func (b *Box) init(texts []*ast.Text) {
 		b.FunStubs = make([]ast.FunStub, 0, funstubs)
 	}
 	if constants != 0 {
-		b.Constants = make([]ast.TopLet, 0, constants)
+		b.Constants = make([]ast.TopConst, 0, constants)
 	}
 }
 
@@ -87,7 +87,7 @@ func (b *Box) addFun(node ast.Fun) uint32 {
 	return i
 }
 
-func (b *Box) addConst(node ast.TopLet) uint32 {
+func (b *Box) addConst(node ast.TopConst) uint32 {
 	i := uint32(len(b.Constants))
 	b.Constants = append(b.Constants, node)
 	return i
@@ -137,7 +137,7 @@ func (b *Box) Test(i uint32) ast.Fun {
 	return b.Tests[i]
 }
 
-func (b *Box) Const(i uint32) ast.TopLet {
+func (b *Box) Const(i uint32) ast.TopConst {
 	return b.Constants[i]
 }
 

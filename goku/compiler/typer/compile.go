@@ -123,7 +123,7 @@ func (t *Typer) addTypes(types []ast.Type) diag.Error {
 	return nil
 }
 
-func (t *Typer) addConstants(constants []ast.TopLet) diag.Error {
+func (t *Typer) addConstants(constants []ast.TopConst) diag.Error {
 	for _, c := range constants {
 		err := t.addConst(c)
 		if err != nil {
@@ -215,7 +215,7 @@ func (t *Typer) addType(typ ast.Type) diag.Error {
 	return nil
 }
 
-func (t *Typer) addConst(c ast.TopLet) diag.Error {
+func (t *Typer) addConst(c ast.TopConst) diag.Error {
 	name := c.Name.Str
 	pin := c.Name.Pin
 

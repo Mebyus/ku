@@ -102,8 +102,10 @@ const (
 
 	Ret
 
+	Struct
 	Union
 
+	Const
 	Type
 	Let
 	Var

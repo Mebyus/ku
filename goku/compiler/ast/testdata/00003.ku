@@ -1,4 +1,4 @@
-let x: u64 = 0x10;
+const x: u64 = 0x10;
 
 fun foo_bar(a: str) => #never {
 	print(a);

@@ -7,23 +7,23 @@ import (
 )
 
 func (p *Parser) topConst(traits ast.Traits) diag.Error {
-	l, err := p.Let()
+	l, err := p.Const()
 	if err != nil {
 		return err
 	}
 
-	p.text.AddLet(ast.TopLet{
-		Let:    l,
+	p.text.AddConst(ast.TopConst{
+		Const:  l,
 		Traits: traits,
 	})
 	return nil
 }
 
-func (p *Parser) Let() (ast.Let, diag.Error) {
-	p.advance() // skip "let"
+func (p *Parser) Const() (ast.Const, diag.Error) {
+	p.advance() // skip "const"
 
 	if p.c.Kind != token.Word {
-		return ast.Let{}, p.unexpected()
+		return ast.Const{}, p.unexpected()
 	}
 	if p.n.Kind == token.Walrus {
 		panic("not implemented")
@@ -32,31 +32,31 @@ func (p *Parser) Let() (ast.Let, diag.Error) {
 	name := p.word()
 
 	if p.c.Kind != token.Colon {
-		return ast.Let{}, p.unexpected()
+		return ast.Const{}, p.unexpected()
 	}
 	p.advance() // skip ":"
 
 	typ, err := p.TypeSpec()
 	if err != nil {
-		return ast.Let{}, err
+		return ast.Const{}, err
 	}
 
 	if p.c.Kind != token.Assign {
-		return ast.Let{}, p.unexpected()
+		return ast.Const{}, p.unexpected()
 	}
 	p.advance() // skip "="
 
 	exp, err := p.Exp()
 	if err != nil {
-		return ast.Let{}, err
+		return ast.Const{}, err
 	}
 
 	if p.c.Kind != token.Semicolon {
-		return ast.Let{}, p.unexpected()
+		return ast.Const{}, p.unexpected()
 	}
 	p.advance() // consume ";"
 
-	return ast.Let{
+	return ast.Const{
 		Name: name,
 		Type: typ,
 		Exp:  exp,

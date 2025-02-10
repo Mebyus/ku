@@ -49,8 +49,8 @@ func text2() *Text {
 
 func text3() *Text {
 	t := New()
-	t.AddLet(TopLet{
-		Let: Let{
+	t.AddConst(TopConst{
+		Const: Const{
 			Name: word("x"),
 			Type: u64,
 			Exp:  hex(0x10),
@@ -544,8 +544,8 @@ func ret(exp Exp) Ret {
 	return Ret{Exp: exp}
 }
 
-func let(name string, typ TypeSpec, exp Exp) Let {
-	return Let{
+func let(name string, typ TypeSpec, exp Exp) Const {
+	return Const{
 		Name: word(name),
 		Type: typ,
 		Exp:  exp,

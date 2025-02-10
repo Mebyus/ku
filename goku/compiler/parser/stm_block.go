@@ -10,8 +10,8 @@ func (p *Parser) Statement() (ast.Statement, diag.Error) {
 	switch p.c.Kind {
 	case token.LeftCurly:
 		return p.Block()
-	case token.Let:
-		return p.Let()
+	case token.Const:
+		return p.Const()
 	case token.Var:
 		return p.Var()
 	case token.If:

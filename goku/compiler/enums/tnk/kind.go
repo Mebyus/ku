@@ -9,24 +9,26 @@ const (
 	// Mostly a trick to detect places where Kind is left unspecified.
 	empty Kind = iota
 
-	Fun
-	Let
 	Var
-	Gen
+	Const
 	Type
+
 	Test
+	Fun
 	Method
 	FunStub
+
+	Gen
 	GenBind
 )
 
 var text = [...]string{
 	empty: "<nil>",
 
-	Fun: "fun",
-	Let: "let",
-	Var: "var",
-	Gen: "gen",
+	Fun:   "fun",
+	Var:   "var",
+	Gen:   "gen",
+	Const: "const",
 
 	Type:   "type",
 	Test:   "test",

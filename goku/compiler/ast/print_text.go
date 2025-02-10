@@ -43,8 +43,8 @@ func (g *Printer) topByIndex(text *Text, x NodeIndex) {
 		panic(fmt.Sprintf("unspecified top level node (i=%d)", i))
 	case tnk.Fun:
 		g.Fun(text.Functions[i])
-	case tnk.Let:
-		g.TopLet(text.Constants[i])
+	case tnk.Const:
+		g.TopConst(text.Constants[i])
 	case tnk.Var:
 		g.TopVar(text.Variables[i])
 	case tnk.Type:

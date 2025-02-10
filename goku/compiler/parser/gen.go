@@ -97,7 +97,7 @@ func (p *Parser) genNode(b *ast.GenBlock) diag.Error {
 			return p.genMethod(b)
 		}
 		return p.genFun(b)
-	case token.Let:
+	case token.Const:
 		return p.genConst(b)
 	default:
 		return p.unexpected()
@@ -123,13 +123,13 @@ func (p *Parser) genMethod(b *ast.GenBlock) diag.Error {
 }
 
 func (p *Parser) genConst(b *ast.GenBlock) diag.Error {
-	l, err := p.Let()
+	l, err := p.Const()
 	if err != nil {
 		return err
 	}
 
-	b.AddConst(ast.TopLet{
-		Let:    l,
+	b.AddConst(ast.TopConst{
+		Const:  l,
 		Traits: ast.Traits{}, // TODO: parse traits
 	})
 	return nil

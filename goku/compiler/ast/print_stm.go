@@ -10,8 +10,8 @@ func (g *Printer) Statement(s Statement) {
 		g.Ret(s)
 	case Var:
 		g.Var(s)
-	case Let:
-		g.Let(s)
+	case Const:
+		g.Const(s)
 	case Assign:
 		g.Assign(s)
 	case Invoke:
@@ -105,12 +105,12 @@ func (g *Printer) Ret(r Ret) {
 	g.semi()
 }
 
-func (g *Printer) TopLet(l TopLet) {
-	g.Let(l.Let)
+func (g *Printer) TopConst(l TopConst) {
+	g.Const(l.Const)
 }
 
-func (g *Printer) Let(l Let) {
-	g.puts("let ")
+func (g *Printer) Const(l Const) {
+	g.puts("const ")
 	g.puts(l.Name.Str)
 	g.puts(": ")
 	g.TypeSpec(l.Type)
