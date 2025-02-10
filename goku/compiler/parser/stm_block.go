@@ -14,6 +14,8 @@ func (p *Parser) Statement() (ast.Statement, diag.Error) {
 		return p.Const()
 	case token.Var:
 		return p.Var()
+	case token.Let:
+		return p.Alias()
 	case token.If:
 		return p.If()
 	case token.Ret:

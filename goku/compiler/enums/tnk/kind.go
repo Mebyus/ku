@@ -12,6 +12,7 @@ const (
 	Var
 	Const
 	Type
+	Alias
 
 	Test
 	Fun
@@ -27,14 +28,15 @@ var text = [...]string{
 
 	Fun:   "fun",
 	Var:   "var",
-	Gen:   "gen",
 	Const: "const",
+	Type:  "type",
+	Alias: "alias",
 
-	Type:   "type",
-	Test:   "test",
-	Method: "method",
-
+	Test:    "test",
+	Method:  "method",
 	FunStub: "fun.stub",
+
+	Gen:     "gen",
 	GenBind: "gen.bind",
 }
 

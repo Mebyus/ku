@@ -55,6 +55,10 @@ func (g *Printer) topByIndex(text *Text, x NodeIndex) {
 		g.Method(text.Methods[i])
 	case tnk.FunStub:
 		g.FunStub(text.FunStubs[i])
+	case tnk.Gen:
+		g.Gen(text.Generics[i])
+	case tnk.GenBind:
+		g.GenBind(text.GenBinds[i])
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) top level node (i=%d)", k, k, i))
 	}

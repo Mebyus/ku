@@ -405,6 +405,8 @@ func (lx *Lexer) static() token.Token {
 		tok.Kind = token.Build
 	case "debug":
 		tok.Kind = token.Debug
+	case "lookup":
+		tok.Kind = token.Lookup
 	default:
 		tok.SetIllegalError(token.UnknownDirective)
 	}

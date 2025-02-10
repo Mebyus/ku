@@ -12,6 +12,8 @@ func (g *Printer) Statement(s Statement) {
 		g.Var(s)
 	case Const:
 		g.Const(s)
+	case Alias:
+		g.Alias(s)
 	case Assign:
 		g.Assign(s)
 	case Invoke:
@@ -63,6 +65,33 @@ func (g *Printer) Never(n Never) {
 	g.puts("#never;")
 }
 
+func (g *Printer) Lookup(l Lookup) {
+	g.puts("#lookup(")
+	g.Exp(l.Exp)
+	g.puts(");")
+}
+
+func (g *Printer) Static(s Static) {
+	if len(s.Nodes) == 0 {
+		g.puts("#{}")
+		return
+	}
+
+	g.puts("#{")
+	g.nl()
+	g.inc()
+
+	for _, n := range s.Nodes {
+		g.indent()
+		g.Statement(n)
+		g.nl()
+	}
+
+	g.dec()
+	g.indent()
+	g.puts("}")
+}
+
 func (g *Printer) Block(b Block) {
 	if len(b.Nodes) == 0 {
 		g.puts("{}")
@@ -73,9 +102,9 @@ func (g *Printer) Block(b Block) {
 	g.nl()
 	g.inc()
 
-	for _, s := range b.Nodes {
+	for _, n := range b.Nodes {
 		g.indent()
-		g.Statement(s)
+		g.Statement(n)
 		g.nl()
 	}
 
@@ -116,6 +145,14 @@ func (g *Printer) Const(l Const) {
 	g.TypeSpec(l.Type)
 	g.puts(" = ")
 	g.Exp(l.Exp)
+	g.semi()
+}
+
+func (g *Printer) Alias(a Alias) {
+	g.puts("let ")
+	g.puts(a.Name.Str)
+	g.puts(" => ")
+	g.Exp(a.Exp)
 	g.semi()
 }
 

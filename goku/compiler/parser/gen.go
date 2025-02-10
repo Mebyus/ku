@@ -99,6 +99,8 @@ func (p *Parser) genNode(b *ast.GenBlock) diag.Error {
 		return p.genFun(b)
 	case token.Const:
 		return p.genConst(b)
+	case token.Let:
+		return p.genAlias(b)
 	default:
 		return p.unexpected()
 	}
@@ -141,5 +143,18 @@ func (p *Parser) genType(b *ast.GenBlock) diag.Error {
 		return err
 	}
 	b.AddType(t)
+	return nil
+}
+
+func (p *Parser) genAlias(b *ast.GenBlock) diag.Error {
+	a, err := p.Alias()
+	if err != nil {
+		return err
+	}
+
+	b.AddAlias(ast.TopAlias{
+		Alias:  a,
+		Traits: ast.Traits{}, // TODO: parse traits
+	})
 	return nil
 }

@@ -5,6 +5,10 @@ gen maps(T: type, n: int) #{
 
 gen maps(...) {
 
+let m0 => maps0(T);
+
+#lookup(m0);
+
 fun index(s: []T) => uint {
 	ret s.len;
 }

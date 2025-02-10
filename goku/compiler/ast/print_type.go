@@ -31,6 +31,8 @@ func (g *Printer) TypeSpec(typ TypeSpec) {
 		g.AnyPointer(t)
 	case ArrayPointer:
 		g.ArrayPointer(t)
+	case AnyType:
+		g.AnyType(t)
 	case Enum:
 		g.Enum(t)
 	default:
@@ -72,6 +74,10 @@ func (g *Printer) EnumEntry(entry EnumEntry) {
 
 func (g *Printer) Trivial(t Trivial) {
 	g.puts("{}")
+}
+
+func (g *Printer) AnyType(t AnyType) {
+	g.puts("type")
 }
 
 func (g *Printer) Pointer(p Pointer) {

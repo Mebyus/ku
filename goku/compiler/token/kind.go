@@ -119,13 +119,14 @@ const (
 	True
 	False
 
-	Debug // #debug
-	Build // #build
-	Never // #never
-	Stub  // #stub
-	Cast  // #cast
-	Tint  // #tint - truncate (cast with storage size change) integer
-	Size  // #size - query type size
+	Debug  // #debug
+	Build  // #build
+	Never  // #never
+	Stub   // #stub
+	Cast   // #cast
+	Tint   // #tint - truncate (cast with storage size change) integer
+	Size   // #size - query type size
+	Lookup // #lookup
 
 	Any // designator to use as *any (void* analog)
 

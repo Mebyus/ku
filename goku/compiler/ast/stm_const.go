@@ -37,7 +37,7 @@ type Const struct {
 var _ Statement = Const{}
 
 func (Const) Kind() stk.Kind {
-	return stk.Let
+	return stk.Const
 }
 
 func (c Const) Span() source.Span {

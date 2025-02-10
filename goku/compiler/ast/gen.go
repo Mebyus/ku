@@ -50,6 +50,9 @@ type GenBlock struct {
 
 	// List of method nodes.
 	Methods []Method
+
+	// List of alias nodes.
+	Aliases []TopAlias
 }
 
 func (b *GenBlock) AddFun(f Fun) {
@@ -82,4 +85,12 @@ func (b *GenBlock) AddConst(l TopConst) {
 		Index: uint32(len(b.Constants)),
 	})
 	b.Constants = append(b.Constants, l)
+}
+
+func (b *GenBlock) AddAlias(a TopAlias) {
+	b.OrderIndex = append(b.OrderIndex, NodeIndex{
+		Kind:  tnk.Alias,
+		Index: uint32(len(b.Aliases)),
+	})
+	b.Aliases = append(b.Aliases, a)
 }

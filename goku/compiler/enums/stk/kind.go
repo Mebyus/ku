@@ -12,7 +12,8 @@ const (
 	Block
 	Assign
 	Ret
-	Let
+	Const
+	Alias
 	Var
 	If
 	Invoke
@@ -24,6 +25,7 @@ const (
 	Jump
 	Never
 	Stub
+	Lookup
 	Debug
 
 	// Defer function or method call.
@@ -38,7 +40,8 @@ var text = [...]string{
 	Block:     "block",
 	Assign:    "assign",
 	Ret:       "ret",
-	Let:       "let",
+	Const:     "const",
+	Alias:     "alias",
 	Var:       "var",
 	If:        "if",
 	Invoke:    "invoke",
@@ -52,6 +55,7 @@ var text = [...]string{
 	Never:     "never",
 	Stub:      "stub",
 	Debug:     "debug",
+	Lookup:    "lookup",
 }
 
 func (k Kind) String() string {

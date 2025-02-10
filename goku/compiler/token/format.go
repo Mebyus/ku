@@ -104,13 +104,14 @@ var literal = [...]string{
 	True:  "true",
 	False: "false",
 
-	Debug: "#debug",
-	Build: "#build",
-	Stub:  "#stub",
-	Never: "#never",
-	Cast:  "#cast",
-	Tint:  "#tint",
-	Size:  "#size",
+	Debug:  "#debug",
+	Build:  "#build",
+	Stub:   "#stub",
+	Never:  "#never",
+	Cast:   "#cast",
+	Tint:   "#tint",
+	Size:   "#size",
+	Lookup: "#lookup",
 
 	Any: "any",
 

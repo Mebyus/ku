@@ -44,7 +44,9 @@ func (p *Parser) top() diag.Error {
 	case token.Const:
 		return p.topConst(traits)
 	case token.Var:
-		return p.TopVar(traits)
+		return p.topVar(traits)
+	case token.Let:
+		return p.topAlias(traits)
 	case token.Test:
 		return p.Test(traits)
 	case token.Stub:

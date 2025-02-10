@@ -83,7 +83,7 @@ func text4() *Text {
 			Result: u64,
 		},
 		Body: block(
-			let("i", u32, dec(0)),
+			constdef("i", u32, dec(0)),
 			ret(chain("a", index(sym("i")))),
 		),
 	})
@@ -544,7 +544,7 @@ func ret(exp Exp) Ret {
 	return Ret{Exp: exp}
 }
 
-func let(name string, typ TypeSpec, exp Exp) Const {
+func constdef(name string, typ TypeSpec, exp Exp) Const {
 	return Const{
 		Name: word(name),
 		Type: typ,

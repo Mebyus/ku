@@ -31,6 +31,9 @@ type Text struct {
 	// List of top function definition nodes.
 	Functions []Fun
 
+	// List of top alias nodes.
+	Aliases []TopAlias
+
 	// List of unit test functions.
 	Tests []Fun
 
@@ -81,6 +84,14 @@ func (t *Text) AddConst(l TopConst) {
 		Index: uint32(len(t.Constants)),
 	})
 	t.Constants = append(t.Constants, l)
+}
+
+func (t *Text) AddAlias(a TopAlias) {
+	t.OrderIndex = append(t.OrderIndex, NodeIndex{
+		Kind:  tnk.Alias,
+		Index: uint32(len(t.Aliases)),
+	})
+	t.Aliases = append(t.Aliases, a)
 }
 
 func (t *Text) AddFun(f Fun) {
