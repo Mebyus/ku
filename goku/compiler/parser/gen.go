@@ -101,6 +101,8 @@ func (p *Parser) genNode(b *ast.GenBlock) diag.Error {
 		return p.genConst(b)
 	case token.Let:
 		return p.genAlias(b)
+	case token.Lookup:
+		return p.genLookup(b)
 	default:
 		return p.unexpected()
 	}
@@ -125,13 +127,13 @@ func (p *Parser) genMethod(b *ast.GenBlock) diag.Error {
 }
 
 func (p *Parser) genConst(b *ast.GenBlock) diag.Error {
-	l, err := p.Const()
+	c, err := p.Const()
 	if err != nil {
 		return err
 	}
 
 	b.AddConst(ast.TopConst{
-		Const:  l,
+		Const:  c,
 		Traits: ast.Traits{}, // TODO: parse traits
 	})
 	return nil
@@ -156,5 +158,15 @@ func (p *Parser) genAlias(b *ast.GenBlock) diag.Error {
 		Alias:  a,
 		Traits: ast.Traits{}, // TODO: parse traits
 	})
+	return nil
+}
+
+func (p *Parser) genLookup(b *ast.GenBlock) diag.Error {
+	l, err := p.Lookup()
+	if err != nil {
+		return err
+	}
+
+	b.AddLookup(l)
 	return nil
 }

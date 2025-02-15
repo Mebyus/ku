@@ -35,6 +35,8 @@ func (g *Printer) TypeSpec(typ TypeSpec) {
 		g.AnyType(t)
 	case Enum:
 		g.Enum(t)
+	case Bag:
+		g.Bag(t)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier", t.Kind(), t.Kind()))
 	}
@@ -156,4 +158,24 @@ func (g *Printer) Tuple(tuple Tuple) {
 		g.TypeSpec(t)
 	}
 	g.puts(")")
+}
+
+func (g *Printer) Bag(b Bag) {
+	g.puts("bag {")
+	if len(b.Funs) == 0 {
+		g.puts("}")
+		return
+	}
+
+	g.inc()
+	for _, f := range b.Funs {
+		g.nl()
+		g.indent()
+		g.puts(f.Name.Str)
+		g.Signature(f.Signature)
+		g.semi()
+	}
+	g.dec()
+	g.nl()
+	g.puts("}")
 }

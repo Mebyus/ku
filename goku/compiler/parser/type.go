@@ -103,6 +103,8 @@ func (p *Parser) CustomTypeSpec() (ast.TypeSpec, diag.Error) {
 			return ast.Trivial{Pin: pin}, nil
 		}
 		return p.Struct()
+	case token.Bag:
+		return p.Bag()
 	}
 	return p.TypeSpec()
 }

@@ -21,6 +21,7 @@ const (
 
 	Gen
 	GenBind
+	Lookup
 )
 
 var text = [...]string{
@@ -38,6 +39,7 @@ var text = [...]string{
 
 	Gen:     "gen",
 	GenBind: "gen.bind",
+	Lookup:  "lookup",
 }
 
 func (k Kind) String() string {

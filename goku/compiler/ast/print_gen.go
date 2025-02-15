@@ -59,6 +59,10 @@ func (g *Printer) genByIndex(b *GenBlock, x NodeIndex) {
 		g.Type(b.Types[i])
 	case tnk.Method:
 		g.Method(b.Methods[i])
+	case tnk.Alias:
+		g.TopAlias(b.Aliases[i])
+	case tnk.Lookup:
+		g.Lookup(b.Lookups[i])
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) top level node (i=%d)", k, k, i))
 	}

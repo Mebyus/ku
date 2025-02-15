@@ -148,6 +148,10 @@ func (g *Printer) Const(l Const) {
 	g.semi()
 }
 
+func (g *Printer) TopAlias(a TopAlias) {
+	g.Alias(a.Alias)
+}
+
 func (g *Printer) Alias(a Alias) {
 	g.puts("let ")
 	g.puts(a.Name.Str)

@@ -53,6 +53,9 @@ type GenBlock struct {
 
 	// List of alias nodes.
 	Aliases []TopAlias
+
+	// List of lookup nodes.
+	Lookups []Lookup
 }
 
 func (b *GenBlock) AddFun(f Fun) {
@@ -93,4 +96,12 @@ func (b *GenBlock) AddAlias(a TopAlias) {
 		Index: uint32(len(b.Aliases)),
 	})
 	b.Aliases = append(b.Aliases, a)
+}
+
+func (b *GenBlock) AddLookup(l Lookup) {
+	b.OrderIndex = append(b.OrderIndex, NodeIndex{
+		Kind:  tnk.Lookup,
+		Index: uint32(len(b.Lookups)),
+	})
+	b.Lookups = append(b.Lookups, l)
 }
