@@ -712,7 +712,7 @@ func (lx *Lexer) other() token.Token {
 				Kind: token.DerefSelect,
 			}
 		case '{':
-			return lx.twoBytesToken(token.Compound)
+			return lx.twoBytesToken(token.Tweak)
 		case '[':
 			return lx.twoBytesToken(token.DerefIndex)
 		case '(':

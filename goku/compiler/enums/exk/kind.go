@@ -255,6 +255,9 @@ const (
 	Ref
 
 	// Operand. Terminates chain.
+	Tweak
+
+	// Operand. Terminates chain.
 	//
 	// AST (TODO: complete usage annotation).
 	//
@@ -334,6 +337,7 @@ var text = [...]string{
 	Deref:  "deref",
 	Select: "select",
 	Slice:  "slice",
+	Tweak:  "tweak",
 
 	DerefIndex: "deref.index",
 	SelectTest: "select.test",

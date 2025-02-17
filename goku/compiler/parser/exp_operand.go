@@ -116,6 +116,8 @@ func (p *Parser) Chain() (ast.Operand, diag.Error) {
 		switch p.c.Kind {
 		case token.LeftParen:
 			return p.call(chain)
+		case token.Tweak:
+			return p.tweak(chain)
 		case token.Period:
 			p.advance() // skip "."
 

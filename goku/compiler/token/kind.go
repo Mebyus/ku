@@ -73,7 +73,7 @@ const (
 
 	HashCurly // #{
 
-	Compound     // .{
+	Tweak        // .{
 	Insist       // .!
 	Chain        // .?
 	Chunk        // []

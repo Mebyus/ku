@@ -38,9 +38,41 @@ func (g *Printer) Exp(exp Exp) {
 		g.Ref(e)
 	case Slice:
 		g.Slice(e)
+	case Tweak:
+		g.Tweak(e)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) expression (%T)", e.Kind(), e.Kind(), e))
 	}
+}
+
+func (g *Printer) Tweak(t Tweak) {
+	g.Chain(t.Chain)
+	g.tweakFields(t.Fields)
+}
+
+func (g *Printer) tweakFields(fields []ObjField) {
+	if len(fields) == 0 {
+		g.puts(".{}")
+		return
+	}
+
+	g.puts(".{")
+	g.inc()
+	for _, f := range fields {
+		g.nl()
+		g.indent()
+		g.ObjField(f)
+	}
+	g.dec()
+	g.nl()
+	g.indent()
+	g.puts("}")
+}
+
+func (g *Printer) ObjField(f ObjField) {
+	g.puts(f.Name.Str)
+	g.puts(": ")
+	g.Exp(f.Exp)
 }
 
 func (g *Printer) Slice(s Slice) {

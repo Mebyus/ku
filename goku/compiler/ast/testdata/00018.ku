@@ -1,0 +1,16 @@
+type Foo => struct {
+	a: u64,
+	s: str,
+}
+
+fun copy_change_example(foo: Foo) => Foo {
+	r := foo.{a: 10};
+	ret r;
+}
+
+fun change_context_example() {
+	arena := Arena.{} 
+	$.{scratch: arena.&} {
+
+	}
+}
