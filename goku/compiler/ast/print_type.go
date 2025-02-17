@@ -5,18 +5,43 @@ import "fmt"
 func (g *Printer) Type(typ Type) {
 	g.puts("type ")
 	g.puts(typ.Name.Str)
+
+	if len(typ.Bags) != 0 {
+		g.puts(" in ")
+		g.bagList(typ.Bags)
+	}
+
 	g.puts(" => ")
 	g.TypeSpec(typ.Spec)
 }
 
+func (g *Printer) bagList(names []Word) {
+	if len(names) == 0 {
+		g.puts("()")
+		return
+	}
+
+	g.puts("(")
+	g.puts(names[0].Str)
+	for _, name := range names[1:] {
+		g.puts(", ")
+		g.puts(name.Str)
+	}
+	g.puts(")")
+}
+
 func (g *Printer) TypeSpec(typ TypeSpec) {
 	switch t := typ.(type) {
+	case nil:
+		panic("nil type specifier")
 	case TypeName:
 		g.TypeName(t)
 	case TypeFullName:
 		g.TypeFullName(t)
 	case Tuple:
 		g.Tuple(t)
+	case Form:
+		g.Form(t)
 	case Chunk:
 		g.Chunk(t)
 	case Array:
@@ -38,7 +63,7 @@ func (g *Printer) TypeSpec(typ TypeSpec) {
 	case Bag:
 		g.Bag(t)
 	default:
-		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier", t.Kind(), t.Kind()))
+		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier (%T)", t.Kind(), t.Kind(), t))
 	}
 }
 
@@ -119,6 +144,7 @@ func (g *Printer) TypeFullName(t TypeFullName) {
 }
 
 func (g *Printer) Struct(s Struct) {
+	g.puts("struct ")
 	if len(s.Fields) == 0 {
 		g.puts("{}")
 		return
@@ -156,6 +182,21 @@ func (g *Printer) Tuple(tuple Tuple) {
 	for _, t := range tuple.Types[1:] {
 		g.puts(", ")
 		g.TypeSpec(t)
+	}
+	g.puts(")")
+}
+
+func (g *Printer) Form(form Form) {
+	if len(form.Fields) == 0 {
+		g.puts("()")
+		return
+	}
+
+	g.puts("(")
+	g.Field(form.Fields[0])
+	for _, f := range form.Fields[1:] {
+		g.puts(", ")
+		g.Field(f)
 	}
 	g.puts(")")
 }

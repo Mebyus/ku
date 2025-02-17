@@ -10,20 +10,10 @@ func (p *Parser) Lookup() (ast.Lookup, diag.Error) {
 	pin := p.c.Pin
 	p.advance() // skip "#lookup"
 
-	if p.c.Kind != token.LeftParen {
-		return ast.Lookup{}, p.unexpected()
-	}
-	p.advance() // skip "("
-
 	exp, err := p.Exp()
 	if err != nil {
 		return ast.Lookup{}, err
 	}
-
-	if p.c.Kind != token.RightParen {
-		return ast.Lookup{}, p.unexpected()
-	}
-	p.advance() // skip ")"
 
 	if p.c.Kind != token.Semicolon {
 		return ast.Lookup{}, p.unexpected()

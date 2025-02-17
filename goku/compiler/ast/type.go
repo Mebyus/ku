@@ -9,9 +9,16 @@ import (
 //
 // Formal definitino:
 //
-//	Type => [ "pub" ] "type" Name TypeSpec
+//	Type => [ "pub" ] "type" Name [ "in" BagList ] "=>" TypeSpec
+//	BagList => "(" { BagName "," } ")"
+//	Name => word
+//	BagName => word
 type Type struct {
 	Name Word
+
+	// Optional list of bags which this type must fit into.
+	Bags []Word
+
 	Spec TypeSpec
 
 	Traits

@@ -21,6 +21,7 @@ const (
 	Bag
 	Fun
 	Tuple
+	Form
 	Trivial
 	Type
 )
@@ -39,6 +40,7 @@ var text = [...]string{
 	Bag:          "bag",
 	Fun:          "fun",
 	Tuple:        "tuple",
+	Form:         "form",
 	Trivial:      "trivial",
 	Type:         "type",
 

@@ -23,6 +23,16 @@ func (p *Parser) Type(traits ast.Traits) (ast.Type, diag.Error) {
 	}
 	name := p.word()
 
+	var bags []ast.Word
+	if p.c.Kind == token.In {
+		p.advance() // skip "in"
+		list, err := p.bagList()
+		if err != nil {
+			return ast.Type{}, err
+		}
+		bags = list
+	}
+
 	if p.c.Kind != token.RightArrow {
 		return ast.Type{}, p.unexpected()
 	}
@@ -35,6 +45,7 @@ func (p *Parser) Type(traits ast.Traits) (ast.Type, diag.Error) {
 
 	return ast.Type{
 		Name:   name,
+		Bags:   bags,
 		Spec:   spec,
 		Traits: traits,
 	}, nil
@@ -75,10 +86,10 @@ func (p *Parser) TypeSpec() (ast.TypeSpec, diag.Error) {
 
 // ResultTypeSpec parses type specifier in function signature return type.
 //
-// This form includes tuples.
+// This variant includes tuples and forms.
 func (p *Parser) ResultTypeSpec() (ast.TypeSpec, diag.Error) {
 	if p.c.Kind == token.LeftParen {
-		return p.Tuple()
+		return p.TupleOrForm()
 	}
 	return p.TypeSpec()
 }
@@ -95,6 +106,8 @@ func (p *Parser) CustomTypeSpec() (ast.TypeSpec, diag.Error) {
 		}
 	case token.Union:
 		panic("not implemented")
+	case token.Struct:
+		return p.Struct()
 	case token.LeftCurly:
 		if p.n.Kind == token.RightCurly {
 			pin := p.c.Pin
@@ -102,7 +115,6 @@ func (p *Parser) CustomTypeSpec() (ast.TypeSpec, diag.Error) {
 			p.advance() // skip "}"
 			return ast.Trivial{Pin: pin}, nil
 		}
-		return p.Struct()
 	case token.Bag:
 		return p.Bag()
 	}
@@ -201,4 +213,33 @@ func (p *Parser) TypeFullName() (ast.TypeFullName, diag.Error) {
 func (p *Parser) TypeName() ast.TypeName {
 	name := p.word()
 	return ast.TypeName{Name: name}
+}
+
+func (p *Parser) bagList() ([]ast.Word, diag.Error) {
+	if p.c.Kind != token.LeftParen {
+		return nil, p.unexpected()
+	}
+	p.advance() // skip "("
+
+	var list []ast.Word
+	for {
+		if p.c.Kind == token.RightParen {
+			p.advance() // skip ")"
+			return list, nil
+		}
+
+		if p.c.Kind != token.Word {
+			return nil, p.unexpected()
+		}
+		name := p.word()
+		list = append(list, name)
+
+		if p.c.Kind == token.Comma {
+			p.advance() // skip ","
+		} else if p.c.Kind == token.RightParen {
+			// will be skipped at next iteration
+		} else {
+			return nil, p.unexpected()
+		}
+	}
 }

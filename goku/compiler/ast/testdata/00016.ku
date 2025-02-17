@@ -7,13 +7,13 @@ gen maps(...) {
 
 let m0 => maps0(T);
 
-#lookup(m0);
+#lookup m0;
 
 fun index(s: []T) => uint {
 	ret s.len;
 }
 
-type Map => {
+type Map => struct {
 	a: T,
 	b: uint,
 }

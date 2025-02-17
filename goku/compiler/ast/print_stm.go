@@ -4,6 +4,8 @@ import "fmt"
 
 func (g *Printer) Statement(s Statement) {
 	switch s := s.(type) {
+	case nil:
+		panic("nil statement")
 	case Block:
 		g.Block(s)
 	case Ret:
@@ -66,9 +68,9 @@ func (g *Printer) Never(n Never) {
 }
 
 func (g *Printer) Lookup(l Lookup) {
-	g.puts("#lookup(")
+	g.puts("#lookup ")
 	g.Exp(l.Exp)
-	g.puts(");")
+	g.puts(";")
 }
 
 func (g *Printer) Static(s Static) {

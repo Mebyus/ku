@@ -12,7 +12,7 @@ import (
 //
 // Formal definition:
 //
-//	Lookup => "#lookup" "(" Exp ")" ";"
+//	Lookup => "#lookup" Exp ";"
 type Lookup struct {
 	// Expression that specifies the scope.
 	Exp Exp
