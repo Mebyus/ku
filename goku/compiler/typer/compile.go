@@ -57,6 +57,14 @@ func (t *Typer) compile(texts []*ast.Text) diag.Error {
 	if err != nil {
 		return err
 	}
+	err = t.checkMethodReceivers()
+	if err != nil {
+		return err
+	}
+	err = t.checkGenericBinds()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -87,6 +95,14 @@ func (t *Typer) addText(text *ast.Text) diag.Error {
 	if err != nil {
 		return err
 	}
+	err = t.addAliases(text.Aliases)
+	if err != nil {
+		return err
+	}
+	err = t.addFunStubs(text.FunStubs)
+	if err != nil {
+		return err
+	}
 	err = t.addVars(text.Variables)
 	if err != nil {
 		return err
@@ -99,7 +115,59 @@ func (t *Typer) addText(text *ast.Text) diag.Error {
 	if err != nil {
 		return err
 	}
+	err = t.addGenerics(text.Generics)
+	if err != nil {
+		return err
+	}
+	err = t.addGenBinds(text.GenBinds)
+	if err != nil {
+		return err
+	}
 
+	return nil
+}
+
+func (t *Typer) checkMethodReceivers() diag.Error {
+	for _, method := range t.box.Methods {
+		name := method.Receiver.Name.Str
+		pin := method.Receiver.Name.Pin
+
+		receiver := t.unit.Scope.Get(name)
+		if receiver == nil {
+			return &diag.SimpleMessageError{
+				Pin:  pin,
+				Text: fmt.Sprintf("method receiver \"%s\" refers to undefined symbol", name),
+			}
+		}
+		if receiver.Kind != smk.Type {
+			return &diag.SimpleMessageError{
+				Pin:  pin,
+				Text: fmt.Sprintf("method receiver \"%s\" refers to %s symbol (instead of custom type)", name, receiver.Kind),
+			}
+		}
+	}
+	return nil
+}
+
+func (t *Typer) checkGenericBinds() diag.Error {
+	for _, bind := range t.box.GenBinds {
+		name := bind.Name.Str
+		pin := bind.Name.Pin
+
+		generic := t.unit.Scope.Get(name)
+		if generic == nil {
+			return &diag.SimpleMessageError{
+				Pin:  pin,
+				Text: fmt.Sprintf("generic bind \"%s\" refers to undefined symbol", name),
+			}
+		}
+		if generic.Kind != smk.Gen {
+			return &diag.SimpleMessageError{
+				Pin:  pin,
+				Text: fmt.Sprintf("generic bind \"%s\" refers to %s symbol (instead of generic)", name, generic.Kind),
+			}
+		}
+	}
 	return nil
 }
 
@@ -143,6 +211,26 @@ func (t *Typer) addFuns(funs []ast.Fun) diag.Error {
 	return nil
 }
 
+func (t *Typer) addAliases(aliases []ast.TopAlias) diag.Error {
+	for _, alias := range aliases {
+		err := t.addAlias(alias)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (t *Typer) addFunStubs(stubs []ast.FunStub) diag.Error {
+	for _, stub := range stubs {
+		err := t.addFunStub(stub)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (t *Typer) addVars(vars []ast.TopVar) diag.Error {
 	for _, v := range vars {
 		err := t.addVar(v)
@@ -166,6 +254,26 @@ func (t *Typer) addMethods(methods []ast.Method) diag.Error {
 func (t *Typer) addTests(tests []ast.Fun) diag.Error {
 	for _, test := range tests {
 		err := t.addTest(test)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (t *Typer) addGenerics(gens []ast.Gen) diag.Error {
+	for _, gen := range gens {
+		err := t.addGeneric(gen)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (t *Typer) addGenBinds(binds []ast.GenBind) diag.Error {
+	for _, bind := range binds {
+		err := t.addGenBind(bind)
 		if err != nil {
 			return err
 		}
@@ -202,6 +310,20 @@ func (t *Typer) addFun(fun ast.Fun) diag.Error {
 	return nil
 }
 
+func (t *Typer) addFunStub(stub ast.FunStub) diag.Error {
+	name := stub.Name.Str
+	pin := stub.Name.Pin
+
+	if t.unit.Scope.Has(name) {
+		return errMultDef(name, pin)
+	}
+
+	symbol := t.unit.Scope.Alloc(smk.Fun, name, pin)
+	symbol.Aux = t.box.addFunStub(stub)
+	symbol.Flags = stg.SymbolStub
+	return nil
+}
+
 func (t *Typer) addType(typ ast.Type) diag.Error {
 	name := typ.Name.Str
 	pin := typ.Name.Pin
@@ -225,6 +347,19 @@ func (t *Typer) addConst(c ast.TopConst) diag.Error {
 
 	symbol := t.unit.Scope.Alloc(smk.Let, name, pin)
 	symbol.Aux = t.box.addConst(c)
+	return nil
+}
+
+func (t *Typer) addAlias(alias ast.TopAlias) diag.Error {
+	name := alias.Name.Str
+	pin := alias.Name.Pin
+
+	if t.unit.Scope.Has(name) {
+		return errMultDef(name, pin)
+	}
+
+	symbol := t.unit.Scope.Alloc(smk.Alias, name, pin)
+	symbol.Aux = t.box.addAlias(alias)
 	return nil
 }
 
@@ -264,6 +399,24 @@ func (t *Typer) addTest(test ast.Fun) diag.Error {
 
 	symbol := t.unit.TestScope.Alloc(smk.Test, name, pin)
 	symbol.Aux = t.box.addTest(test)
+	return nil
+}
+
+func (t *Typer) addGeneric(gen ast.Gen) diag.Error {
+	name := gen.Name.Str
+	pin := gen.Name.Pin
+
+	if t.unit.Scope.Has(name) {
+		return errMultDef(name, pin)
+	}
+
+	symbol := t.unit.Scope.Alloc(smk.Gen, name, pin)
+	symbol.Aux = t.box.addGen(gen)
+	return nil
+}
+
+func (t *Typer) addGenBind(bind ast.GenBind) diag.Error {
+	t.box.addGenBind(bind)
 	return nil
 }
 

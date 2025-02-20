@@ -29,6 +29,10 @@ const (
 	// Variable definition (name + type + initial value).
 	Var
 
+	Alias
+
+	Gen
+
 	// Runtime function or method parameter.
 	Param
 

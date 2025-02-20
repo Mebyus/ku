@@ -75,6 +75,9 @@ type SymbolFlag uint8
 const (
 	// Symbol is language builtin.
 	SymbolBuiltin SymbolFlag = 1 << iota
+
+	// Symbol is function stub.
+	SymbolStub
 )
 
 type SymDef interface {

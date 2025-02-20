@@ -1,0 +1,30 @@
+gen maps(T: type, n: int) #{
+	must(n < 16);
+	must(T in Writer);
+}
+
+gen maps(...) {
+
+fun index(s: []T) => uint {
+	ret s.len;
+}
+
+}
+
+type Writer => bag {
+	write() => uint;
+}
+
+type Foo => struct {
+	pos: uint,
+}
+
+fun (*Foo) write() => uint {
+	ret g.pos;
+}
+
+let m => maps(Foo, 10);
+
+fun count(s: []Foo) => uint {
+	ret m.index(s);
+}

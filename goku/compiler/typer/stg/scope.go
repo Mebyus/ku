@@ -9,7 +9,7 @@ import (
 type Scope struct {
 	// List of all symbols defined inside this scope. Symbols are
 	// listed in order they appear in source code (except for global and unit scopes).
-	Symbols []Symbol
+	Symbols []*Symbol
 
 	Parent *Scope
 
@@ -79,14 +79,24 @@ func (s *Scope) Has(name string) bool {
 
 // Alloc allocates new symbol inside the scope.
 func (s *Scope) Alloc(kind smk.Kind, name string, pin source.Pin) *Symbol {
-	i := len(s.Symbols)
-	s.Symbols = append(s.Symbols, Symbol{
+	symbol := &Symbol{
 		Name:  name,
 		Pin:   pin,
 		Scope: s,
 		Kind:  kind,
-	})
-	symbol := &s.Symbols[i]
+	}
+	s.Symbols = append(s.Symbols, symbol)
 	s.m[name] = symbol
 	return symbol
+}
+
+// Lookup finds a symbol by its name inside the scope or by doing lookup in
+// parent scope.
+func (s *Scope) Lookup(name string) *Symbol {
+	return nil
+}
+
+// Get finds a symbol by its name inside the scope. Does not check parent scope.
+func (s *Scope) Get(name string) *Symbol {
+	return s.m[name]
 }
