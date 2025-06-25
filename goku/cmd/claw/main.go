@@ -27,7 +27,7 @@ var root = &butler.Butler{
 	Short: "Claw is a command line tool for managing restricted set of Ku source code.",
 	Usage: "[command] [arguments]",
 
-	Lackeys: []*butler.Butler{
+	Subs: []*butler.Butler{
 		lex.Butler,
 	},
 }

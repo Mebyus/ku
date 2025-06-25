@@ -2,6 +2,7 @@ package butler
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -24,7 +25,7 @@ var kindText = [...]string{
 	String:    "string",
 	Integer:   "integer",
 	List:      "list",
-	CommaList: "list.comma",
+	CommaList: "comma list",
 }
 
 func (k ParamKind) String() string {
@@ -55,15 +56,34 @@ type Param struct {
 	// Default value for this param.
 	//
 	// If param is required then this field should be nil.
+	//
+	// Accepts values of the following types:
+	//	- bool
+	//	- int
+	//	- int32
+	//	- int64
+	//	- string
+	//	- []string
 	Default any
 
 	// stored bound param values
+	//
+	// always contains one of:
+	//	- nil
+	//	- bool
+	//	- int64
+	//	- string
+	//	- []string
 	val any
 
 	Kind ParamKind
 }
 
 func (p *Param) Bind(v string) error {
+	if p.Kind != List && p.val != nil {
+		return fmt.Errorf("multiple uses of \"%s\" param", p.Name)
+	}
+
 	switch p.Kind {
 	case empty:
 		panic("unspecified kind")
@@ -78,6 +98,12 @@ func (p *Param) Bind(v string) error {
 		}
 	case String:
 		p.val = v
+	case Integer:
+		n, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return fmt.Errorf("bad integer value \"%s\"", v)
+		}
+		p.val = n
 	default:
 		panic(fmt.Sprintf("unxpected kind (=%d)", p.Kind))
 	}
@@ -87,6 +113,7 @@ func (p *Param) Bind(v string) error {
 type ParamBox interface {
 	Apply(*Param) error
 	Params() []Param
+	Get(string) *Param
 }
 
 func (r *parser) index() {
@@ -353,6 +380,33 @@ func (p *Param) List() []string {
 	return p.val.([]string)
 }
 
+func (p *Param) Int() int {
+	return int(p.Int64())
+}
+
+func (p *Param) Int32() int32 {
+	return int32(p.Int64())
+}
+
+func (p *Param) Int64() int64 {
+	if p.val == nil {
+		if p.Default == nil {
+			panic(fmt.Sprintf("param \"%s\" default value cannot be nil at this point", p.Name))
+		}
+		switch d := p.Default.(type) {
+		case int:
+			return int64(d)
+		case int32:
+			return int64(d)
+		case int64:
+			return d
+		default:
+			panic(fmt.Sprintf("cannot use %d (%T) as default value", d, d))
+		}
+	}
+	return p.val.(int64)
+}
+
 func (p *Param) Str() string {
 	if p.val == nil {
 		if p.Default == nil {
@@ -361,4 +415,86 @@ func (p *Param) Str() string {
 		return p.Default.(string)
 	}
 	return p.val.(string)
+}
+
+// SimpleBox implements ParamBox. It is constructed from a list of param declarations.
+type SimpleBox struct {
+	list []Param
+
+	m map[string]*Param
+}
+
+// Explicit interface implementation check.
+var _ ParamBox = &SimpleBox{}
+
+// NewParams takes ownership of a given slice and constructs objects that
+// implements ParamBox.
+func NewParams(list ...Param) *SimpleBox {
+	m := make(map[string]*Param, len(list))
+	for i := range len(list) {
+		p := &list[i]
+		name := p.Name
+		if name == "" {
+			panic("empty param name")
+		}
+
+		_, ok := m[name]
+		if ok {
+			panic(fmt.Sprintf("param \"%s\" is not unique", name))
+		}
+		m[name] = p
+	}
+
+	return &SimpleBox{
+		m:    m,
+		list: list,
+	}
+}
+
+func (x *SimpleBox) Add(param Param) {
+	name := param.Name
+	if name == "" {
+		panic("empty param name")
+	}
+	_, ok := x.m[name]
+	if ok {
+		panic(fmt.Sprintf("param \"%s\" is not unique", name))
+	}
+
+	oldCap := cap(x.list)
+	x.list = append(x.list, param)
+	newCap := cap(x.list)
+
+	if newCap == oldCap {
+		x.m[name] = &x.list[len(x.list)-1]
+		return
+	}
+
+	x.m = unsafeIndexParams(x.list)
+}
+
+func unsafeIndexParams(params []Param) map[string]*Param {
+	m := make(map[string]*Param, len(params))
+	for i := range len(params) {
+		p := &params[i]
+		m[p.Name] = p
+	}
+	return m
+}
+
+func (x *SimpleBox) Get(name string) *Param {
+	p, ok := x.m[name]
+	if !ok {
+		panic(fmt.Sprintf("box does not contain \"%s\" param", name))
+	}
+	return p
+}
+
+func (x *SimpleBox) Apply(param *Param) error {
+	x.Get(param.Name).val = param.val
+	return nil
+}
+
+func (x *SimpleBox) Params() []Param {
+	return x.list
 }

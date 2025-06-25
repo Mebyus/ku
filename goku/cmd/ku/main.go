@@ -27,7 +27,7 @@ var root = &butler.Butler{
 	Short: "Ku is a command line tool for managing Ku source code.",
 	Usage: "[command] [arguments]",
 
-	Lackeys: []*butler.Butler{
+	Subs: []*butler.Butler{
 		lex.Butler,
 	},
 }

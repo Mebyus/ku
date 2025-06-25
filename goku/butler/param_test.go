@@ -10,6 +10,10 @@ type testBox1 struct{}
 
 var _ ParamBox = &testBox1{}
 
+func (b *testBox1) Get(name string) *Param {
+	panic("no params expected")
+}
+
 func (b *testBox1) Apply(p *Param) error {
 	panic("no params expected")
 }
@@ -24,6 +28,27 @@ type testBox2 struct {
 }
 
 var _ ParamBox = &testBox2{}
+
+func (b *testBox2) Get(name string) *Param {
+	switch name {
+	case "a":
+		return &Param{
+			Name:    "a",
+			Default: "",
+			Kind:    String,
+			val:     b.a,
+		}
+	case "b":
+		return &Param{
+			Name:    "b",
+			Default: false,
+			Kind:    Boolean,
+			val:     b.a,
+		}
+	default:
+		panic(fmt.Sprintf("unexpected param \"%s\"", name))
+	}
+}
 
 func (b *testBox2) Apply(p *Param) error {
 	switch p.Name {
