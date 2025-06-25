@@ -26,8 +26,7 @@ func (p *Parser) Const() (ast.Const, diag.Error) {
 		return ast.Const{}, p.unexpected()
 	}
 	if p.n.Kind == token.Walrus {
-		panic("not implemented")
-		// return p.letWalrusStatement()
+		return p.walrusConst()
 	}
 	name := p.word()
 
@@ -59,6 +58,26 @@ func (p *Parser) Const() (ast.Const, diag.Error) {
 	return ast.Const{
 		Name: name,
 		Type: typ,
+		Exp:  exp,
+	}, nil
+}
+
+func (p *Parser) walrusConst() (ast.Const, diag.Error) {
+	name := p.word()
+	p.advance() // skip ":="
+
+	exp, err := p.Exp()
+	if err != nil {
+		return ast.Const{}, err
+	}
+
+	if p.c.Kind != token.Semicolon {
+		return ast.Const{}, p.unexpected()
+	}
+	p.advance() // consume ";"
+
+	return ast.Const{
+		Name: name,
 		Exp:  exp,
 	}, nil
 }

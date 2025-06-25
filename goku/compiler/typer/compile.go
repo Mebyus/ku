@@ -5,6 +5,7 @@ import (
 
 	"github.com/mebyus/ku/goku/compiler/ast"
 	"github.com/mebyus/ku/goku/compiler/diag"
+	"github.com/mebyus/ku/goku/compiler/enums/sck"
 	"github.com/mebyus/ku/goku/compiler/enums/smk"
 	"github.com/mebyus/ku/goku/compiler/source"
 	"github.com/mebyus/ku/goku/compiler/typer/stg"
@@ -25,6 +26,8 @@ import (
 type Typer struct {
 	box Box
 
+	ins Inspector
+
 	Warns []diag.Error
 
 	unit *stg.Unit
@@ -44,7 +47,7 @@ func Compile(c *stg.Context, unit *stg.Unit, texts []*ast.Text) diag.Error {
 	}
 
 	unit.InitScopes(&c.Global)
-	t := &Typer{
+	t := Typer{
 		ctx:  c,
 		unit: unit,
 	}
@@ -62,6 +65,14 @@ func (t *Typer) compile(texts []*ast.Text) diag.Error {
 		return err
 	}
 	err = t.checkGenericBinds()
+	if err != nil {
+		return err
+	}
+	err = t.indexGenericSymbols()
+	if err != nil {
+		return err
+	}
+	err = t.inspectSymbols()
 	if err != nil {
 		return err
 	}
@@ -345,7 +356,7 @@ func (t *Typer) addConst(c ast.TopConst) diag.Error {
 		return errMultDef(name, pin)
 	}
 
-	symbol := t.unit.Scope.Alloc(smk.Let, name, pin)
+	symbol := t.unit.Scope.Alloc(smk.Const, name, pin)
 	symbol.Aux = t.box.addConst(c)
 	return nil
 }
@@ -425,4 +436,132 @@ func errMultDef(name string, pin source.Pin) diag.Error {
 		Pin:  pin,
 		Text: fmt.Sprintf("multiple definitions of symbol \"%s\"", name),
 	}
+}
+
+func (t *Typer) indexGenericSymbols() diag.Error {
+	for _, g := range t.box.Generics {
+		name := g.Name.Str
+		s := t.unit.Scope.Get(name)
+		if s.Kind != smk.Gen {
+			panic(fmt.Sprintf("unexpected %s symbol instead of generic", s.Kind))
+		}
+		err := t.initGeneric(s)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (t *Typer) initGeneric(s *stg.Symbol) diag.Error {
+	g := &stg.Generic{}
+	g.Scope.Init(sck.Generic, &t.unit.Scope)
+	indices := t.box.GenBindsByName[s.Name]
+
+	for _, i := range indices {
+		err := t.indexGenBind(g, t.box.GenBind(i))
+		if err != nil {
+			return err
+		}
+	}
+
+	s.Def = g
+	return nil
+}
+
+func (t *Typer) indexGenBind(g *stg.Generic, b ast.GenBind) diag.Error {
+	err := t.addGenericTypes(g, b.Body.Types)
+	if err != nil {
+		return err
+	}
+	err = t.addGenericFuns(g, b.Body.Functions)
+	if err != nil {
+		return err
+	}
+	err = t.addGenericMethods(g, b.Body.Methods)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *Typer) addGenericTypes(g *stg.Generic, types []ast.Type) diag.Error {
+	for _, typ := range types {
+		err := t.addGenericType(g, typ)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (t *Typer) addGenericFuns(g *stg.Generic, funs []ast.Fun) diag.Error {
+	for _, fun := range funs {
+		err := t.addGenericFun(g, fun)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (t *Typer) addGenericMethods(g *stg.Generic, methods []ast.Method) diag.Error {
+	for _, m := range methods {
+		err := t.addGenericMethod(g, m)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (t *Typer) addGenericType(g *stg.Generic, typ ast.Type) diag.Error {
+	name := typ.Name.Str
+	pin := typ.Name.Pin
+
+	if g.Scope.Has(name) {
+		return errMultDef(name, pin)
+	}
+
+	symbol := g.Scope.Alloc(smk.Type, name, pin)
+	symbol.Aux = t.box.addType(typ)
+	return nil
+}
+
+func (t *Typer) addGenericFun(g *stg.Generic, fun ast.Fun) diag.Error {
+	name := fun.Name.Str
+	pin := fun.Name.Pin
+
+	if g.Scope.Has(name) {
+		return errMultDef(name, pin)
+	}
+
+	symbol := g.Scope.Alloc(smk.Fun, name, pin)
+	symbol.Aux = t.box.addFun(fun)
+	return nil
+}
+
+func (t *Typer) addGenericMethod(g *stg.Generic, m ast.Method) diag.Error {
+	pin := m.Name.Pin
+	name := m.Receiver.Name.Str + "." + m.Name.Str
+
+	if g.Scope.Has(name) {
+		return errMultDef(name, pin)
+	}
+
+	symbol := g.Scope.Alloc(smk.Method, name, pin)
+	symbol.Aux = t.box.addMethod(m)
+	return nil
+}
+
+func (t *Typer) inspectSymbols() diag.Error {
+	t.ins.Init()
+	for _, s := range t.unit.Scope.Symbols {
+		t.ins.Reset()
+		err := t.inspectSymbol(s)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

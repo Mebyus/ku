@@ -11,11 +11,14 @@ type Pool struct {
 	// List of all stored texts in order they were loaded.
 	list []Text
 
-	m map[ /* path */ string]*Text
+	// Maps stored file path onto its text id.
+	// Text id corresponds to index inside list slice:
+	//	id = i + 1
+	m map[ /* path */ string]uint32
 }
 
 func New() *Pool {
-	return &Pool{m: make(map[string]*Text)}
+	return &Pool{m: make(map[string]uint32)}
 }
 
 func (p *Pool) DecodePin(pin Pin) (FilePos, error) {
@@ -39,9 +42,9 @@ func (p *Pool) DecodePin(pin Pin) (FilePos, error) {
 //
 // Path argument should be cleaned by caller for consistency.
 func (p *Pool) Load(path string) (*Text, error) {
-	t, ok := p.m[path]
+	id, ok := p.m[path]
 	if ok {
-		return t, nil
+		return &p.list[id-1], nil
 	}
 
 	data, err := os.ReadFile(path)
@@ -50,14 +53,14 @@ func (p *Pool) Load(path string) (*Text, error) {
 	}
 
 	i := uint32(len(p.list))
+	id = i + 1
 	p.list = append(p.list, Text{
 		Data: data,
 		Path: path,
-		ID:   i + 1,
+		ID:   id,
 	})
-	t = &p.list[i]
-	p.m[path] = t
-	return t, nil
+	p.m[path] = id
+	return &p.list[i], nil
 }
 
 // get returns stored Text by its id.

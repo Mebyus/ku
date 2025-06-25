@@ -17,6 +17,8 @@ const (
 	// Does not include unit tests.
 	Unit
 
+	Generic
+
 	// Scope created by unit level function, method or test (inside function body).
 	Node
 

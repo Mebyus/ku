@@ -26,5 +26,8 @@ fun (*Foo) write() => uint {
 let m => maps(Foo, 10);
 
 fun count(s: []Foo) => uint {
-	ret m.index(s);
+	r := m.index(s);
+	ret r;
 }
+
+const k := 10;

@@ -26,6 +26,7 @@ func (TopConst) Kind() tnk.Kind {
 type Const struct {
 	Name Word
 
+	// Can be nil if constant type is not specified.
 	Type TypeSpec
 
 	// Specifies constant init value expression.

@@ -23,8 +23,8 @@ const (
 
 	// Immutable value definition (name + type + value).
 	//
-	// May be compile-time constant or runtime immutable (i.e. assigned only once).
-	Let
+	// Must be compile-time constant.
+	Const
 
 	// Variable definition (name + type + initial value).
 	Var
@@ -64,8 +64,10 @@ var text = [...]string{
 	Method: "method",
 	Test:   "test",
 	Type:   "type",
-	Let:    "let",
+	Const:  "const",
+	Alias:  "alias",
 	Var:    "var",
+	Gen:    "gen",
 	Import: "import",
 	Param:  "param",
 

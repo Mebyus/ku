@@ -204,3 +204,7 @@ func (b *Box) Var(i uint32) ast.TopVar {
 func (b *Box) Method(i uint32) ast.Method {
 	return b.Methods[i]
 }
+
+func (b *Box) GenBind(i uint32) ast.GenBind {
+	return b.GenBinds[i]
+}
