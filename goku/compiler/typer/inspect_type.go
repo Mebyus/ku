@@ -10,7 +10,7 @@ import (
 
 func (t *Typer) inspectTypeSymbol(s *stg.Symbol) diag.Error {
 	spec := t.box.Type(s.Aux).Spec
-	
+
 	var err diag.Error
 	switch p := spec.(type) {
 	case ast.Struct:
