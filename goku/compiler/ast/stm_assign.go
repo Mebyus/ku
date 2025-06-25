@@ -3,7 +3,7 @@ package ast
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/aok"
 	"github.com/mebyus/ku/goku/compiler/enums/stk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 // Assign represents an assign statement.
@@ -32,8 +32,8 @@ func (Assign) Kind() stk.Kind {
 	return stk.Assign
 }
 
-func (a Assign) Span() source.Span {
-	return source.Span{Pin: a.Op.Pin}
+func (a Assign) Span() srcmap.Span {
+	return srcmap.Span{Pin: a.Op.Pin}
 }
 
 func (a Assign) String() string {
@@ -44,6 +44,6 @@ func (a Assign) String() string {
 
 // AssignOp represents assign operator inside expression.
 type AssignOp struct {
-	Pin  source.Pin
+	Pin  srcmap.Pin
 	Kind aok.Kind
 }

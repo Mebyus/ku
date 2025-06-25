@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/stk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 // Loop represents a loop without condition.
@@ -20,7 +20,7 @@ func (Loop) Kind() stk.Kind {
 	return stk.Loop
 }
 
-func (l Loop) Span() source.Span {
+func (l Loop) Span() srcmap.Span {
 	return l.Body.Span()
 }
 

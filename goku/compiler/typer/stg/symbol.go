@@ -2,7 +2,7 @@ package stg
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/smk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 // Symbol. Symbols represent objects in source code which we can reference and
@@ -49,7 +49,7 @@ type Symbol struct {
 	Name string
 
 	// Source position of symbol origin (where this symbol was declared).
-	Pin source.Pin
+	Pin srcmap.Pin
 
 	// Always not nil in a completed graph. Can be nil during tree graph.
 	Type *Type

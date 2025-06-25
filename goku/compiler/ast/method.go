@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/tnk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 // Formal definition:
@@ -25,7 +25,7 @@ func (Method) Kind() tnk.Kind {
 	return tnk.Method
 }
 
-func (m Method) Span() source.Span {
+func (m Method) Span() srcmap.Span {
 	return m.Name.Span()
 }
 

@@ -1,4 +1,4 @@
-package source
+package srcmap
 
 // Text represents something that contains source text.
 // Most often text comes from a file, but sometimes it may be generated on the

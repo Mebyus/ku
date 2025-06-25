@@ -2,13 +2,13 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 type Deref struct {
 	nodePart
 
-	Pin source.Pin
+	Pin srcmap.Pin
 }
 
 // Explicit interface implementation check.
@@ -18,8 +18,8 @@ func (Deref) Kind() exk.Kind {
 	return exk.Deref
 }
 
-func (d Deref) Span() source.Span {
-	return source.Span{Pin: d.Pin}
+func (d Deref) Span() srcmap.Span {
+	return srcmap.Span{Pin: d.Pin}
 }
 
 func (x Deref) String() string {

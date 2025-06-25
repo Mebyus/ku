@@ -1,6 +1,6 @@
 package ast
 
-import "github.com/mebyus/ku/goku/compiler/source/origin"
+import "github.com/mebyus/ku/goku/compiler/srcmap/origin"
 
 func (g *Printer) ImportBlocks(blocks []ImportBlock) {
 	if len(blocks) == 0 {

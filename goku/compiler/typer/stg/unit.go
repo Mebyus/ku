@@ -4,8 +4,8 @@ import (
 	"sort"
 
 	"github.com/mebyus/ku/goku/compiler/enums/sck"
-	"github.com/mebyus/ku/goku/compiler/source"
-	"github.com/mebyus/ku/goku/compiler/source/origin"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
 )
 
 type Unit struct {
@@ -45,7 +45,7 @@ type ImportSite struct {
 	Name string
 
 	// Place where import occurs in source code.
-	Pin source.Pin
+	Pin srcmap.Pin
 }
 
 func SortAndOrderUnits(units []*Unit) {

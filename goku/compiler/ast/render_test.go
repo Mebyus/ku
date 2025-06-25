@@ -9,7 +9,7 @@ import (
 	"github.com/mebyus/ku/goku/compiler/enums/aok"
 	"github.com/mebyus/ku/goku/compiler/enums/bok"
 	"github.com/mebyus/ku/goku/compiler/enums/uok"
-	"github.com/mebyus/ku/goku/compiler/source/origin"
+	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
 )
 
 type RenderTestCase struct {

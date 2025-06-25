@@ -3,7 +3,7 @@ package parser
 import (
 	"github.com/mebyus/ku/goku/compiler/ast"
 	"github.com/mebyus/ku/goku/compiler/diag"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 	"github.com/mebyus/ku/goku/compiler/token"
 )
 
@@ -18,7 +18,7 @@ func (p *Parser) TupleOrForm() (ast.TypeSpec, diag.Error) {
 	return p.tuple(pin)
 }
 
-func (p *Parser) tuple(pin source.Pin) (ast.Tuple, diag.Error) {
+func (p *Parser) tuple(pin srcmap.Pin) (ast.Tuple, diag.Error) {
 	var types []ast.TypeSpec
 	for {
 		if p.c.Kind == token.RightParen {

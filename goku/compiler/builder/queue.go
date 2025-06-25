@@ -1,8 +1,8 @@
 package builder
 
 import (
-	"github.com/mebyus/ku/goku/compiler/source"
-	"github.com/mebyus/ku/goku/compiler/source/origin"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
 	"github.com/mebyus/ku/goku/compiler/typer/stg"
 )
 
@@ -15,7 +15,7 @@ type QueueItem struct {
 	// There may be more than one import place for a specific unit inside the
 	// whole program. This field tracks the first one we encounter during unit
 	// walk phase.
-	Pin source.Pin
+	Pin srcmap.Pin
 
 	// If true, then test files should be loaded alongside unit source files.
 	IncludeTestFiles bool

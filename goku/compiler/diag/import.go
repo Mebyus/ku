@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/mebyus/ku/goku/compiler/ast"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 	"github.com/mebyus/ku/goku/compiler/typer/stg"
 )
 
@@ -19,7 +19,7 @@ func (e *UnknownOriginError) Error() string {
 	return fmt.Sprintf("unknown import origin \"%s\"", e.Name.Str)
 }
 
-func (e *UnknownOriginError) Render(w io.Writer, m source.PinMap) error {
+func (e *UnknownOriginError) Render(w io.Writer, m srcmap.PinMap) error {
 	pos, err := m.DecodePin(e.Name.Pin)
 	if err != nil {
 		return err
@@ -46,7 +46,7 @@ func (e *ImportCycleError) Error() string {
 	return "import cycle detected"
 }
 
-func (e *ImportCycleError) Render(w io.Writer, m source.PinMap) error {
+func (e *ImportCycleError) Render(w io.Writer, m srcmap.PinMap) error {
 	_, err := io.WriteString(w, "import cycle detected:\n")
 	if err != nil {
 		return err
@@ -60,7 +60,7 @@ func (e *ImportCycleError) Render(w io.Writer, m source.PinMap) error {
 	return nil
 }
 
-func renderImport(w io.Writer, m source.PinMap, site stg.ImportSite) error {
+func renderImport(w io.Writer, m srcmap.PinMap, site stg.ImportSite) error {
 	pos, err := m.DecodePin(site.Pin)
 	if err != nil {
 		return err

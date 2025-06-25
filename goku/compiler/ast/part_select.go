@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 type Select struct {
@@ -18,7 +18,7 @@ func (Select) Kind() exk.Kind {
 	return exk.Select
 }
 
-func (s Select) Span() source.Span {
+func (s Select) Span() srcmap.Span {
 	return s.Name.Span()
 }
 
@@ -48,7 +48,7 @@ func (SelectTest) Kind() exk.Kind {
 	return exk.SelectTest
 }
 
-func (s SelectTest) Span() source.Span {
+func (s SelectTest) Span() srcmap.Span {
 	return s.Name.Span()
 }
 

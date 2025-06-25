@@ -9,15 +9,15 @@ import (
 	"github.com/mebyus/ku/goku/compiler/ast"
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/lexer"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 // Idea of this test: compare token streams in the following round trip.
 //
-//	Load("example.ku") => source.Text (1)
+//	Load("example.ku") => srcmap.Text (1)
 //	Lex(Text) => Stream (1)
 //	Parse(Stream) => ast.Text
-//	Print(Text) => source.Text (2)
+//	Print(Text) => srcmap.Text (2)
 //	Lex(Text) => Stream (2)
 //
 // Streams 1 and 2 should be identical to each other (if parsing was successful).
@@ -40,7 +40,7 @@ func TestParse(t *testing.T) {
 		}
 	}
 
-	pool := source.New()
+	pool := srcmap.New()
 	for _, file := range files {
 		path := filepath.Join(dir, file)
 		src, err := pool.Load(path)

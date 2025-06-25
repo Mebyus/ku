@@ -5,8 +5,8 @@ import (
 
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/parser"
-	"github.com/mebyus/ku/goku/compiler/source"
-	"github.com/mebyus/ku/goku/compiler/source/origin"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
 	"github.com/mebyus/ku/goku/compiler/typer/stg"
 )
 
@@ -14,7 +14,7 @@ func Walk(cfg WalkConfig, init ...QueueItem) (*Bundle, diag.Error) {
 	w := Walker{
 		WalkConfig: cfg,
 
-		pool: source.New(),
+		pool: srcmap.New(),
 	}
 
 	err := w.WalkFrom(init...)
@@ -49,7 +49,7 @@ type Walker struct {
 
 	WalkConfig
 
-	pool *source.Pool
+	pool *srcmap.Pool
 }
 
 func (w *Walker) WalkFrom(init ...QueueItem) diag.Error {
@@ -96,7 +96,7 @@ func (w *Walker) AnalyzeUnit(item QueueItem) (*stg.Unit, diag.Error) {
 	if err != nil {
 		return nil, err
 	}
-	files, loadErr := w.pool.LoadDir(dir, &source.DirScanParams{IncludeTestFiles: item.IncludeTestFiles})
+	files, loadErr := w.pool.LoadDir(dir, &srcmap.DirScanParams{IncludeTestFiles: item.IncludeTestFiles})
 	if loadErr != nil {
 		return nil, &diag.SimpleMessageError{
 			Text: fmt.Sprintf("load unit \"%s\": %s", item.Path, loadErr),

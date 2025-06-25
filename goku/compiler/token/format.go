@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/mebyus/ku/goku/compiler/char"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 // literal maps Kind to token static literal or code string.
@@ -201,7 +201,7 @@ func (t Token) String() string {
 	}
 }
 
-func FormatTokenLine(m source.PinMap, t Token) string {
+func FormatTokenLine(m srcmap.PinMap, t Token) string {
 	pos, err := m.DecodePin(t.Pin)
 	if err != nil {
 		panic(err)

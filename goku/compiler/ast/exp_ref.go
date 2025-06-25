@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 type Ref struct {
@@ -18,7 +18,7 @@ func (Ref) Kind() exk.Kind {
 	return exk.Ref
 }
 
-func (r Ref) Span() source.Span {
+func (r Ref) Span() srcmap.Span {
 	return r.Chain.TailSpan()
 }
 

@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/tnk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 // Type represents top level type definition construct.
@@ -30,7 +30,7 @@ func (Type) Kind() tnk.Kind {
 	return tnk.Type
 }
 
-func (t Type) Span() source.Span {
+func (t Type) Span() srcmap.Span {
 	return t.Name.Span()
 }
 

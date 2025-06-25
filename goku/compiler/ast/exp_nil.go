@@ -2,14 +2,14 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 // Dirty represents usage of "nil" keyword as expression.
 type Nil struct {
 	nodeOperand
 
-	Pin source.Pin
+	Pin srcmap.Pin
 }
 
 // Explicit interface implementation check.
@@ -19,8 +19,8 @@ func (Nil) Kind() exk.Kind {
 	return exk.Nil
 }
 
-func (n Nil) Span() source.Span {
-	return source.Span{Pin: n.Pin, Len: uint32(len(n.String()))}
+func (n Nil) Span() srcmap.Span {
+	return srcmap.Span{Pin: n.Pin, Len: uint32(len(n.String()))}
 }
 
 func (Nil) String() string {

@@ -1,6 +1,6 @@
 package token
 
-import "github.com/mebyus/ku/goku/compiler/source"
+import "github.com/mebyus/ku/goku/compiler/srcmap"
 
 type Token struct {
 	// Not empty only for tokens which do not have static literal.
@@ -19,7 +19,7 @@ type Token struct {
 	//	Illegal:	error code (always not 0)
 	Val uint64
 
-	Pin source.Pin
+	Pin srcmap.Pin
 
 	Kind Kind
 }

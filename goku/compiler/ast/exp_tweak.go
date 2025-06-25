@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 // Tweak represents usage of tweak as expression.
@@ -25,7 +25,7 @@ func (Tweak) Kind() exk.Kind {
 	return exk.Tweak
 }
 
-func (t Tweak) Span() source.Span {
+func (t Tweak) Span() srcmap.Span {
 	return t.Chain.Span()
 }
 

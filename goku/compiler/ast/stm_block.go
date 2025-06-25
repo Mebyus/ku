@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/stk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 // Block represents a sequence of statements inside a block.
@@ -15,7 +15,7 @@ type Block struct {
 	Nodes []Statement
 
 	// Opening brace pin of this block.
-	Pin source.Pin
+	Pin srcmap.Pin
 }
 
 var _ Statement = Block{}
@@ -24,8 +24,8 @@ func (Block) Kind() stk.Kind {
 	return stk.Block
 }
 
-func (b Block) Span() source.Span {
-	return source.Span{Pin: b.Pin}
+func (b Block) Span() srcmap.Span {
+	return srcmap.Span{Pin: b.Pin}
 }
 
 func (b Block) String() string {
@@ -49,7 +49,7 @@ func (Debug) Kind() stk.Kind {
 	return stk.Debug
 }
 
-func (d Debug) Span() source.Span {
+func (d Debug) Span() srcmap.Span {
 	return d.Block.Span()
 }
 
@@ -68,5 +68,5 @@ type Static struct {
 	Nodes []Statement
 
 	// Opening brace pin of this block.
-	Pin source.Pin
+	Pin srcmap.Pin
 }

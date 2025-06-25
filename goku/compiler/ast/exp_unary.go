@@ -3,7 +3,7 @@ package ast
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
 	"github.com/mebyus/ku/goku/compiler/enums/uok"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 // Unary represents unary expression.
@@ -32,8 +32,8 @@ func (Unary) Kind() exk.Kind {
 	return exk.Unary
 }
 
-func (u Unary) Span() source.Span {
-	return source.Span{Pin: u.Op.Pin}
+func (u Unary) Span() srcmap.Span {
+	return srcmap.Span{Pin: u.Op.Pin}
 }
 
 func (u Unary) String() string {
@@ -44,6 +44,6 @@ func (u Unary) String() string {
 
 // UnaryOp represents unary operator inside expression.
 type UnaryOp struct {
-	Pin  source.Pin
+	Pin  srcmap.Pin
 	Kind uok.Kind
 }

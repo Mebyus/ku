@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/tsk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 // Array represents array type specifier.
@@ -25,7 +25,7 @@ func (Array) Kind() tsk.Kind {
 	return tsk.Array
 }
 
-func (a Array) Span() source.Span {
+func (a Array) Span() srcmap.Span {
 	return a.Size.Span()
 }
 

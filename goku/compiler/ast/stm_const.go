@@ -3,7 +3,7 @@ package ast
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/stk"
 	"github.com/mebyus/ku/goku/compiler/enums/tnk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 type TopConst struct {
@@ -41,7 +41,7 @@ func (Const) Kind() stk.Kind {
 	return stk.Const
 }
 
-func (c Const) Span() source.Span {
+func (c Const) Span() srcmap.Span {
 	return c.Name.Span()
 }
 

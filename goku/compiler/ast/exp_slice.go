@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 // Formal definition:
@@ -27,7 +27,7 @@ func (Slice) Kind() exk.Kind {
 	return exk.Slice
 }
 
-func (s Slice) Span() source.Span {
+func (s Slice) Span() srcmap.Span {
 	if s.Start != nil {
 		return s.Start.Span()
 	}

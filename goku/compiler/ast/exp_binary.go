@@ -3,7 +3,7 @@ package ast
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/bok"
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 type Binary struct {
@@ -25,7 +25,7 @@ func (Binary) Kind() exk.Kind {
 	return exk.Binary
 }
 
-func (b Binary) Span() source.Span {
+func (b Binary) Span() srcmap.Span {
 	return b.A.Span()
 }
 
@@ -37,7 +37,7 @@ func (b Binary) String() string {
 
 // BinOp represents binary operator inside expression.
 type BinOp struct {
-	Pin  source.Pin
+	Pin  srcmap.Pin
 	Kind bok.Kind
 }
 

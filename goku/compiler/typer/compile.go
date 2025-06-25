@@ -7,7 +7,7 @@ import (
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/enums/sck"
 	"github.com/mebyus/ku/goku/compiler/enums/smk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 	"github.com/mebyus/ku/goku/compiler/typer/stg"
 )
 
@@ -431,7 +431,7 @@ func (t *Typer) addGenBind(bind ast.GenBind) diag.Error {
 	return nil
 }
 
-func errMultDef(name string, pin source.Pin) diag.Error {
+func errMultDef(name string, pin srcmap.Pin) diag.Error {
 	return &diag.SimpleMessageError{
 		Pin:  pin,
 		Text: fmt.Sprintf("multiple definitions of symbol \"%s\"", name),

@@ -1,8 +1,8 @@
 package ast
 
 import (
-	"github.com/mebyus/ku/goku/compiler/source"
-	"github.com/mebyus/ku/goku/compiler/source/origin"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
 )
 
 // <ImportBlock> = "import" [ <ImportOrigin> ] "(" { <ImportSpec> } ")"
@@ -27,6 +27,6 @@ type Import struct {
 }
 
 type ImportString struct {
-	Pin source.Pin
+	Pin srcmap.Pin
 	Str string
 }

@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/stk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 // Stub represents stub statement.
@@ -13,7 +13,7 @@ import (
 //
 //	Stub => "#stub" ";"
 type Stub struct {
-	Pin source.Pin
+	Pin srcmap.Pin
 }
 
 var _ Statement = Stub{}
@@ -22,8 +22,8 @@ func (Stub) Kind() stk.Kind {
 	return stk.Stub
 }
 
-func (s Stub) Span() source.Span {
-	return source.Span{Pin: s.Pin}
+func (s Stub) Span() srcmap.Span {
+	return srcmap.Span{Pin: s.Pin}
 }
 
 func (s Stub) String() string {
@@ -40,7 +40,7 @@ func (s Stub) String() string {
 //
 //	Never => "#never" ";"
 type Never struct {
-	Pin source.Pin
+	Pin srcmap.Pin
 }
 
 var _ Statement = Never{}
@@ -49,8 +49,8 @@ func (Never) Kind() stk.Kind {
 	return stk.Never
 }
 
-func (n Never) Span() source.Span {
-	return source.Span{Pin: n.Pin}
+func (n Never) Span() srcmap.Span {
+	return srcmap.Span{Pin: n.Pin}
 }
 
 func (n Never) String() string {

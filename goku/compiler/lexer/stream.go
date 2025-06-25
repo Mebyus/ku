@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 	"github.com/mebyus/ku/goku/compiler/token"
 )
 
@@ -49,7 +49,7 @@ func (p *Parrot) Lex() token.Token {
 	return tok
 }
 
-func Render(w io.Writer, s Stream, m source.PinMap) error {
+func Render(w io.Writer, s Stream, m srcmap.PinMap) error {
 	for {
 		tok := s.Lex()
 		_, err := io.WriteString(w, token.FormatTokenLine(m, tok))

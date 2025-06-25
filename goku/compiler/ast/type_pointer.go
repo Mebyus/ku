@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/tsk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 // Pointer represents pointer type specifier.
@@ -21,7 +21,7 @@ func (Pointer) Kind() tsk.Kind {
 	return tsk.Pointer
 }
 
-func (p Pointer) Span() source.Span {
+func (p Pointer) Span() srcmap.Span {
 	return p.Type.Span()
 }
 
@@ -37,7 +37,7 @@ func (p Pointer) String() string {
 //
 //	AnyPointer => "*" "any"
 type AnyPointer struct {
-	Pin source.Pin
+	Pin srcmap.Pin
 }
 
 var _ TypeSpec = Pointer{}
@@ -46,8 +46,8 @@ func (AnyPointer) Kind() tsk.Kind {
 	return tsk.AnyPointer
 }
 
-func (p AnyPointer) Span() source.Span {
-	return source.Span{Pin: p.Pin}
+func (p AnyPointer) Span() srcmap.Span {
+	return srcmap.Span{Pin: p.Pin}
 }
 
 func (p AnyPointer) String() string {
@@ -70,7 +70,7 @@ func (ArrayPointer) Kind() tsk.Kind {
 	return tsk.ArrayPointer
 }
 
-func (p ArrayPointer) Span() source.Span {
+func (p ArrayPointer) Span() srcmap.Span {
 	return p.Type.Span()
 }
 

@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 // Paren represents an expression which consists of another expression and
@@ -25,7 +25,7 @@ func (Paren) Kind() exk.Kind {
 	return exk.Paren
 }
 
-func (p Paren) Span() source.Span {
+func (p Paren) Span() srcmap.Span {
 	return p.Exp.Span()
 }
 

@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 // Symbol represents a single word token usage inside an expression.
@@ -16,7 +16,7 @@ type Symbol struct {
 	// Symbol name. Single word.
 	Name string
 
-	Pin source.Pin
+	Pin srcmap.Pin
 }
 
 // Explicit interface implementation check.
@@ -26,8 +26,8 @@ func (Symbol) Kind() exk.Kind {
 	return exk.Symbol
 }
 
-func (s Symbol) Span() source.Span {
-	return source.Span{Pin: s.Pin, Len: uint32(len(s.Name))}
+func (s Symbol) Span() srcmap.Span {
+	return srcmap.Span{Pin: s.Pin, Len: uint32(len(s.Name))}
 }
 
 func (s Symbol) String() string {
@@ -45,7 +45,7 @@ type DotName struct {
 	// Symbol name. Single word.
 	Name string
 
-	Pin source.Pin
+	Pin srcmap.Pin
 }
 
 // Explicit interface implementation check.
@@ -55,8 +55,8 @@ func (DotName) Kind() exk.Kind {
 	return exk.DotName
 }
 
-func (d DotName) Span() source.Span {
-	return source.Span{Pin: d.Pin, Len: uint32(len(d.Name)) + 1}
+func (d DotName) Span() srcmap.Span {
+	return srcmap.Span{Pin: d.Pin, Len: uint32(len(d.Name)) + 1}
 }
 
 func (d DotName) String() string {

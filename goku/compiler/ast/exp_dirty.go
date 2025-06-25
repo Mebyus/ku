@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 // Dirty represents usage of "?" as expression.
@@ -18,7 +18,7 @@ import (
 type Dirty struct {
 	nodeExp
 
-	Pin source.Pin
+	Pin srcmap.Pin
 }
 
 // Explicit interface implementation check.
@@ -28,8 +28,8 @@ func (Dirty) Kind() exk.Kind {
 	return exk.Dirty
 }
 
-func (d Dirty) Span() source.Span {
-	return source.Span{Pin: d.Pin, Len: uint32(len(d.String()))}
+func (d Dirty) Span() srcmap.Span {
+	return srcmap.Span{Pin: d.Pin, Len: uint32(len(d.String()))}
 }
 
 func (Dirty) String() string {

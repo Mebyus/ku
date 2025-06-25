@@ -4,7 +4,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/mebyus/ku/goku/compiler/source/origin"
+	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
 	"github.com/mebyus/ku/goku/compiler/typer/stg"
 )
 

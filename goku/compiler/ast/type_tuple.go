@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/tsk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 // Tuple represents an ordered collection of type specifiers. Tuple itself is also
@@ -48,7 +48,7 @@ type Tuple struct {
 	// source code.
 	Types []TypeSpec
 
-	Pin source.Pin
+	Pin srcmap.Pin
 }
 
 var _ TypeSpec = Tuple{}
@@ -57,8 +57,8 @@ func (Tuple) Kind() tsk.Kind {
 	return tsk.Tuple
 }
 
-func (t Tuple) Span() source.Span {
-	return source.Span{Pin: t.Pin}
+func (t Tuple) Span() srcmap.Span {
+	return srcmap.Span{Pin: t.Pin}
 }
 
 func (t Tuple) String() string {

@@ -5,12 +5,12 @@ import (
 	"github.com/mebyus/ku/goku/compiler/enums/stk"
 	"github.com/mebyus/ku/goku/compiler/enums/tnk"
 	"github.com/mebyus/ku/goku/compiler/enums/tsk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 // Node common interface for any node inside a tree.
 type Node interface {
-	Span() source.Span
+	Span() srcmap.Span
 	String() string
 }
 
@@ -82,11 +82,11 @@ type Word struct {
 	// String that constitues the word.
 	Str string
 
-	Pin source.Pin
+	Pin srcmap.Pin
 }
 
-func (w Word) Span() source.Span {
-	return source.Span{Pin: w.Pin, Len: uint32(len(w.Str))}
+func (w Word) Span() srcmap.Span {
+	return srcmap.Span{Pin: w.Pin, Len: uint32(len(w.Str))}
 }
 
 // Trait container object for passing around node attributes and properties.

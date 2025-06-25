@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/tsk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 // Struct represents struct type specifier.
@@ -14,7 +14,7 @@ type Struct struct {
 	// Can be nil (if struct does not have fields).
 	Fields []Field
 
-	Pin source.Pin
+	Pin srcmap.Pin
 }
 
 var _ TypeSpec = Struct{}
@@ -23,8 +23,8 @@ func (Struct) Kind() tsk.Kind {
 	return tsk.Struct
 }
 
-func (s Struct) Span() source.Span {
-	return source.Span{Pin: s.Pin}
+func (s Struct) Span() srcmap.Span {
+	return srcmap.Span{Pin: s.Pin}
 }
 
 func (s Struct) String() string {

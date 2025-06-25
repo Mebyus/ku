@@ -1,6 +1,6 @@
 package stg
 
-import "github.com/mebyus/ku/goku/compiler/source/origin"
+import "github.com/mebyus/ku/goku/compiler/srcmap/origin"
 
 // Context contains type and symbol information about imported units.
 // It also holds build conditions under which unit or program compilation is performed.

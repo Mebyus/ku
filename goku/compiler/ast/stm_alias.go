@@ -3,7 +3,7 @@ package ast
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/stk"
 	"github.com/mebyus/ku/goku/compiler/enums/tnk"
-	"github.com/mebyus/ku/goku/compiler/source"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 type TopAlias struct {
@@ -38,7 +38,7 @@ func (Alias) Kind() stk.Kind {
 	return stk.Alias
 }
 
-func (a Alias) Span() source.Span {
+func (a Alias) Span() srcmap.Span {
 	return a.Name.Span()
 }
 
