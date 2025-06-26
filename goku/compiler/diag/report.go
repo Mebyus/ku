@@ -1,6 +1,7 @@
 package diag
 
 import (
+	"errors"
 	"io"
 	"strings"
 
@@ -26,7 +27,11 @@ type Error interface {
 	Render(w io.Writer, m srcmap.PinMap) error
 }
 
-func Render(w io.Writer, m srcmap.PinMap, r Report) error {
+func Format(m srcmap.PinMap, e Error) error {
+	return errors.New(Stringify(m, e))
+}
+
+func RenderReport(w io.Writer, m srcmap.PinMap, r Report) error {
 	for _, e := range r.Errors {
 		err := e.Render(w, m)
 		if err != nil {

@@ -1,18 +1,18 @@
 package ast
 
-type Link String
+type LinkEntry String
 
-type Main String
+type MainEntry String
 
-type Unit String
+type UnitEntry String
 
 type Module struct {
 	Name String
 
-	Links []Link
-	Units []Unit
+	Links []LinkEntry
+	Units []UnitEntry
 
-	Main *Main
+	Main *MainEntry
 }
 
 type Set struct {

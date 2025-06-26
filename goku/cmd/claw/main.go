@@ -5,7 +5,9 @@ import (
 	"os"
 
 	"github.com/mebyus/ku/goku/butler"
+	"github.com/mebyus/ku/goku/cmd/claw/eval"
 	"github.com/mebyus/ku/goku/cmd/claw/lex"
+	"github.com/mebyus/ku/goku/cmd/claw/parse"
 )
 
 func main() {
@@ -29,5 +31,7 @@ var root = &butler.Butler{
 
 	Subs: []*butler.Butler{
 		lex.Butler,
+		parse.Butler,
+		eval.Butler,
 	},
 }

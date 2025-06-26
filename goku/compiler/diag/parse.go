@@ -10,7 +10,8 @@ import (
 
 // ParseError describes an error which occured during source code parsing phase.
 type ParseError struct {
-	Pin srcmap.Pin
+	Text string
+	Pin  srcmap.Pin
 }
 
 type UnexpectedTokenError struct {
