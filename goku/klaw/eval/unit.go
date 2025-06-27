@@ -3,8 +3,8 @@ package eval
 import (
 	"fmt"
 
-	"github.com/mebyus/ku/goku/claw/ast"
 	"github.com/mebyus/ku/goku/compiler/diag"
+	"github.com/mebyus/ku/goku/klaw/ast"
 )
 
 type Env map[string]string

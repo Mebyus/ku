@@ -3,8 +3,8 @@ package lexer
 import (
 	"io"
 
-	"github.com/mebyus/ku/goku/claw/token"
 	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/klaw/token"
 )
 
 type Stream interface {

@@ -1,5 +1,7 @@
 package srcmap
 
+import "path/filepath"
+
 // Text represents something that contains source text.
 // Most often text comes from a file, but sometimes it may be generated on the
 // fly during compilation and not stored on a file system. Other cases include
@@ -9,6 +11,15 @@ type Text struct {
 
 	// Empty when text does not come from a file.
 	Path string
+
+	// File extension with leading ".". Empty when text does not come from a file.
+	//
+	// Examples:
+	//	- ".ku"
+	//	- ".c"
+	//	- ".h"
+	//	- ".claw"
+	Ext string
 
 	// Assigned automatically when text is loaded by Pool.
 	// Zero value is reserved for texts which are used for consistent testing.
@@ -20,5 +31,6 @@ func NewText(path string, data []byte) *Text {
 	return &Text{
 		Data: data,
 		Path: path,
+		Ext:  filepath.Ext(path),
 	}
 }

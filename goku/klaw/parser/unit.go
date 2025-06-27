@@ -1,9 +1,9 @@
 package parser
 
 import (
-	"github.com/mebyus/ku/goku/claw/ast"
-	"github.com/mebyus/ku/goku/claw/token"
 	"github.com/mebyus/ku/goku/compiler/diag"
+	"github.com/mebyus/ku/goku/klaw/ast"
+	"github.com/mebyus/ku/goku/klaw/token"
 )
 
 func (p *Parser) unitParse() diag.Error {

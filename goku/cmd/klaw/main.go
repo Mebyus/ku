@@ -5,9 +5,9 @@ import (
 	"os"
 
 	"github.com/mebyus/ku/goku/butler"
-	"github.com/mebyus/ku/goku/cmd/claw/eval"
-	"github.com/mebyus/ku/goku/cmd/claw/lex"
-	"github.com/mebyus/ku/goku/cmd/claw/parse"
+	"github.com/mebyus/ku/goku/cmd/klaw/eval"
+	"github.com/mebyus/ku/goku/cmd/klaw/lex"
+	"github.com/mebyus/ku/goku/cmd/klaw/parse"
 )
 
 func main() {
@@ -24,9 +24,9 @@ func main() {
 }
 
 var root = &butler.Butler{
-	Name: "claw",
+	Name: "klaw",
 
-	Short: "Claw is a command line tool for managing restricted set of Ku source code.",
+	Short: "Klaw is a command line tool for managing restricted set of Ku source code.",
 	Usage: "[command] [arguments]",
 
 	Subs: []*butler.Butler{

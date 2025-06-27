@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/mebyus/ku/goku/butler"
-	"github.com/mebyus/ku/goku/claw/eval"
-	"github.com/mebyus/ku/goku/claw/parser"
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/klaw/eval"
+	"github.com/mebyus/ku/goku/klaw/parser"
 )
 
 var Butler = &butler.Butler{

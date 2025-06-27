@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"github.com/mebyus/ku/goku/butler"
-	"github.com/mebyus/ku/goku/claw/lexer"
 	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/klaw/lexer"
 )
 
 var Butler = &butler.Butler{

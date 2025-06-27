@@ -1,11 +1,11 @@
 package parser
 
 import (
-	"github.com/mebyus/ku/goku/claw/ast"
-	"github.com/mebyus/ku/goku/claw/lexer"
-	"github.com/mebyus/ku/goku/claw/token"
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/klaw/ast"
+	"github.com/mebyus/ku/goku/klaw/lexer"
+	"github.com/mebyus/ku/goku/klaw/token"
 )
 
 type Parser struct {

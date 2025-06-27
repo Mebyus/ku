@@ -3,22 +3,20 @@ package srcmap
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 // Pool loads and stores source files. Stored files can be accessed as Text.
 // Implements PinMap by translating file id from Pin to actual file path.
 type Pool struct {
 	// List of all stored texts in order they were loaded.
-	list []Text
+	list []*Text
 
-	// Maps stored file path onto its text id.
-	// Text id corresponds to index inside list slice:
-	//	id = i + 1
-	m map[ /* path */ string]uint32
+	m map[ /* path */ string]*Text
 }
 
 func New() *Pool {
-	return &Pool{m: make(map[string]uint32)}
+	return &Pool{m: make(map[string]*Text)}
 }
 
 func (p *Pool) DecodePin(pin Pin) (FilePos, error) {
@@ -42,9 +40,9 @@ func (p *Pool) DecodePin(pin Pin) (FilePos, error) {
 //
 // Path argument should be cleaned by caller for consistency.
 func (p *Pool) Load(path string) (*Text, error) {
-	id, ok := p.m[path]
+	text, ok := p.m[path]
 	if ok {
-		return &p.list[id-1], nil
+		return text, nil
 	}
 
 	data, err := os.ReadFile(path)
@@ -53,14 +51,16 @@ func (p *Pool) Load(path string) (*Text, error) {
 	}
 
 	i := uint32(len(p.list))
-	id = i + 1
-	p.list = append(p.list, Text{
+	id := i + 1
+	text = &Text{
 		Data: data,
 		Path: path,
+		Ext:  filepath.Ext(path),
 		ID:   id,
-	})
-	p.m[path] = id
-	return &p.list[i], nil
+	}
+	p.list = append(p.list, text)
+	p.m[path] = text
+	return text, nil
 }
 
 // get returns stored Text by its id.
@@ -73,5 +73,5 @@ func (p *Pool) get(id uint32) *Text {
 	if id > uint32(len(p.list)) {
 		return nil
 	}
-	return &p.list[id-1]
+	return p.list[id-1]
 }
