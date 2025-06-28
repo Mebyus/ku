@@ -3,26 +3,48 @@ package genc
 import "github.com/mebyus/ku/goku/compiler/ast"
 
 func (g *Gen) Fun(f ast.Fun) {
-	g.puts("static ")
-	if f.Signature.Never {
-		g.puts("_Noreturn ")
-	}
-	if f.Signature.Result == nil {
-		g.puts("void")
-	} else {
-		g.TypeSpec(f.Signature.Result)
-	}
-	g.nl()
-
-	g.puts(f.Name.Str)
-	g.FunParams(f.Signature.Params)
+	g.FunHead(f.Name.Str, f.Signature)
 	g.space()
 	g.Block(f.Body)
 }
 
+func (g *Gen) FunStub(s ast.FunStub) {
+	g.FunHead(s.Name.Str, s.Signature)
+	g.semi()
+}
+
+func getTestFunName(name string) string {
+	return "run_test_" + name
+}
+
+func (g *Gen) Test(t ast.Fun) {
+	if !g.test() {
+		return
+	}
+
+	t.Name.Str = getTestFunName(t.Name.Str)
+	g.Fun(t)
+}
+
+func (g *Gen) FunHead(name string, s ast.Signature) {
+	g.puts("static ")
+	if s.Never {
+		g.puts("_Noreturn ")
+	}
+	if s.Result == nil {
+		g.puts("void")
+	} else {
+		g.TypeSpec(s.Result)
+	}
+	g.nl()
+
+	g.puts(name)
+	g.FunParams(s.Params)
+}
+
 func (g *Gen) FunParams(params []ast.Param) {
 	if len(params) == 0 {
-		g.puts("()")
+		g.puts("(void)")
 		return
 	}
 

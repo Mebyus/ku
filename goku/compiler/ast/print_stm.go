@@ -64,6 +64,7 @@ func (g *Printer) Loop(l Loop) {
 func (g *Printer) While(w While) {
 	g.puts("for ")
 	g.Exp(w.Exp)
+	g.space()
 	g.Block(w.Body)
 }
 

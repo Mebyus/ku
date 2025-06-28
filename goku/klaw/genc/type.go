@@ -13,6 +13,13 @@ func (g *Gen) Type(typ ast.Type) {
 		panic("not supported")
 	}
 
+	f, ok := typ.Spec.(ast.FunType)
+	if ok {
+		g.typedefFunType(typ.Name.Str, f)
+		g.semi()
+		return
+	}
+
 	g.TypeSpec(typ.Spec)
 	g.space()
 	g.puts(typ.Name.Str)
@@ -106,18 +113,49 @@ func (g *Gen) Struct(s ast.Struct) {
 }
 
 func (g *Gen) Field(f ast.Field) {
-	a, ok := f.Type.(ast.Array)
+	g.NameDef(f.Name.Str, f.Type)
+}
+
+// NameDef formats declaration of variable, constant or function parameter
+// according to C syntax. Namely it handles C arrays declarations.
+func (g *Gen) NameDef(name string, spec ast.TypeSpec) {
+	a, ok := spec.(ast.Array)
 	if ok {
 		g.TypeSpec(a.Type)
 		g.space()
-		g.puts(f.Name.Str)
+		g.puts(name)
 		g.putb('[')
 		g.Exp(a.Size)
 		g.putb(']')
 		return
 	}
 
-	g.TypeSpec(f.Type)
+	g.TypeSpec(spec)
 	g.space()
-	g.puts(f.Name.Str)
+	g.puts(name)
+}
+
+func (g *Gen) typedefFunType(name string, f ast.FunType) {
+	if f.Signature.Result == nil {
+		g.puts("void")
+	} else {
+		g.TypeSpec(f.Signature.Result)
+	}
+
+	g.puts(" (*")
+	g.puts(name)
+	g.puts(")")
+
+	if len(f.Params) == 0 {
+		g.puts("(void)")
+		return
+	}
+
+	g.puts("(")
+	g.TypeSpec(f.Params[0].Type)
+	for _, p := range f.Params[1:] {
+		g.puts(", ")
+		g.TypeSpec(p.Type)
+	}
+	g.puts(")")
 }

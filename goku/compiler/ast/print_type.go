@@ -143,6 +143,11 @@ func (g *Printer) TypeFullName(t TypeFullName) {
 	g.puts(t.Name.Str)
 }
 
+func (g *Printer) FunType(f FunType) {
+	g.puts("fun ")
+	g.Signature(f.Signature)
+}
+
 func (g *Printer) Struct(s Struct) {
 	g.puts("struct ")
 	if len(s.Fields) == 0 {

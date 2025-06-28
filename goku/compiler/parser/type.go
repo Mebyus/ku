@@ -79,6 +79,8 @@ func (p *Parser) TypeSpec() (ast.TypeSpec, diag.Error) {
 		return p.Array()
 	case token.Type:
 		return p.AnyType(), nil
+	case token.Fun:
+		return p.FunType()
 	default:
 		return nil, p.unexpected()
 	}

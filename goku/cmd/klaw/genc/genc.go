@@ -41,7 +41,10 @@ func gen(path string) error {
 	if err != nil {
 		return diag.Format(pool, err.(diag.Error))
 	}
-	g := genc.Gen{}
+	g := genc.Gen{State: &genc.State{
+		Debug: true,
+		Test:  true,
+	}}
 	g.Nodes(t)
 	_, err = g.WriteTo(os.Stdout)
 	return err

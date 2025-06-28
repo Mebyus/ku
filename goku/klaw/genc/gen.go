@@ -5,6 +5,14 @@ import (
 	"strconv"
 )
 
+type State struct {
+	// If true then generate code for statements marked as debug.
+	Debug bool
+
+	// If true then generate code for test runner functions.
+	Test bool
+}
+
 type Gen struct {
 	// Output buffer.
 	buf []byte
@@ -14,6 +22,8 @@ type Gen struct {
 	// Stores sequence of bytes which is used for indenting current line
 	// in output. When a new line starts this buffer is used to add indentation.
 	ib []byte
+
+	State *State
 }
 
 func (g *Gen) WriteTo(w io.Writer) (int64, error) {
@@ -31,6 +41,14 @@ func (g *Gen) Bytes() []byte {
 
 func (g *Gen) empty() bool {
 	return len(g.buf) == 0
+}
+
+func (g *Gen) debug() bool {
+	return g.State.Debug
+}
+
+func (g *Gen) test() bool {
+	return g.State.Test
 }
 
 // put decimal formatted integer into output buffer

@@ -39,9 +39,8 @@ type While struct {
 	Body Block
 
 	// Loop condition. Always not nil.
-	Exp  Exp
+	Exp Exp
 }
-
 
 var _ Statement = While{}
 

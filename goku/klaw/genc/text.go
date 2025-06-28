@@ -31,17 +31,17 @@ func (g *Gen) topByIndex(text *ast.Text, x ast.NodeIndex) {
 	case tnk.Fun:
 		g.Fun(text.Functions[i])
 	case tnk.Const:
-		panic("not implemented")
+		g.TopConst(text.Constants[i])
 	case tnk.Var:
 		g.TopVar(text.Variables[i])
 	case tnk.Type:
 		g.Type(text.Types[i])
 	case tnk.Test:
-		panic("not implemented")
+		g.Test(text.Tests[i])
 	case tnk.Method:
 		panic("not supported")
 	case tnk.FunStub:
-		panic("not implemented")
+		g.FunStub(text.FunStubs[i])
 	case tnk.Gen:
 		panic("not supported")
 	case tnk.GenBind:
