@@ -11,12 +11,7 @@ func (p *Parser) For() (ast.Statement, diag.Error) {
 		return p.Loop()
 	}
 
-	// p.advance() // skip "for"
-	// if p.tok.Kind == token.Word && (p.next.Kind == token.In || p.next.Kind == token.Colon) {
-	// 	return p.forIn()
-	// }
-	// return p.forIf()
-	panic("not implemented")
+	return p.While()
 }
 
 func (p *Parser) Loop() (ast.Loop, diag.Error) {
@@ -28,4 +23,23 @@ func (p *Parser) Loop() (ast.Loop, diag.Error) {
 	}
 
 	return ast.Loop{Body: body}, nil
+}
+
+func (p *Parser) While() (ast.While, diag.Error) {
+	p.advance() // skip "for"
+
+	exp, err := p.Exp()
+	if err != nil {
+		return ast.While{}, err
+	}
+
+	body, err := p.Block()
+	if err != nil {
+		return ast.While{}, err
+	}
+
+	return ast.While{
+		Body: body,
+		Exp:  exp,
+	}, nil
 }

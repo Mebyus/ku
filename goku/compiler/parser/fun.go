@@ -111,7 +111,7 @@ func (p *Parser) signature() (ast.Signature, diag.Error) {
 	p.advance() // skip "=>"
 
 	if p.c.Kind == token.Never {
-		p.advance() // skip "never"
+		p.advance() // skip "#never"
 		return ast.Signature{
 			Params: params,
 			Never:  true,

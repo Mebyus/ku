@@ -29,14 +29,11 @@ func (p *Parser) Gen(traits ast.Traits) diag.Error {
 
 	var control *ast.Static
 	if p.c.Kind == token.HashCurly {
-		block, err := p.Block()
+		block, err := p.Static()
 		if err != nil {
 			return err
 		}
-		control = &ast.Static{
-			Pin:   block.Pin,
-			Nodes: block.Nodes,
-		}
+		control = &block
 	}
 
 	p.text.AddGen(ast.Gen{

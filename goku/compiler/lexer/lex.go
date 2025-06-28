@@ -695,7 +695,7 @@ func (lx *Lexer) other() token.Token {
 			}
 		case '&':
 			return lx.twoBytesToken(token.Address)
-		case '@':
+		case '*':
 			pin := lx.pin()
 			lx.advance()
 			lx.advance()

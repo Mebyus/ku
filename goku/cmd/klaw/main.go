@@ -6,6 +6,7 @@ import (
 
 	"github.com/mebyus/ku/goku/butler"
 	"github.com/mebyus/ku/goku/cmd/klaw/eval"
+	"github.com/mebyus/ku/goku/cmd/klaw/genc"
 	"github.com/mebyus/ku/goku/cmd/klaw/lex"
 	"github.com/mebyus/ku/goku/cmd/klaw/parse"
 )
@@ -33,5 +34,6 @@ var root = &butler.Butler{
 		lex.Butler,
 		parse.Butler,
 		eval.Butler,
+		genc.Butler,
 	},
 }

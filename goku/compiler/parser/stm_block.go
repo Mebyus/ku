@@ -40,6 +40,9 @@ func (p *Parser) Statement() (ast.Statement, diag.Error) {
 }
 
 func (p *Parser) Block() (ast.Block, diag.Error) {
+	if p.c.Kind != token.LeftCurly {
+		return ast.Block{}, p.unexpected()
+	}
 	pin := p.c.Pin
 	p.advance() // skip "{"
 
@@ -56,6 +59,31 @@ func (p *Parser) Block() (ast.Block, diag.Error) {
 		s, err := p.Statement()
 		if err != nil {
 			return ast.Block{}, err
+		}
+		nodes = append(nodes, s)
+	}
+}
+
+func (p *Parser) Static() (ast.Static, diag.Error) {
+	if p.c.Kind != token.HashCurly {
+		return ast.Static{}, p.unexpected()
+	}
+	pin := p.c.Pin
+	p.advance() // skip "#{"
+
+	var nodes []ast.Statement
+	for {
+		if p.c.Kind == token.RightCurly {
+			p.advance() // skip "}"
+			return ast.Static{
+				Pin:   pin,
+				Nodes: nodes,
+			}, nil
+		}
+
+		s, err := p.Statement()
+		if err != nil {
+			return ast.Static{}, err
 		}
 		nodes = append(nodes, s)
 	}

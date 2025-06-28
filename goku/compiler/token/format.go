@@ -19,7 +19,8 @@ var literal = [...]string{
 
 	Underscore:     "_",
 	Address:        ".&",
-	Deref:          ".@",
+	Deref:          ".*",
+	DerefSelect:    ".*.",
 	Plus:           "+",
 	Minus:          "-",
 	And:            "&&",
@@ -73,7 +74,6 @@ var literal = [...]string{
 	CapBuffer:      "[^]",
 	Nillable:       "?|",
 	NillableChunk:  "[?]",
-	DerefSelect:    ".@.",
 
 	// Keywords
 

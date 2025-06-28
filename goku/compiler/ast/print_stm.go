@@ -22,6 +22,8 @@ func (g *Printer) Statement(s Statement) {
 		g.Invoke(s)
 	case Loop:
 		g.Loop(s)
+	case While:
+		g.While(s)
 	case If:
 		g.If(s)
 	case Stub:
@@ -57,6 +59,12 @@ func (g *Printer) ifClause(c IfClause) {
 func (g *Printer) Loop(l Loop) {
 	g.puts("for ")
 	g.Block(l.Body)
+}
+
+func (g *Printer) While(w While) {
+	g.puts("for ")
+	g.Exp(w.Exp)
+	g.Block(w.Body)
 }
 
 func (g *Printer) Stub(s Stub) {

@@ -29,3 +29,32 @@ func (l Loop) String() string {
 	g.Loop(l)
 	return g.Output()
 }
+
+// While represents a loop with condition.
+//
+// Formal definition:
+//
+//	While => "for" Exp Block
+type While struct {
+	Body Block
+
+	// Loop condition. Always not nil.
+	Exp  Exp
+}
+
+
+var _ Statement = While{}
+
+func (While) Kind() stk.Kind {
+	return stk.Loop
+}
+
+func (w While) Span() srcmap.Span {
+	return w.Body.Span()
+}
+
+func (w While) String() string {
+	var g Printer
+	g.While(w)
+	return g.Output()
+}

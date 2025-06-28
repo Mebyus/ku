@@ -16,10 +16,10 @@ const (
 	Underscore // _
 
 	Address     // .&
-	Deref       // .@
+	Deref       // .*
 	DerefIndex  // .[
 	BagSelect   // .(
-	DerefSelect // .@.
+	DerefSelect // .*.
 
 	Plus      // +
 	Minus     // -
