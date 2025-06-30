@@ -26,7 +26,7 @@ func (p *Parser) Pack() (ast.Exp, diag.Error) {
 			}
 		}
 
-		exp, err := p.Exp()
+		exp, err := p.packExp()
 		if err != nil {
 			return nil, err
 		}
@@ -40,6 +40,17 @@ func (p *Parser) Pack() (ast.Exp, diag.Error) {
 			return nil, p.unexpected()
 		}
 	}
+}
+
+// parses expression that can appear as pack element
+func (p *Parser) packExp() (ast.Exp, diag.Error) {
+	if p.c.Kind == token.Underscore {
+		pin := p.c.Pin
+		p.advance()
+		return ast.Blank{Pin: pin}, nil
+	}
+
+	return p.Exp()
 }
 
 // Pack expression should be terminated by one of these: ";", "=", ":=".

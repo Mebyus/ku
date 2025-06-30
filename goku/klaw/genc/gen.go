@@ -3,9 +3,13 @@ package genc
 import (
 	"io"
 	"strconv"
+
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 type State struct {
+	Map srcmap.PinMap
+
 	// If true then generate code for statements marked as debug.
 	Debug bool
 
@@ -33,6 +37,11 @@ func (g *Gen) WriteTo(w io.Writer) (int64, error) {
 
 func (g *Gen) Output() string {
 	return string(g.Bytes())
+}
+
+func (g *Gen) Reset() {
+	g.buf = g.buf[:0]
+	g.ib = g.ib[:0]
 }
 
 func (g *Gen) Bytes() []byte {

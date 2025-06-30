@@ -104,6 +104,8 @@ var literal = [...]string{
 	True:  "true",
 	False: "false",
 
+	StaticMust: "#must",
+
 	Debug:  "#debug",
 	Build:  "#build",
 	Stub:   "#stub",

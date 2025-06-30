@@ -43,6 +43,9 @@ type Text struct {
 	// List of method nodes.
 	Methods []Method
 
+	// List of top level static asserts.
+	Musts []StaticMust
+
 	// List of generic definition nodes.
 	Generics []Gen
 
@@ -124,6 +127,14 @@ func (t *Text) AddStub(s FunStub) {
 		Index: uint32(len(t.FunStubs)),
 	})
 	t.FunStubs = append(t.FunStubs, s)
+}
+
+func (t *Text) AddMust(m StaticMust) {
+	t.OrderIndex = append(t.OrderIndex, NodeIndex{
+		Kind:  tnk.Must,
+		Index: uint32(len(t.Musts)),
+	})
+	t.Musts = append(t.Musts, m)
 }
 
 func (t *Text) AddGen(g Gen) {

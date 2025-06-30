@@ -28,11 +28,13 @@ func (p *Parser) Statement() (ast.Statement, diag.Error) {
 		return p.Never()
 	case token.Stub:
 		return p.Stub()
+	case token.StaticMust:
+		return p.StaticMust()
 	case token.Debug:
 		return p.Debug()
 	// case token.Defer:
 	// 	return p.deferStatement()
-	case token.Word, token.Unsafe:
+	case token.Word, token.Unsafe, token.Underscore:
 		return p.AssignOrInvoke()
 	default:
 		return nil, p.unexpected()

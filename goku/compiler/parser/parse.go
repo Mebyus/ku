@@ -51,6 +51,8 @@ func (p *Parser) top() diag.Error {
 		return p.Test(traits)
 	case token.Stub:
 		return p.FunStub(traits)
+	case token.StaticMust:
+		return p.topStaticMust()
 	case token.Gen:
 		return p.Gen(traits)
 	default:

@@ -5,6 +5,7 @@ import (
 
 	"github.com/mebyus/ku/goku/compiler/ast"
 	"github.com/mebyus/ku/goku/compiler/enums/tnk"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
 func (g *Gen) Nodes(text *ast.Text) {
@@ -42,6 +43,8 @@ func (g *Gen) topByIndex(text *ast.Text, x ast.NodeIndex) {
 		panic("not supported")
 	case tnk.FunStub:
 		g.FunStub(text.FunStubs[i])
+	case tnk.Must:
+		g.StaticMust(text.Musts[i])
 	case tnk.Gen:
 		panic("not supported")
 	case tnk.GenBind:
@@ -50,4 +53,15 @@ func (g *Gen) topByIndex(text *ast.Text, x ast.NodeIndex) {
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) top level node (i=%d)", k, k, i))
 	}
 	g.nl()
+}
+
+func (g *Gen) textPosArgs(pin srcmap.Pin) {
+	pos, err := g.State.Map.DecodePin(pin)
+	if err != nil {
+		panic(err)
+	}
+
+	g.str(pos.Path)
+	g.puts(", ")
+	g.putn(uint64(pos.Pos.Line) + 1)
 }

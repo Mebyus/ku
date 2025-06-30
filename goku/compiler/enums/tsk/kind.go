@@ -12,6 +12,7 @@ const (
 	Name
 	FullName
 	Struct
+	Union
 	Pointer
 	AnyPointer
 	Array
@@ -32,6 +33,7 @@ var text = [...]string{
 	Name:         "name",
 	FullName:     "name.full",
 	Struct:       "struct",
+	Union:        "union",
 	Pointer:      "pointer",
 	Array:        "array",
 	ArrayPointer: "pointer.array",

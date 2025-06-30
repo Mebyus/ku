@@ -33,7 +33,7 @@ func (s Struct) String() string {
 	return g.Output()
 }
 
-// Field represents a single field in struct or form type specifier.
+// Field represents a single field in struct or union, or form type specifier.
 //
 // Formal definition:
 //

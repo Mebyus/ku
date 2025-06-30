@@ -42,14 +42,22 @@ func (p *Parser) Operand() (ast.Operand, diag.Error) {
 		}, nil
 	case token.String:
 		tok := p.c
-		p.advance()
+		p.advance() // skip string
 		return ast.String{
 			Val: tok.Data,
 			Pin: tok.Pin,
 		}, nil
+	case token.True:
+		pin := p.c.Pin
+		p.advance() // skip "true"
+		return ast.True{Pin: pin}, nil
+	case token.False:
+		pin := p.c.Pin
+		p.advance() // skip "false"
+		return ast.False{Pin: pin}, nil
 	case token.Nil:
 		pin := p.c.Pin
-		p.advance()
+		p.advance() // skip "nil"
 		return ast.Nil{Pin: pin}, nil
 	// case token.Cast:
 	// 	return p.cast()

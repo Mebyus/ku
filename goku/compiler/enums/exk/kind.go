@@ -82,18 +82,22 @@ const (
 
 	// Operand.
 	//
+	// In AST represents true literal.
+	//
+	// In STG represents static boolean true value.
+	True
+
+	// Operand.
+	//
 	// AST and STG.
 	//
-	// In AST represents true of false literal.
+	// In AST represents false literal.
 	//
-	// In STG represents static boolean value.
-	//
-	// Examples:
-	//	true // Boolean(true)
+	// In STG represents static boolean false value.
 	//
 	// Reduce transform examples:
-	//	5 == 3 => false // Integer(5) == Integer(3) => Boolean(false)
-	Boolean
+	//	5 == 3 => false // Integer(5) == Integer(3) => False
+	False
 
 	// Operand.
 	//
@@ -117,8 +121,13 @@ const (
 	// Error will be detected during parsing stage.
 	//
 	// Examples:
-	//	var foo: u32 = dirty;
+	//	var foo: u32 = ?;
 	Dirty
+
+	// Special form.
+	//
+	// Skips value assignment.
+	Blank
 
 	// Operand.
 	//
@@ -347,9 +356,11 @@ var text = [...]string{
 	Integer: "integer",
 	Float:   "float",
 	String:  "string",
-	Boolean: "boolean",
+	True:    "true",
+	False:   "false",
 	Nil:     "nil",
 	Dirty:   "dirty",
+	Blank:   "blank",
 }
 
 func (k Kind) String() string {

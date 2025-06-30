@@ -150,7 +150,16 @@ func (g *Printer) FunType(f FunType) {
 
 func (g *Printer) Struct(s Struct) {
 	g.puts("struct ")
-	if len(s.Fields) == 0 {
+	g.fieldsCurly(s.Fields)
+}
+
+func (g *Printer) Union(u Union) {
+	g.puts("union ")
+	g.fieldsCurly(u.Fields)
+}
+
+func (g *Printer) fieldsCurly(fields []Field) {
+	if len(fields) == 0 {
 		g.puts("{}")
 		return
 	}
@@ -159,7 +168,7 @@ func (g *Printer) Struct(s Struct) {
 	g.nl()
 	g.inc()
 
-	for _, f := range s.Fields {
+	for _, f := range fields {
 		g.indent()
 		g.Field(f)
 		g.puts(",")

@@ -21,6 +21,10 @@ func (g *Gen) Exp(exp ast.Exp) {
 		g.Integer(e)
 	case ast.String:
 		g.String(e)
+	case ast.True:
+		g.True(e)
+	case ast.False:
+		g.False(e)
 	case ast.Nil:
 		g.Nil(e)
 	case ast.Unary:
@@ -147,15 +151,27 @@ func (g *Gen) Integer(n ast.Integer) {
 }
 
 func (g *Gen) String(s ast.String) {
-	if len(s.Val) == 0 {
+	g.str(s.Val)
+}
+
+func (g *Gen) str(s string) {
+	if len(s) == 0 {
 		g.puts("empty_str")
 		return
 	}
 	g.puts("make_str((u8*)(u8\"")
-	g.puts(char.Escape(s.Val))
+	g.puts(char.Escape(s))
 	g.puts("\"), ")
-	g.putlen(len(s.Val))
+	g.putlen(len(s))
 	g.putb(')')
+}
+
+func (g *Gen) True(t ast.True) {
+	g.puts("true")
+}
+
+func (g *Gen) False(f ast.False) {
+	g.puts("false")
 }
 
 func (g *Gen) Nil(n ast.Nil) {

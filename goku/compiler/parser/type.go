@@ -107,7 +107,7 @@ func (p *Parser) CustomTypeSpec() (ast.TypeSpec, diag.Error) {
 			return p.Enum()
 		}
 	case token.Union:
-		panic("not implemented")
+		return p.Union()
 	case token.Struct:
 		return p.Struct()
 	case token.LeftCurly:

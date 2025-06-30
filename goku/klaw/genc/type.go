@@ -13,10 +13,13 @@ func (g *Gen) Type(typ ast.Type) {
 		panic("not supported")
 	}
 
-	f, ok := typ.Spec.(ast.FunType)
-	if ok {
-		g.typedefFunType(typ.Name.Str, f)
+	switch s := typ.Spec.(type) {
+	case ast.FunType:
+		g.typedefFunType(typ.Name.Str, s)
 		g.semi()
+		return
+	case ast.Enum:
+		g.typedefEnumType(typ.Name.Str, s)
 		return
 	}
 
@@ -44,6 +47,8 @@ func (g *Gen) TypeSpec(spec ast.TypeSpec) {
 		panic("not implemented")
 	case ast.Struct:
 		g.Struct(s)
+	case ast.Union:
+		g.Union(s)
 	case ast.Trivial:
 		panic("not supported")
 	case ast.Pointer:
@@ -55,7 +60,7 @@ func (g *Gen) TypeSpec(spec ast.TypeSpec) {
 	case ast.AnyType:
 		panic("not implemented")
 	case ast.Enum:
-		panic("not implemented")
+		panic("not supported")
 	case ast.Bag:
 		panic("not implemented")
 	default:
@@ -90,9 +95,44 @@ func (g *Gen) Chunk(c ast.Chunk) {
 	g.puts(t.Name.Str)
 }
 
+func (g *Gen) typedefEnumType(name string, enum ast.Enum) {
+	g.puts(enum.Base.Name.Str)
+	g.space()
+	g.puts(name)
+	g.semi()
+
+	if len(enum.Entries) == 0 {
+		return
+	}
+
+	g.nl()
+	g.puts("enum {")
+	g.nl()
+	g.inc()
+	for _, e := range enum.Entries {
+		g.indent()
+		g.puts(e.Name.Str)
+		g.puts(" = ")
+		g.Exp(e.Exp)
+		g.putb(',')
+		g.nl()
+	}
+	g.dec()
+	g.puts("};")
+}
+
 func (g *Gen) Struct(s ast.Struct) {
 	g.puts("struct ")
-	if len(s.Fields) == 0 {
+	g.fieldsCurly(s.Fields)
+}
+
+func (g *Gen) Union(u ast.Union) {
+	g.puts("union ")
+	g.fieldsCurly(u.Fields)
+}
+
+func (g *Gen) fieldsCurly(fields []ast.Field) {
+	if len(fields) == 0 {
 		g.puts("{}")
 		return
 	}
@@ -101,7 +141,7 @@ func (g *Gen) Struct(s ast.Struct) {
 	g.nl()
 	g.inc()
 
-	for _, f := range s.Fields {
+	for _, f := range fields {
 		g.indent()
 		g.Field(f)
 		g.puts(";")

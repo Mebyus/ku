@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mebyus/ku/goku/compiler/ast"
+	"github.com/mebyus/ku/goku/compiler/enums/aok"
 )
 
 func (g *Gen) Statement(s ast.Statement) {
@@ -31,13 +32,13 @@ func (g *Gen) Statement(s ast.Statement) {
 	case ast.If:
 		g.If(s)
 	case ast.Stub:
-		panic("not implemented")
-		// g.Stub(s)
+		g.Stub(s)
 	case ast.Never:
-		panic("not implemented")
-		// g.Never(s)
+		g.Never(s)
 	case ast.Debug:
 		g.Debug(s)
+	case ast.StaticMust:
+		g.StaticMust(s)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) statement (%T)", s.Kind(), s.Kind(), s))
 	}
@@ -89,6 +90,12 @@ func (g *Gen) ifClause(c ast.IfClause) {
 	g.Exp(c.Exp)
 	g.puts(") ")
 	g.Block(c.Body)
+}
+
+func (g *Gen) Never(n ast.Never) {
+	g.puts("panic_never(")
+	g.textPosArgs(n.Pin)
+	g.puts(");")
 }
 
 func (g *Gen) Loop(l ast.Loop) {
@@ -144,6 +151,16 @@ func (g *Gen) TopConst(l ast.TopConst) {
 }
 
 func (g *Gen) Assign(a ast.Assign) {
+	if a.Op.Kind == aok.Simple {
+		_, ok := a.Target.(ast.Blank)
+		if ok {
+			g.puts("(void)(")
+			g.Exp(a.Value)
+			g.puts(");")
+			return
+		}
+	}
+
 	g.Exp(a.Target)
 	g.space()
 	g.puts(a.Op.Kind.String())
@@ -166,4 +183,16 @@ func (g *Gen) Ret(r ast.Ret) {
 	g.puts("return ")
 	g.Exp(r.Exp)
 	g.semi()
+}
+
+func (g *Gen) Stub(s ast.Stub) {
+	g.puts("panic_stub(")
+	g.textPosArgs(s.Pin)
+	g.puts(");")
+}
+
+func (g *Gen) StaticMust(m ast.StaticMust) {
+	g.puts("static_assert(")
+	g.Exp(m.Exp)
+	g.puts(");")
 }

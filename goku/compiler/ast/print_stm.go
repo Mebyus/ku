@@ -1,6 +1,8 @@
 package ast
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func (g *Printer) Statement(s Statement) {
 	switch s := s.(type) {
@@ -198,4 +200,10 @@ func (g *Printer) Assign(a Assign) {
 	g.space()
 	g.Exp(a.Value)
 	g.semi()
+}
+
+func (g *Printer) StaticMust(m StaticMust) {
+	g.puts("#must(")
+	g.Exp(m.Exp)
+	g.puts(");")
 }

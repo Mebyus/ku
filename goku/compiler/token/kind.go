@@ -119,6 +119,8 @@ const (
 	True
 	False
 
+	StaticMust // #must
+
 	Debug  // #debug
 	Build  // #build
 	Never  // #never

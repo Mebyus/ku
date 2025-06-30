@@ -28,6 +28,8 @@ const (
 	Lookup
 	Debug
 
+	StaticMust
+
 	// Defer function or method call.
 	Defer
 
@@ -56,6 +58,8 @@ var text = [...]string{
 	Stub:      "stub",
 	Debug:     "debug",
 	Lookup:    "lookup",
+
+	StaticMust: "must.static",
 }
 
 func (k Kind) String() string {

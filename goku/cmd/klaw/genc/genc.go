@@ -42,6 +42,7 @@ func gen(path string) error {
 		return diag.Format(pool, err.(diag.Error))
 	}
 	g := genc.Gen{State: &genc.State{
+		Map:   pool,
 		Debug: true,
 		Test:  true,
 	}}
