@@ -28,6 +28,8 @@ const (
 	Lookup
 	Debug
 
+	Panic
+	Must
 	StaticMust
 
 	// Defer function or method call.
@@ -59,6 +61,8 @@ var text = [...]string{
 	Debug:     "debug",
 	Lookup:    "lookup",
 
+	Must:       "must",
+	Panic:      "panic",
 	StaticMust: "must.static",
 }
 

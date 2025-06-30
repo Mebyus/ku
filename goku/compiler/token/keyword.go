@@ -22,6 +22,9 @@ var kw = map[string]Kind{
 	"gen":    Gen,
 	"unsafe": Unsafe,
 
+	"must":  Must,
+	"panic": Panic,
+
 	"nil":   Nil,
 	"true":  True,
 	"false": False,

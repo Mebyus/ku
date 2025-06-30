@@ -39,6 +39,10 @@ func (g *Gen) Statement(s ast.Statement) {
 		g.Never(s)
 	case ast.Debug:
 		g.Debug(s)
+	case ast.Panic:
+		g.Panic(s)
+	case ast.Must:
+		g.Must(s)
 	case ast.StaticMust:
 		g.StaticMust(s)
 	default:
@@ -239,6 +243,22 @@ func (g *Gen) Ret(r ast.Ret) {
 func (g *Gen) Stub(s ast.Stub) {
 	g.puts("panic_stub(")
 	g.textPosArgs(s.Pin)
+	g.puts(");")
+}
+
+func (g *Gen) Panic(p ast.Panic) {
+	g.puts("panic_pos(")
+	g.str(p.Msg)
+	g.puts(", ")
+	g.textPosArgs(p.Pin)
+	g.puts(");")
+}
+
+func (g *Gen) Must(m ast.Must) {
+	g.puts("must_pos(")
+	g.Exp(m.Exp)
+	g.puts(", ")
+	g.textPosArgs(m.Span().Pin)
 	g.puts(");")
 }
 

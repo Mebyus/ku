@@ -32,6 +32,10 @@ func (g *Printer) Statement(s Statement) {
 		g.Stub(s)
 	case Never:
 		g.Never(s)
+	case Must:
+		g.Must(s)
+	case StaticMust:
+		g.StaticMust(s)
 	case Debug:
 		g.Debug(s)
 	default:
@@ -200,6 +204,18 @@ func (g *Printer) Assign(a Assign) {
 	g.space()
 	g.Exp(a.Value)
 	g.semi()
+}
+
+func (g *Printer) Panic(p Panic) {
+	g.puts("panic(\"")
+	g.puts(p.Msg)
+	g.puts("\");")
+}
+
+func (g *Printer) Must(m Must) {
+	g.puts("must(")
+	g.Exp(m.Exp)
+	g.puts(");")
 }
 
 func (g *Printer) StaticMust(m StaticMust) {

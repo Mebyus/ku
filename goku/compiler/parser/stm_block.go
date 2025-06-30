@@ -28,6 +28,10 @@ func (p *Parser) Statement() (ast.Statement, diag.Error) {
 		return p.Never()
 	case token.Stub:
 		return p.Stub()
+	case token.Panic:
+		return p.Panic()
+	case token.Must:
+		return p.Must()
 	case token.StaticMust:
 		return p.StaticMust()
 	case token.Debug:

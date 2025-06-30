@@ -113,6 +113,9 @@ const (
 	Pub
 	Unsafe
 
+	Must
+	Panic
+
 	// Special literals
 
 	Nil

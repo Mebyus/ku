@@ -97,6 +97,8 @@ var literal = [...]string{
 	Unsafe: "unsafe",
 	Let:    "let",
 	Gen:    "gen",
+	Must:   "must",
+	Panic:  "panic",
 
 	// Special literals
 

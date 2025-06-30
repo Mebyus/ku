@@ -7,6 +7,30 @@ import (
 
 // Formal definition:
 //
+//	Must => "must" "(" Exp ")" ";"
+type Must struct {
+	// Always not nil.
+	Exp Exp
+}
+
+var _ Statement = Must{}
+
+func (Must) Kind() stk.Kind {
+	return stk.Must
+}
+
+func (m Must) Span() srcmap.Span {
+	return m.Exp.Span()
+}
+
+func (m Must) String() string {
+	var g Printer
+	g.Must(m)
+	return g.Output()
+}
+
+// Formal definition:
+//
 //	StaticMust => "#must" "(" Exp ")" ";"
 type StaticMust struct {
 	// Always not nil.
