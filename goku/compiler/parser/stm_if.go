@@ -21,8 +21,7 @@ func (p *Parser) If() (ast.Statement, diag.Error) {
 
 	switch p.c.Kind {
 	case token.RightArrow, token.Else:
-		panic("not implemented")
-		// return p.matchStatement(pos, exp)
+		return p.Match(exp)
 	case token.LeftCurly:
 		// continue regular if statement
 	default:
@@ -52,9 +51,7 @@ func (p *Parser) If() (ast.Statement, diag.Error) {
 	var elseBody *ast.Block
 	if p.c.Kind == token.Else {
 		p.advance() // skip "else"
-		if p.c.Kind != token.LeftCurly {
-			return nil, p.unexpected()
-		}
+
 		var body ast.Block
 		body, err = p.Block()
 		if err != nil {

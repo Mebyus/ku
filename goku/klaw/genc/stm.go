@@ -31,6 +31,8 @@ func (g *Gen) Statement(s ast.Statement) {
 		g.While(s)
 	case ast.If:
 		g.If(s)
+	case ast.Match:
+		g.Match(s)
 	case ast.Stub:
 		g.Stub(s)
 	case ast.Never:
@@ -167,6 +169,55 @@ func (g *Gen) Assign(a ast.Assign) {
 	g.space()
 	g.Exp(a.Value)
 	g.semi()
+}
+
+func (g *Gen) Match(m ast.Match) {
+	g.puts("switch (")
+	g.Exp(m.Exp)
+	g.puts(") {")
+	g.nl()
+
+	for _, c := range m.Cases {
+		g.MatchCase(c)
+		g.nl()
+	}
+	g.MatchElseCase(m.Else)
+
+	g.nl()
+	g.indent()
+	g.puts("}")
+	g.nl()
+}
+
+func (g *Gen) MatchCase(c ast.MatchCase) {
+	g.indent()
+	g.puts("case ")
+	g.Exp(c.List[0])
+	g.puts(":")
+	for _, exp := range c.List[1:] {
+		g.nl()
+		g.indent()
+		g.puts("case ")
+		g.Exp(exp)
+		g.puts(":")
+	}
+
+	g.space()
+	g.Block(c.Body)
+	g.nl()
+	g.indent()
+	g.puts("break;")
+	g.nl()
+}
+
+func (g *Gen) MatchElseCase(c *ast.Block) {
+	if c == nil {
+		return
+	}
+
+	g.indent()
+	g.puts("default: ")
+	g.Block(*c)
 }
 
 func (g *Gen) Invoke(i ast.Invoke) {
