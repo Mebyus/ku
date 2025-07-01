@@ -3,19 +3,7 @@ package genc
 import (
 	"io"
 	"strconv"
-
-	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
-
-type State struct {
-	Map srcmap.PinMap
-
-	// If true then generate code for statements marked as debug.
-	Debug bool
-
-	// If true then generate code for test runner functions.
-	Test bool
-}
 
 type Gen struct {
 	// Output buffer.

@@ -117,6 +117,9 @@ var literal = [...]string{
 	Size:   "#size",
 	Lookup: "#lookup",
 
+	TypeId:  "#typeid",
+	ErrorId: "#error",
+
 	Any: "any",
 
 	LabelNext: "@.next",

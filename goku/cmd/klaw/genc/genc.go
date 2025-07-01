@@ -46,6 +46,7 @@ func gen(path string) error {
 		Debug: true,
 		Test:  true,
 	}}
+	g.State.Init()
 	g.Nodes(t)
 	_, err = g.WriteTo(os.Stdout)
 	return err

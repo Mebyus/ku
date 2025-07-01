@@ -40,6 +40,10 @@ func (g *Printer) Exp(exp Exp) {
 		g.Slice(e)
 	case Tweak:
 		g.Tweak(e)
+	case TypeId:
+		g.TypeId(e)
+	case ErrorId:
+		g.ErrorId(e)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) expression (%T)", e.Kind(), e.Kind(), e))
 	}
@@ -234,4 +238,16 @@ func (g *Printer) Nil(n Nil) {
 
 func (g *Printer) Dirty(d Dirty) {
 	g.puts("?")
+}
+
+func (g *Printer) TypeId(t TypeId) {
+	g.puts("#typeid(")
+	g.puts(t.Name.Str)
+	g.puts(")")
+}
+
+func (g *Printer) ErrorId(e ErrorId) {
+	g.puts("#error(")
+	g.puts(e.Name.Str)
+	g.puts(")")
 }

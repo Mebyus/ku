@@ -133,6 +133,9 @@ const (
 	Size   // #size - query type size
 	Lookup // #lookup
 
+	TypeId  // #typeid
+	ErrorId // #error
+
 	Any // designator to use as *any (void* analog)
 
 	LabelNext // @.next

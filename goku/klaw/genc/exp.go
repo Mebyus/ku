@@ -45,6 +45,10 @@ func (g *Gen) Exp(exp ast.Exp) {
 		panic("not supported")
 	case ast.Tweak:
 		panic("not supported")
+	case ast.TypeId:
+		g.TypeId(e)
+	case ast.ErrorId:
+		g.ErrorId(e)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) expression (%T)", e.Kind(), e.Kind(), e))
 	}
@@ -176,4 +180,14 @@ func (g *Gen) False(f ast.False) {
 
 func (g *Gen) Nil(n ast.Nil) {
 	g.puts("nil")
+}
+
+func (g *Gen) TypeId(t ast.TypeId) {
+	id := g.State.GetTypeId(t.Name.Str)
+	g.putn(id)
+}
+
+func (g *Gen) ErrorId(e ast.ErrorId) {
+	id := g.State.GetErrorId(e.Name.Str)
+	g.putn(id)
 }

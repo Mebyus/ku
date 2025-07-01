@@ -393,6 +393,10 @@ func (lx *Lexer) static() token.Token {
 	switch data {
 	case "must":
 		tok.Kind = token.StaticMust
+	case "typeid":
+		tok.Kind = token.TypeId
+	case "error":
+		tok.Kind = token.ErrorId
 	case "cast":
 		tok.Kind = token.Cast
 	case "tint":

@@ -59,6 +59,10 @@ func (p *Parser) Operand() (ast.Operand, diag.Error) {
 		pin := p.c.Pin
 		p.advance() // skip "nil"
 		return ast.Nil{Pin: pin}, nil
+	case token.TypeId:
+		return p.TypeId()
+	case token.ErrorId:
+		return p.ErrorId()
 	// case token.Cast:
 	// 	return p.cast()
 	// case token.Tint:
@@ -364,4 +368,46 @@ func (p *Parser) SliceOrIndex() (SliceOrIndex, diag.Error) {
 		Exp:   exp,
 		Index: true,
 	}, nil
+}
+
+func (p *Parser) TypeId() (ast.TypeId, diag.Error) {
+	p.advance() // skip "#typeid"
+
+	if p.c.Kind != token.LeftParen {
+		return ast.TypeId{}, p.unexpected()
+	}
+	p.advance() // skip "("
+
+	if p.c.Kind != token.Word {
+		return ast.TypeId{}, p.unexpected()
+	}
+	name := p.word()
+
+	if p.c.Kind != token.RightParen {
+		return ast.TypeId{}, p.unexpected()
+	}
+	p.advance() // skip ")"
+
+	return ast.TypeId{Name: name}, nil
+}
+
+func (p *Parser) ErrorId() (ast.ErrorId, diag.Error) {
+	p.advance() // skip "#error"
+
+	if p.c.Kind != token.LeftParen {
+		return ast.ErrorId{}, p.unexpected()
+	}
+	p.advance() // skip "("
+
+	if p.c.Kind != token.Word {
+		return ast.ErrorId{}, p.unexpected()
+	}
+	name := p.word()
+
+	if p.c.Kind != token.RightParen {
+		return ast.ErrorId{}, p.unexpected()
+	}
+	p.advance() // skip ")"
+
+	return ast.ErrorId{Name: name}, nil
 }

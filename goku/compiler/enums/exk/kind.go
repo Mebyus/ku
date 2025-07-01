@@ -324,6 +324,20 @@ const (
 	//	#size(Foo)
 	Size
 
+	// Operand
+	//
+	// Examples:
+	//	#typeid(u32)
+	//	#typeid(Foo)
+	TypeId
+
+	// Operand
+	//
+	// Examples:
+	//	#error(READ_EOF)
+	//	#error(WRITE_EOF)
+	ErrorId
+
 	maxKind
 )
 
@@ -333,6 +347,9 @@ var text = [...]string{
 	Cast: "#cast",
 	Tint: "#tint",
 	Size: "#size",
+
+	TypeId:  "#typeid",
+	ErrorId: "#error",
 
 	Unary:  "unary",
 	Binary: "binary",

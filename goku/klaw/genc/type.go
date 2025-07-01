@@ -2,13 +2,12 @@ package genc
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/mebyus/ku/goku/compiler/ast"
 )
 
 func (g *Gen) Type(typ ast.Type) {
-	g.puts("typedef ")
-
 	if len(typ.Bags) != 0 {
 		panic("not supported")
 	}
@@ -16,13 +15,16 @@ func (g *Gen) Type(typ ast.Type) {
 	switch s := typ.Spec.(type) {
 	case ast.FunType:
 		g.typedefFunType(typ.Name.Str, s)
-		g.semi()
 		return
 	case ast.Enum:
 		g.typedefEnumType(typ.Name.Str, s)
 		return
+	case ast.Bag:
+		g.typedefBagType(typ.Name.Str, s)
+		return
 	}
 
+	g.puts("typedef ")
 	g.TypeSpec(typ.Spec)
 	g.space()
 	g.puts(typ.Name.Str)
@@ -96,6 +98,7 @@ func (g *Gen) Chunk(c ast.Chunk) {
 }
 
 func (g *Gen) typedefEnumType(name string, enum ast.Enum) {
+	g.puts("typedef ")
 	g.puts(enum.Base.Name.Str)
 	g.space()
 	g.puts(name)
@@ -176,6 +179,8 @@ func (g *Gen) NameDef(name string, spec ast.TypeSpec) {
 }
 
 func (g *Gen) typedefFunType(name string, f ast.FunType) {
+	g.puts("typedef ")
+
 	if f.Signature.Result == nil {
 		g.puts("void")
 	} else {
@@ -197,5 +202,77 @@ func (g *Gen) typedefFunType(name string, f ast.FunType) {
 		g.puts(", ")
 		g.TypeSpec(p.Type)
 	}
+	g.puts(");")
+}
+
+func (g *Gen) typedefBagFun(f ast.BagFun) {
+	g.puts("typedef ")
+
+	s := f.Signature
+	if s.Result == nil {
+		g.puts("void")
+	} else {
+		g.TypeSpec(s.Result)
+	}
+
+	g.puts(" (*BagFun")
+	g.puts(strings.Title(f.Name.Str)) // TODO: make siplified transform for uppercase letter for function name
 	g.puts(")")
+
+	g.puts("(uint")
+	for _, p := range f.Signature.Params {
+		g.puts(", ")
+		g.TypeSpec(p.Type)
+	}
+	g.puts(");")
+}
+
+func (g *Gen) typedefBagType(name string, b ast.Bag) {
+	if len(b.Funs) == 0 {
+		panic("empty bag type")
+	}
+
+	for _, f := range b.Funs {
+		g.typedefBagFun(f)
+	}
+
+	g.nl()
+	g.puts("typedef struct {")
+	g.nl()
+	g.inc()
+
+	for _, f := range b.Funs {
+		g.indent()
+		g.puts("BagFun")
+		g.puts(strings.Title(f.Name.Str)) // TODO: maybe we should optimize function type name generation
+		g.space()
+		g.puts(f.Name.Str)
+		g.semi()
+		g.nl()
+	}
+
+	g.dec()
+	g.puts("} Bag")
+	g.puts(name)
+	g.puts("Tab;")
+
+	g.nl()
+	g.puts("typedef struct {")
+	g.nl()
+	g.inc()
+
+	g.indent()
+	g.puts("uint obj;")
+	g.nl()
+
+	g.indent()
+	g.puts("Bag")
+	g.puts(name)
+	g.puts("Tab* tab;")
+	g.nl()
+
+	g.dec()
+	g.puts("} ")
+	g.puts(name)
+	g.semi()
 }
