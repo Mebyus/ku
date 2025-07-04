@@ -47,6 +47,13 @@ func (p *Parser) Operand() (ast.Operand, diag.Error) {
 			Val: tok.Data,
 			Pin: tok.Pin,
 		}, nil
+	case token.Rune:
+		tok := p.c
+		p.advance() // skip rune
+		return ast.Rune{
+			Val: tok.Val,
+			Pin: tok.Pin,
+		}, nil
 	case token.True:
 		pin := p.c.Pin
 		p.advance() // skip "true"
@@ -71,8 +78,8 @@ func (p *Parser) Operand() (ast.Operand, diag.Error) {
 	// 	return p.tint()
 	// case token.MemCast:
 	// 	return p.memcast()
-	// case token.LeftCurly:
-	// 	return p.objectLiteral()
+	case token.LeftCurly:
+		return p.Object()
 	case token.Word, token.Unsafe:
 		return p.Chain()
 	case token.LeftParen:

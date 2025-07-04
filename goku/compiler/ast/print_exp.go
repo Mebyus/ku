@@ -40,6 +40,10 @@ func (g *Printer) Exp(exp Exp) {
 		g.Slice(e)
 	case Tweak:
 		g.Tweak(e)
+	case Object:
+		g.Object(e)
+	case List:
+		g.List(e)
 	case TypeId:
 		g.TypeId(e)
 	case ErrorId:
@@ -63,6 +67,25 @@ func (g *Printer) tweakFields(fields []ObjField) {
 	g.puts(".{")
 	g.inc()
 	for _, f := range fields {
+		g.nl()
+		g.indent()
+		g.ObjField(f)
+	}
+	g.dec()
+	g.nl()
+	g.indent()
+	g.puts("}")
+}
+
+func (g *Printer) Object(o Object) {
+	if len(o.Fields) == 0 {
+		g.puts("{}")
+		return
+	}
+
+	g.puts("{")
+	g.inc()
+	for _, f := range o.Fields {
 		g.nl()
 		g.indent()
 		g.ObjField(f)
@@ -264,6 +287,12 @@ func (g *Printer) String(s String) {
 	g.puts("\"")
 	g.puts(char.Escape(s.Val))
 	g.puts("\"")
+}
+
+func (g *Printer) Rune(s Rune) {
+	g.puts("'")
+	g.puts(char.EscapeRune(rune(s.Val)))
+	g.puts("'")
 }
 
 func (g *Printer) Nil(n Nil) {

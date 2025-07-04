@@ -21,6 +21,8 @@ func (g *Gen) Exp(exp ast.Exp) {
 		g.Integer(e)
 	case ast.String:
 		g.String(e)
+	case ast.Rune:
+		g.Rune(e)
 	case ast.True:
 		g.True(e)
 	case ast.False:
@@ -41,6 +43,8 @@ func (g *Gen) Exp(exp ast.Exp) {
 		g.Call(e)
 	case ast.Ref:
 		g.Ref(e)
+	case ast.Object:
+		g.Object(e)
 	case ast.List:
 		g.List(e)
 	case ast.Slice:
@@ -172,6 +176,12 @@ func (g *Gen) String(s ast.String) {
 	g.str(s.Val)
 }
 
+func (g *Gen) Rune(r ast.Rune) {
+	g.puts("'")
+	g.puts(char.EscapeRune(rune(r.Val)))
+	g.puts("'")
+}
+
 func (g *Gen) str(s string) {
 	if len(s) == 0 {
 		g.puts("empty_str")
@@ -233,4 +243,33 @@ func (g *Gen) List(l ast.List) {
 		g.Exp(e)
 	}
 	g.puts("}")
+}
+
+func (g *Gen) Object(o ast.Object) {
+	if len(o.Fields) == 0 {
+		g.puts("{}")
+		return
+	}
+
+	g.puts("{")
+	g.nl()
+	g.inc()
+
+	for _, f := range o.Fields {
+		g.indent()
+		g.objField(f)
+		g.puts(",")
+		g.nl()
+	}
+
+	g.dec()
+	g.indent()
+	g.puts("}")
+}
+
+func (g *Gen) objField(f ast.ObjField) {
+	g.puts(".")
+	g.puts(f.Name.Str)
+	g.puts(" = ")
+	g.Exp(f.Exp)
 }

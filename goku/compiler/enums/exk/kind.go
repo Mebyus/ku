@@ -68,6 +68,9 @@ const (
 	//	2.5 + 0.03 // Float(2.5) + Float(0.03)
 	Float
 
+	// Operand
+	Rune
+
 	// Operand.
 	//
 	// AST and STG.
@@ -128,6 +131,10 @@ const (
 	//
 	// Skips value assignment.
 	Blank
+
+	// Examples:
+	//	{name: "hello", id: 1}
+	Object
 
 	// Examples:
 	//	[1, 2, 3]
@@ -368,6 +375,7 @@ var text = [...]string{
 	Paren:  "paren",
 	Pack:   "pack",
 	List:   "list",
+	Object: "object",
 
 	Chain:  "chain",
 	Index:  "index",
@@ -386,6 +394,7 @@ var text = [...]string{
 	Symbol:  "symbol",
 	Integer: "integer",
 	Float:   "float",
+	Rune:    "rune",
 	String:  "string",
 	True:    "true",
 	False:   "false",

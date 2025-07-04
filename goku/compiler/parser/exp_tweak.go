@@ -6,6 +6,36 @@ import (
 	"github.com/mebyus/ku/goku/compiler/token"
 )
 
+func (p *Parser) Object() (ast.Object, diag.Error) {
+	pin := p.c.Pin
+	p.advance() // skip "{"
+
+	var fields []ast.ObjField
+	for {
+		if p.c.Kind == token.RightCurly {
+			p.advance() // skip "}"
+			return ast.Object{
+				Pin:    pin,
+				Fields: fields,
+			}, nil
+		}
+
+		field, err := p.objField()
+		if err != nil {
+			return ast.Object{}, err
+		}
+		fields = append(fields, field)
+
+		if p.c.Kind == token.Comma {
+			p.advance() // skip ","
+		} else if p.c.Kind == token.RightCurly {
+			// will be skipped at next iteration
+		} else {
+			return ast.Object{}, p.unexpected()
+		}
+	}
+}
+
 func (p *Parser) tweak(chain ast.Chain) (ast.Tweak, diag.Error) {
 	p.advance() // skip ".{"
 
