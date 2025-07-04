@@ -57,3 +57,32 @@ func (w While) String() string {
 	g.While(w)
 	return g.Output()
 }
+
+// ForRange represents for loop over a range of integers.
+//
+// Formal definition:
+//
+//	ForRange => "for" Name ":" TypeSpec "in" "range" "(" Exp ")" Block
+//	Name => word
+type ForRange struct {
+	Body Block
+	Name Word
+	Exp  Exp
+	Type TypeSpec
+}
+
+var _ Statement = ForRange{}
+
+func (ForRange) Kind() stk.Kind {
+	return stk.ForRange
+}
+
+func (r ForRange) Span() srcmap.Span {
+	return r.Name.Span()
+}
+
+func (r ForRange) String() string {
+	var g Printer
+	g.ForRange(r)
+	return g.Output()
+}

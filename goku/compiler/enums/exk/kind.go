@@ -129,6 +129,12 @@ const (
 	// Skips value assignment.
 	Blank
 
+	// Examples:
+	//	[1, 2, 3]
+	//	["hello", "world"]
+	//	[]
+	List
+
 	// Operand.
 	//
 	// AST and STG.
@@ -218,11 +224,17 @@ const (
 	// This operation sometimes called indirection.
 	//
 	// Examples:
-	//	a.foo.@     // Chain(a, Select(foo), Deref)
-	//	a.foo.bar.@ // Chain(a, Select(foo), Select(bar), Deref)
-	//	a.@         // Chain(a, Deref)
-	//	a[2].@      // Chain(a, Index(Integer(2)), Deref)
+	//	a.foo.*     // Chain(a, Select(foo), Deref)
+	//	a.foo.bar.* // Chain(a, Select(foo), Select(bar), Deref)
+	//	a.*         // Chain(a, Deref)
+	//	a[2].*      // Chain(a, Index(Integer(2)), Deref)
 	Deref
+
+	// ChainPart
+	//
+	// Examples:
+	//	a.foo.*.len
+	DerefSelect
 
 	// Chain part.
 	//
@@ -355,6 +367,7 @@ var text = [...]string{
 	Binary: "binary",
 	Paren:  "paren",
 	Pack:   "pack",
+	List:   "list",
 
 	Chain:  "chain",
 	Index:  "index",
@@ -365,9 +378,10 @@ var text = [...]string{
 	Slice:  "slice",
 	Tweak:  "tweak",
 
-	DerefIndex: "deref.index",
-	SelectTest: "select.test",
-	DotName:    "dot.name",
+	DerefIndex:  "deref.index",
+	DerefSelect: "deref.select",
+	SelectTest:  "select.test",
+	DotName:     "dot.name",
 
 	Symbol:  "symbol",
 	Integer: "integer",

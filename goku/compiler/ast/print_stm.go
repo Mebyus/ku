@@ -74,6 +74,17 @@ func (g *Printer) While(w While) {
 	g.Block(w.Body)
 }
 
+func (g *Printer) ForRange(r ForRange) {
+	g.puts("for ")
+	g.puts(r.Name.Str)
+	g.puts(": ")
+	g.TypeSpec(r.Type)
+	g.puts(" in range(")
+	g.Exp(r.Exp)
+	g.puts(") ")
+	g.Block(r.Body)
+}
+
 func (g *Printer) Stub(s Stub) {
 	g.puts("#stub;")
 }

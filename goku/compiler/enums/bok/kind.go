@@ -23,7 +23,7 @@ const (
 
 	And // &&
 	Or  // ||
-	In
+	In  // in
 
 	Add // +
 	Sub // -

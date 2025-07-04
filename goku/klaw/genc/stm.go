@@ -29,6 +29,8 @@ func (g *Gen) Statement(s ast.Statement) {
 		g.Loop(s)
 	case ast.While:
 		g.While(s)
+	case ast.ForRange:
+		g.ForRange(s)
 	case ast.If:
 		g.If(s)
 	case ast.Match:
@@ -114,6 +116,21 @@ func (g *Gen) While(w ast.While) {
 	g.Exp(w.Exp)
 	g.puts(") ")
 	g.Block(w.Body)
+}
+
+func (g *Gen) ForRange(r ast.ForRange) {
+	g.puts("for (")
+	g.TypeSpec(r.Type)
+	g.space()
+	g.puts(r.Name.Str)
+	g.puts(" = 0; ")
+	g.puts(r.Name.Str)
+	g.puts(" < ")
+	g.Exp(r.Exp)
+	g.puts("; ")
+	g.puts(r.Name.Str)
+	g.puts(" += 1) ")
+	g.Block(r.Body)
 }
 
 func (g *Gen) TopVar(v ast.TopVar) {

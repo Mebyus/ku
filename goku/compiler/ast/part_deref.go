@@ -22,8 +22,8 @@ func (d Deref) Span() srcmap.Span {
 	return srcmap.Span{Pin: d.Pin}
 }
 
-func (x Deref) String() string {
+func (d Deref) String() string {
 	var g Printer
-	g.Deref(x)
+	g.Deref(d)
 	return g.Output()
 }

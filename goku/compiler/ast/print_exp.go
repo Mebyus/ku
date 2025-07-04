@@ -161,7 +161,12 @@ func (g *Printer) SelectTest(s SelectTest) {
 }
 
 func (g *Printer) Deref(d Deref) {
-	g.puts(".@")
+	g.puts(".*")
+}
+
+func (g *Printer) DerefSelect(d DerefSelect) {
+	g.puts(".*.")
+	g.puts(d.Name.Str)
 }
 
 func (g *Printer) Select(s Select) {
@@ -194,6 +199,21 @@ func (g *Printer) Pack(p Pack) {
 	}
 }
 
+func (g *Printer) List(l List) {
+	if len(l.Exps) == 0 {
+		g.puts("[]")
+		return
+	}
+
+	g.puts("[")
+	g.Exp(l.Exps[0])
+	for _, e := range l.Exps[1:] {
+		g.puts(", ")
+		g.Exp(e)
+	}
+	g.puts("]")
+}
+
 func (g *Printer) Binary(b Binary) {
 	g.Exp(b.A)
 	g.space()
@@ -210,6 +230,20 @@ func (g *Printer) Unary(u Unary) {
 func (g *Printer) Paren(p Paren) {
 	g.puts("(")
 	g.Exp(p.Exp)
+	g.puts(")")
+}
+
+func (g *Printer) Size(s Size) {
+	g.puts("#size(")
+	g.TypeSpec(s.Exp)
+	g.puts(")")
+}
+
+func (g *Printer) Cast(c Cast) {
+	g.puts("#cast(")
+	g.TypeSpec(c.Type)
+	g.puts(", ")
+	g.Exp(c.Exp)
 	g.puts(")")
 }
 

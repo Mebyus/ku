@@ -41,6 +41,8 @@ func (g *Gen) Exp(exp ast.Exp) {
 		g.Call(e)
 	case ast.Ref:
 		g.Ref(e)
+	case ast.List:
+		g.List(e)
 	case ast.Slice:
 		panic("not supported")
 	case ast.Tweak:
@@ -49,6 +51,10 @@ func (g *Gen) Exp(exp ast.Exp) {
 		g.TypeId(e)
 	case ast.ErrorId:
 		g.ErrorId(e)
+	case ast.Size:
+		g.Size(e)
+	case ast.Cast:
+		g.Cast(e)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) expression (%T)", e.Kind(), e.Kind(), e))
 	}
@@ -124,6 +130,9 @@ func (g *Gen) chain(start ast.Word, parts []ast.Part) {
 	case ast.Select:
 		g.chain(start, rest)
 		g.Select(p)
+	case ast.DerefSelect:
+		g.chain(start, rest)
+		g.DerefSelect(p)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) chain part (%T)", p.Kind(), p.Kind(), p))
 	}
@@ -136,6 +145,11 @@ func (g *Gen) Symbol(n ast.Symbol) {
 func (g *Gen) Select(s ast.Select) {
 	g.puts(".")
 	g.puts(s.Name.Str)
+}
+
+func (g *Gen) DerefSelect(d ast.DerefSelect) {
+	g.puts("->")
+	g.puts(d.Name.Str)
 }
 
 func (g *Gen) Index(x ast.Index) {
@@ -190,4 +204,33 @@ func (g *Gen) TypeId(t ast.TypeId) {
 func (g *Gen) ErrorId(e ast.ErrorId) {
 	id := g.State.GetErrorId(e.Name.Str)
 	g.putn(id)
+}
+
+func (g *Gen) Size(s ast.Size) {
+	g.puts("sizeof(")
+	g.TypeSpec(s.Exp)
+	g.puts(")")
+}
+
+func (g *Gen) Cast(c ast.Cast) {
+	g.puts("(")
+	g.TypeSpec(c.Type)
+	g.puts(")(")
+	g.Exp(c.Exp)
+	g.puts(")")
+}
+
+func (g *Gen) List(l ast.List) {
+	if len(l.Exps) == 0 {
+		g.puts("{}")
+		return
+	}
+
+	g.puts("{")
+	g.Exp(l.Exps[0])
+	for _, e := range l.Exps[1:] {
+		g.puts(", ")
+		g.Exp(e)
+	}
+	g.puts("}")
 }

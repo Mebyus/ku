@@ -63,8 +63,10 @@ func (p *Parser) Operand() (ast.Operand, diag.Error) {
 		return p.TypeId()
 	case token.ErrorId:
 		return p.ErrorId()
-	// case token.Cast:
-	// 	return p.cast()
+	case token.Size:
+		return p.Size()
+	case token.Cast:
+		return p.Cast()
 	// case token.Tint:
 	// 	return p.tint()
 	// case token.MemCast:
@@ -75,8 +77,8 @@ func (p *Parser) Operand() (ast.Operand, diag.Error) {
 		return p.Chain()
 	case token.LeftParen:
 		return p.Paren()
-	// case token.LeftSquare:
-	// 	return p.list()
+	case token.LeftSquare, token.Chunk:
+		return p.List()
 	// case token.Chunk:
 	// 	return p.chunkStartOperand()
 	case token.Period:
@@ -143,8 +145,8 @@ func (p *Parser) Chain() (ast.Operand, diag.Error) {
 			default:
 				return nil, p.unexpected()
 			}
-		// case token.DerefSelect:
-		// 	part, err = p.indirectFieldPart()
+		case token.DerefSelect:
+			part, err = p.DerefSelect()
 		case token.Deref:
 			part = p.Deref()
 		case token.Address:
@@ -205,8 +207,19 @@ func (p *Parser) DotName() (ast.DotName, diag.Error) {
 
 func (p *Parser) Deref() ast.Deref {
 	pin := p.c.Pin
-	p.advance() // skip ".@"
+	p.advance() // skip ".*"
 	return ast.Deref{Pin: pin}
+}
+
+func (p *Parser) DerefSelect() (ast.DerefSelect, diag.Error) {
+	p.advance() // skip ".*."
+
+	if p.c.Kind != token.Word {
+		return ast.DerefSelect{}, p.unexpected()
+	}
+	name := p.word()
+
+	return ast.DerefSelect{Name: name}, nil
 }
 
 func (p *Parser) DerefIndex() (ast.DerefIndex, diag.Error) {
@@ -410,4 +423,97 @@ func (p *Parser) ErrorId() (ast.ErrorId, diag.Error) {
 	p.advance() // skip ")"
 
 	return ast.ErrorId{Name: name}, nil
+}
+
+func (p *Parser) Cast() (ast.Cast, diag.Error) {
+	p.advance() // skip "#size"
+
+	if p.c.Kind != token.LeftParen {
+		return ast.Cast{}, p.unexpected()
+	}
+	p.advance() // skip "("
+
+	typ, err := p.TypeSpec()
+	if err != nil {
+		return ast.Cast{}, err
+	}
+
+	if p.c.Kind != token.Comma {
+		return ast.Cast{}, p.unexpected()
+	}
+	p.advance() // skip ","
+
+	exp, err := p.Exp()
+	if err != nil {
+		return ast.Cast{}, err
+	}
+
+	if p.c.Kind != token.RightParen {
+		return ast.Cast{}, p.unexpected()
+	}
+	p.advance() // skip ")"
+
+	return ast.Cast{
+		Type: typ,
+		Exp:  exp,
+	}, nil
+}
+
+func (p *Parser) Size() (ast.Size, diag.Error) {
+	p.advance() // skip "#size"
+
+	if p.c.Kind != token.LeftParen {
+		return ast.Size{}, p.unexpected()
+	}
+	p.advance() // skip "("
+
+	spec, err := p.TypeSpec()
+	if err != nil {
+		return ast.Size{}, err
+	}
+
+	if p.c.Kind != token.RightParen {
+		return ast.Size{}, p.unexpected()
+	}
+	p.advance() // skip ")"
+
+	return ast.Size{Exp: spec}, nil
+}
+
+func (p *Parser) List() (ast.List, diag.Error) {
+	pin := p.c.Pin
+	if p.c.Kind == token.Chunk {
+		p.advance() // skip "[]"
+		return ast.List{Pin: pin}, nil
+	}
+
+	if p.c.Kind != token.LeftSquare {
+		return ast.List{}, p.unexpected()
+	}
+	p.advance() // skip "["
+
+	var list []ast.Exp
+	for {
+		if p.c.Kind == token.RightSquare {
+			p.advance() // skip ""
+			return ast.List{
+				Pin:  pin,
+				Exps: list,
+			}, nil
+		}
+
+		exp, err := p.Exp()
+		if err != nil {
+			return ast.List{}, err
+		}
+		list = append(list, exp)
+
+		if p.c.Kind == token.Comma {
+			p.advance() // skip ","
+		} else if p.c.Kind == token.RightSquare {
+			// will be skipped at next iteration
+		} else {
+			return ast.List{}, p.unexpected()
+		}
+	}
 }

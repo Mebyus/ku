@@ -11,7 +11,12 @@ func (p *Parser) For() (ast.Statement, diag.Error) {
 		return p.Loop()
 	}
 
-	return p.While()
+	p.advance() // skip "for"
+	if p.c.Kind == token.Word && p.n.Kind == token.Colon {
+		return p.forRange()
+	}
+
+	return p.while()
 }
 
 func (p *Parser) Loop() (ast.Loop, diag.Error) {
@@ -25,9 +30,7 @@ func (p *Parser) Loop() (ast.Loop, diag.Error) {
 	return ast.Loop{Body: body}, nil
 }
 
-func (p *Parser) While() (ast.While, diag.Error) {
-	p.advance() // skip "for"
-
+func (p *Parser) while() (ast.While, diag.Error) {
 	exp, err := p.Exp()
 	if err != nil {
 		return ast.While{}, err
@@ -41,5 +44,52 @@ func (p *Parser) While() (ast.While, diag.Error) {
 	return ast.While{
 		Body: body,
 		Exp:  exp,
+	}, nil
+}
+
+func (p *Parser) forRange() (ast.ForRange, diag.Error) {
+	name := p.word()
+	p.advance() // skip ":"
+
+	typ, err := p.TypeSpec()
+	if err != nil {
+		return ast.ForRange{}, err
+	}
+
+	if p.c.Kind != token.In {
+		return ast.ForRange{}, p.unexpected()
+	}
+	p.advance() // skip "in"
+
+	if p.c.Kind != token.Word && p.c.Data != "range" {
+		return ast.ForRange{}, p.unexpected()
+	}
+	p.advance() // skip "range"
+
+	if p.c.Kind != token.LeftParen {
+		return ast.ForRange{}, p.unexpected()
+	}
+	p.advance() // skip "("
+
+	exp, err := p.Exp()
+	if err != nil {
+		return ast.ForRange{}, err
+	}
+
+	if p.c.Kind != token.RightParen {
+		return ast.ForRange{}, p.unexpected()
+	}
+	p.advance() // skip ")"
+
+	body, err := p.Block()
+	if err != nil {
+		return ast.ForRange{}, err
+	}
+
+	return ast.ForRange{
+		Name: name,
+		Exp:  exp,
+		Type: typ,
+		Body: body,
 	}, nil
 }
