@@ -63,6 +63,7 @@ var literal = [...]string{
 	LeftParen:      "(",
 	RightParen:     ")",
 	HashCurly:      "#{",
+	HashSquare:     "#[",
 	Tweak:          ".{",
 	DerefIndex:     ".[",
 	BagSelect:      ".(",

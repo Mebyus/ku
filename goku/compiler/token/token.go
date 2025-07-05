@@ -22,4 +22,14 @@ type Token struct {
 	Pin srcmap.Pin
 
 	Kind Kind
+
+	Flags uint32
+}
+
+const (
+	FlagKeyword = 1 << iota
+)
+
+func (t *Token) IsKeyword() bool {
+	return t.Flags&FlagKeyword != 0
 }

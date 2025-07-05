@@ -89,7 +89,7 @@ func (w Word) Span() srcmap.Span {
 	return srcmap.Span{Pin: w.Pin, Len: uint32(len(w.Str))}
 }
 
-// Trait container object for passing around node attributes and properties.
+// Traits container object for passing around node attributes and properties.
 type Traits struct {
 	// List of node's properties.
 	Props *[]Prop
@@ -101,7 +101,11 @@ type Traits struct {
 	Unsafe bool
 }
 
-type Prop struct{}
+type Prop struct {
+	Exp  Exp
+	Name string
+	Pin  srcmap.Pin
+}
 
 // Embed this to quickly implement _exp() discriminator from Exp interface.
 // Do not use it for anything else.

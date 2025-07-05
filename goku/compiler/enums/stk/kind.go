@@ -28,6 +28,9 @@ const (
 	Lookup
 	Debug
 
+	JumpNext
+	JumpOut
+
 	Panic
 	Must
 	StaticMust
@@ -60,6 +63,9 @@ var text = [...]string{
 	Stub:      "stub",
 	Debug:     "debug",
 	Lookup:    "lookup",
+
+	JumpNext: "jump.next",
+	JumpOut:  "jump.out",
 
 	Must:       "must",
 	Panic:      "panic",

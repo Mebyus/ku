@@ -39,6 +39,8 @@ func (lx *Lexer) lex() token.Token {
 		switch lx.n() {
 		case '{':
 			return lx.twoBytesToken(token.HashCurly)
+		case '[':
+			return lx.twoBytesToken(token.HashSquare)
 		default:
 			if char.IsLatinLetter(lx.n()) {
 				return lx.static()
@@ -450,6 +452,7 @@ func (lx *Lexer) word() token.Token {
 	kind, ok := token.Keyword(word)
 	if ok {
 		tok.Kind = kind
+		tok.Flags = token.FlagKeyword
 		return tok
 	}
 

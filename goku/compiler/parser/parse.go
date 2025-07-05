@@ -60,33 +60,6 @@ func (p *Parser) top() diag.Error {
 	}
 }
 
-func (p *Parser) gatherProps() diag.Error {
-	for {
-		if p.c.Kind != token.HashCurly {
-			return nil
-		}
-
-		prop, err := p.prop()
-		if err != nil {
-			return err
-		}
-		p.props = append(p.props, prop)
-	}
-}
-
-func (p *Parser) prop() (ast.Prop, diag.Error) {
-	panic("not implemented")
-}
-
-func (p *Parser) takeProps() *[]ast.Prop {
-	if len(p.props) == 0 {
-		return nil
-	}
-	props := p.props
-	p.props = nil
-	return &props
-}
-
 // Consume and then return a word.
 func (p *Parser) word() ast.Word {
 	word := ast.Word{

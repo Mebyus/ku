@@ -33,6 +33,10 @@ func (g *Gen) Statement(s ast.Statement) {
 		g.ForRange(s)
 	case ast.If:
 		g.If(s)
+	case ast.JumpNext:
+		g.JumpNext(s)
+	case ast.JumpOut:
+		g.JumpOut(s)
 	case ast.Match:
 		g.Match(s)
 	case ast.Stub:
@@ -283,4 +287,12 @@ func (g *Gen) StaticMust(m ast.StaticMust) {
 	g.puts("static_assert(")
 	g.Exp(m.Exp)
 	g.puts(");")
+}
+
+func (g *Gen) JumpNext(j ast.JumpNext) {
+	g.puts("continue;")
+}
+
+func (g *Gen) JumpOut(j ast.JumpOut) {
+	g.puts("break;")
 }

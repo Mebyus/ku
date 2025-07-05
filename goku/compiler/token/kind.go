@@ -71,7 +71,8 @@ const (
 	LeftParen   // (
 	RightParen  // )
 
-	HashCurly // #{
+	HashCurly  // #{
+	HashSquare // #[
 
 	Tweak        // .{
 	Insist       // .!
