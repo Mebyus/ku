@@ -40,6 +40,13 @@ func (p *Parser) Operand() (ast.Operand, diag.Error) {
 			Val: tok.Val,
 			Aux: uint32(ast.IntHex),
 		}, nil
+	case token.DecFloat:
+		tok := p.c
+		p.advance()
+		return ast.Float{
+			Pin: tok.Pin,
+			Val: tok.Data,
+		}, nil
 	case token.String:
 		tok := p.c
 		p.advance() // skip string

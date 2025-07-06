@@ -19,6 +19,8 @@ func (g *Gen) Exp(exp ast.Exp) {
 		panic("not supported")
 	case ast.Integer:
 		g.Integer(e)
+	case ast.Float:
+		g.Float(e)
 	case ast.String:
 		g.String(e)
 	case ast.Rune:
@@ -170,6 +172,10 @@ func (g *Gen) DerefIndex(x ast.DerefIndex) {
 
 func (g *Gen) Integer(n ast.Integer) {
 	g.puts(n.String())
+}
+
+func (g *Gen) Float(f ast.Float) {
+	g.puts(f.Val)
 }
 
 func (g *Gen) String(s ast.String) {
