@@ -92,3 +92,19 @@ func (p *Pool) LoadDir(dir string, params *DirScanParams) ([]*Text, error) {
 	}
 	return texts, nil
 }
+
+func (p *Pool) LoadFromBase(base string, paths []string) ([]*Text, error) {
+	if len(paths) == 0 {
+		return nil, nil
+	}
+
+	texts := make([]*Text, 0, len(paths))
+	for _, path := range paths {
+		text, err := p.Load(filepath.Join(base, path))
+		if err != nil {
+			return nil, err
+		}
+		texts = append(texts, text)
+	}
+	return texts, nil
+}

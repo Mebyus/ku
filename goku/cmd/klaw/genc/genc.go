@@ -30,6 +30,18 @@ func exec(r *butler.Butler, files []string) error {
 }
 
 func gen(path string) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+
+	if info.IsDir() {
+		return genFromUnit(path)
+	}
+	return genFromFile(path)
+}
+
+func genFromFile(path string) error {
 	pool := srcmap.New()
 	text, err := pool.Load(path)
 	if err != nil {

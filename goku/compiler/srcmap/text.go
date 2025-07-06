@@ -1,6 +1,9 @@
 package srcmap
 
-import "path/filepath"
+import (
+	"io"
+	"path/filepath"
+)
 
 // Text represents something that contains source text.
 // Most often text comes from a file, but sometimes it may be generated on the
@@ -18,7 +21,7 @@ type Text struct {
 	//	- ".ku"
 	//	- ".c"
 	//	- ".h"
-	//	- ".claw"
+	//	- ".klaw"
 	Ext string
 
 	// Assigned automatically when text is loaded by Pool.
@@ -33,4 +36,9 @@ func NewText(path string, data []byte) *Text {
 		Path: path,
 		Ext:  filepath.Ext(path),
 	}
+}
+
+func (t *Text) WriteTo(w io.Writer) (int64, error) {
+	n, err := w.Write(t.Data)
+	return int64(n), err
 }
