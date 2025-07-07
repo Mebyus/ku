@@ -2,7 +2,7 @@ package genc
 
 import (
 	"fmt"
-	"os"
+	"io"
 	"path/filepath"
 
 	"github.com/mebyus/ku/goku/compiler/diag"
@@ -12,7 +12,7 @@ import (
 	"github.com/mebyus/ku/goku/klaw/parser"
 )
 
-func genFromUnit(path string) error {
+func GenFromUnit(out io.Writer, path string) error {
 	pool := srcmap.New()
 
 	text, err := pool.Load(filepath.Join(path, "unit.klaw"))
@@ -41,5 +41,5 @@ func genFromUnit(path string) error {
 		return err
 	}
 
-	return builder.GenTexts(pool, os.Stdout, texts)
+	return builder.GenTexts(pool, out, texts)
 }

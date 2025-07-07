@@ -36,7 +36,7 @@ func gen(path string) error {
 	}
 
 	if info.IsDir() {
-		return genFromUnit(path)
+		return GenFromUnit(os.Stdout, path)
 	}
 	return genFromFile(path)
 }
