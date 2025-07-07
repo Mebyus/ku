@@ -27,3 +27,15 @@ func CompileObj(out, src string, k bk.Kind) error {
 
 	return InvokeCompiler(g.Args())
 }
+
+func CompileExe(out, src string, k bk.Kind) error {
+	var g ArgsBuilder
+	g.Init()
+
+	g.common()
+	g.optimizationsAndDebugInfo(k)
+	g.out(out)
+	g.srcExe(src)
+
+	return InvokeCompiler(g.Args())
+}

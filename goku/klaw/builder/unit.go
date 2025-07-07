@@ -1,6 +1,15 @@
 package builder
 
-import "github.com/mebyus/ku/goku/compiler/srcmap"
+import (
+	"fmt"
+	"io"
+	"path/filepath"
+
+	"github.com/mebyus/ku/goku/compiler/diag"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/klaw/eval"
+	"github.com/mebyus/ku/goku/klaw/parser"
+)
 
 type Unit struct {
 	// Order of elements directly corresponds to file include order
@@ -22,4 +31,50 @@ type Module struct {
 	Name string
 
 	Main *Unit
+}
+
+func loadUnitTexts(pool *srcmap.Pool, path string) ([]*srcmap.Text, error) {
+
+	text, err := pool.Load(filepath.Join(path, "unit.klaw"))
+	if err != nil {
+		return nil, err
+	}
+
+	p := parser.FromText(text)
+	unit, err := p.Unit()
+	if err != nil {
+		return nil, diag.Format(pool, err.(diag.Error))
+	}
+	u, err := eval.EvalUnit(nil, unit)
+	if err != nil {
+		return nil, diag.Format(pool, err.(diag.Error))
+	}
+	if len(u.Imports) != 0 {
+		return nil, fmt.Errorf("unit contains imports")
+	}
+	if len(u.Includes) == 0 {
+		return nil, fmt.Errorf("unit does not include any source files")
+	}
+
+	return pool.LoadFromBase(path, u.Includes)
+}
+
+func GenUnit(out io.Writer, path string) error {
+	pool := srcmap.New()
+	texts, err := loadUnitTexts(pool, path)
+	if err != nil {
+		return err
+	}
+
+	return GenTexts(pool, out, texts)
+}
+
+func GenUnitWithTests(out io.Writer, path string) error {
+	pool := srcmap.New()
+	texts, err := loadUnitTexts(pool, path)
+	if err != nil {
+		return err
+	}
+
+	return GenTextsWithTests(pool, out, texts)
 }

@@ -1,8 +1,9 @@
-package compile
+package test
 
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/mebyus/ku/goku/butler"
@@ -12,18 +13,12 @@ import (
 )
 
 var Butler = &butler.Butler{
-	Name: "compile",
+	Name: "test",
 
-	Short: "Compile Ku unit (via C codegen)",
+	Short: "Test Ku unit (via C codegen)",
 	Usage: "[options] [path]",
 
 	Params: butler.NewParams(
-		butler.Param{
-			Name:  "out",
-			Alias: "o",
-			Desc:  "Path to output file (object)",
-			Kind:  butler.String,
-		},
 		butler.Param{
 			Name:    "build-kind",
 			Alias:   "k",
@@ -33,19 +28,19 @@ var Butler = &butler.Butler{
 		},
 	),
 
-	Exec: exec,
+	Exec: run,
 }
 
-func exec(r *butler.Butler, units []string) error {
+func run(r *butler.Butler, units []string) error {
 	if len(units) == 0 {
 		return fmt.Errorf("at least one unit must be specified")
 	}
 
 	path := units[0]
-	return compile(r.Params.Get("out").Str(), path, r.Params.Get("build-kind").Str())
+	return test(path, r.Params.Get("build-kind").Str())
 }
 
-func compile(out, path string, kind string) error {
+func test(path string, kind string) error {
 	k, err := bk.Parse(kind)
 	if err != nil {
 		return err
@@ -71,12 +66,24 @@ func compile(out, path string, kind string) error {
 		return err
 	}
 
-	err = mkdir(filepath.Dir(out))
+	testExePath := getTestExecutablePath(path)
+	err = mkdir(filepath.Dir(testExePath))
 	if err != nil {
 		return err
 	}
 
-	return cc.CompileObj(out, codegenOutPath, k)
+	err = cc.CompileExe(testExePath, codegenOutPath, k)
+	if err != nil {
+		return err
+	}
+	return runTestExecutable(testExePath)
+}
+
+func runTestExecutable(path string) error {
+	cmd := exec.Command(path)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 func genFromUnit(out, path string) error {
@@ -86,11 +93,15 @@ func genFromUnit(out, path string) error {
 	}
 	defer genOut.Close()
 
-	return builder.GenUnit(genOut, path)
+	return builder.GenUnitWithTests(genOut, path)
 }
 
 func getCodegenOutPath(path string) string {
-	return filepath.Join(".kubout/genc", filepath.Base(path)+".kubgen.c")
+	return filepath.Join(".kubout/genc", filepath.Base(path)+".test.kubgen.c")
+}
+
+func getTestExecutablePath(path string) string {
+	return filepath.Join(".kubout/test", filepath.Base(path))
 }
 
 func mkdir(path string) error {

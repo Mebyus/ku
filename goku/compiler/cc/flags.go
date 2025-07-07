@@ -22,7 +22,7 @@ var warningFlags = []string{
 	"-Wswitch-default",
 	"-Wshadow=local",
 
-	"-Wno-main",
+	// "-Wno-main",
 	"-Wno-shadow",
 	"-Wno-unused-parameter",
 	"-Wno-unused-function",

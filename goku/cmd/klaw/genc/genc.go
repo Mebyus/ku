@@ -8,6 +8,7 @@ import (
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/parser"
 	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/klaw/builder"
 	"github.com/mebyus/ku/goku/klaw/genc"
 )
 
@@ -36,7 +37,7 @@ func gen(path string) error {
 	}
 
 	if info.IsDir() {
-		return GenFromUnit(os.Stdout, path)
+		return builder.GenUnit(os.Stdout, path)
 	}
 	return genFromFile(path)
 }

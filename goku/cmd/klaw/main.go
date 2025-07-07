@@ -10,6 +10,7 @@ import (
 	"github.com/mebyus/ku/goku/cmd/klaw/genc"
 	"github.com/mebyus/ku/goku/cmd/klaw/lex"
 	"github.com/mebyus/ku/goku/cmd/klaw/parse"
+	"github.com/mebyus/ku/goku/cmd/klaw/test"
 )
 
 func main() {
@@ -37,5 +38,6 @@ var root = &butler.Butler{
 		eval.Butler,
 		genc.Butler,
 		compile.Butler,
+		test.Butler,
 	},
 }

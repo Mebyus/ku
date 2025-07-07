@@ -1,6 +1,10 @@
 package ast
 
-import "github.com/mebyus/ku/goku/compiler/enums/tnk"
+import (
+	"slices"
+
+	"github.com/mebyus/ku/goku/compiler/enums/tnk"
+)
 
 // Text smallest piece of processed source code inside a unit. In most
 // cases this represents a file with source code. Exceptions may include
@@ -151,4 +155,15 @@ func (t *Text) AddGenBind(b GenBind) {
 		Index: uint32(len(t.GenBinds)),
 	})
 	t.GenBinds = append(t.GenBinds, b)
+}
+
+func (t *Text) AppendTestNames(list []string) []string {
+	if len(t.Tests) == 0 {
+		return list
+	}
+	list = slices.Grow(list, len(t.Tests))
+	for _, tt := range t.Tests {
+		list = append(list, tt.Name.Str)
+	}
+	return list
 }
