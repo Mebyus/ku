@@ -38,7 +38,7 @@ func (g *Gen) topByIndex(text *ast.Text, x ast.NodeIndex) {
 	case tnk.Type:
 		g.Type(text.Types[i])
 	case tnk.Test:
-		g.Test(text.Tests[i])
+		g.TestFun(text.Tests[i])
 	case tnk.Method:
 		panic("not supported")
 	case tnk.FunStub:

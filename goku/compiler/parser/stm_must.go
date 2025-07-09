@@ -66,3 +66,29 @@ func (p *Parser) topStaticMust() diag.Error {
 	p.text.AddMust(must)
 	return nil
 }
+
+func (p *Parser) Test() (ast.Test, diag.Error) {
+	p.advance() // skip "test"
+
+	if p.c.Kind != token.LeftParen {
+		return ast.Test{}, p.unexpected()
+	}
+	p.advance() // skip "("
+
+	exp, err := p.Exp()
+	if err != nil {
+		return ast.Test{}, err
+	}
+
+	if p.c.Kind != token.RightParen {
+		return ast.Test{}, p.unexpected()
+	}
+	p.advance() // skip ")"
+
+	if p.c.Kind != token.Semicolon {
+		return ast.Test{}, p.unexpected()
+	}
+	p.advance() // skip ";"
+
+	return ast.Test{Exp: exp}, nil
+}

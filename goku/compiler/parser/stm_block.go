@@ -34,6 +34,8 @@ func (p *Parser) Statement() (ast.Statement, diag.Error) {
 		return p.Must()
 	case token.StaticMust:
 		return p.StaticMust()
+	case token.Test:
+		return p.Test()
 	case token.Debug:
 		return p.Debug()
 	// case token.Defer:

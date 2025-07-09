@@ -33,6 +33,7 @@ const (
 
 	Panic
 	Must
+	Test
 	StaticMust
 
 	// Defer function or method call.
@@ -68,6 +69,7 @@ var text = [...]string{
 	JumpOut:  "jump.out",
 
 	Must:       "must",
+	Test:       "test",
 	Panic:      "panic",
 	StaticMust: "must.static",
 }

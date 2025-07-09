@@ -233,6 +233,12 @@ func (g *Printer) Must(m Must) {
 	g.puts(");")
 }
 
+func (g *Printer) Test(t Test) {
+	g.puts("test(")
+	g.Exp(t.Exp)
+	g.puts(");")
+}
+
 func (g *Printer) StaticMust(m StaticMust) {
 	g.puts("#must(")
 	g.Exp(m.Exp)

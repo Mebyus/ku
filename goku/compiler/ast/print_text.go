@@ -50,7 +50,7 @@ func (g *Printer) topByIndex(text *Text, x NodeIndex) {
 	case tnk.Type:
 		g.Type(text.Types[i])
 	case tnk.Test:
-		g.Test(text.Tests[i])
+		g.TestFun(text.Tests[i])
 	case tnk.Method:
 		g.Method(text.Methods[i])
 	case tnk.FunStub:

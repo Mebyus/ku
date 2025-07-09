@@ -51,6 +51,8 @@ func (g *Gen) Statement(s ast.Statement) {
 		g.Must(s)
 	case ast.StaticMust:
 		g.StaticMust(s)
+	case ast.Test:
+		g.Test(s)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) statement (%T)", s.Kind(), s.Kind(), s))
 	}
@@ -294,6 +296,24 @@ func (g *Gen) StaticMust(m ast.StaticMust) {
 	g.puts("static_assert(")
 	g.Exp(m.Exp)
 	g.puts(");")
+}
+
+func (g *Gen) Test(t ast.Test) {
+	g.puts("if (test_pos(t, ")
+	g.Exp(t.Exp)
+	g.puts(", ")
+	g.textPosArgs(t.Span().Pin)
+	g.puts(")) {")
+	g.nl()
+	g.inc()
+
+	g.indent()
+	g.puts("return;")
+
+	g.dec()
+	g.nl()
+	g.indent()
+	g.puts("}")
 }
 
 func (g *Gen) JumpNext(j ast.JumpNext) {

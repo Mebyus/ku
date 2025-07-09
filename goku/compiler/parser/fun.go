@@ -32,7 +32,7 @@ func (p *Parser) Fun(traits ast.Traits) (ast.Fun, diag.Error) {
 	return f, nil
 }
 
-func (p *Parser) Test(traits ast.Traits) diag.Error {
+func (p *Parser) TestFun(traits ast.Traits) diag.Error {
 	p.advance() // skip "test"
 
 	t, err := p.fun()

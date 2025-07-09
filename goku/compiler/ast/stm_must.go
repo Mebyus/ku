@@ -52,3 +52,27 @@ func (m StaticMust) String() string {
 	g.StaticMust(m)
 	return g.Output()
 }
+
+// Formal definition:
+//
+//	Test => "test" "(" Exp ")" ";"
+type Test struct {
+	// Always not nil.
+	Exp Exp
+}
+
+var _ Statement = Test{}
+
+func (Test) Kind() stk.Kind {
+	return stk.Test
+}
+
+func (t Test) Span() srcmap.Span {
+	return t.Exp.Span()
+}
+
+func (t Test) String() string {
+	var g Printer
+	g.Test(t)
+	return g.Output()
+}

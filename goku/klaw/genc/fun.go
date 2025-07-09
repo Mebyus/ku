@@ -17,7 +17,7 @@ func getTestFunName(name string) string {
 	return "run_test_" + name
 }
 
-func (g *Gen) Test(t ast.Fun) {
+func (g *Gen) TestFun(t ast.Fun) {
 	if !g.test() {
 		return
 	}

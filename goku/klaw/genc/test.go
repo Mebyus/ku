@@ -19,6 +19,7 @@ func (g *Gen) MainTestDriver(tests []string) {
 	g.puts("int main() {")
 	g.nl()
 	g.inc()
+	g.level += 1
 
 	g.indent()
 	g.puts("uint fail_count = 0;")
@@ -41,7 +42,7 @@ func (g *Gen) MainTestDriver(tests []string) {
 		name := getTestFunName(t)
 
 		g.indent()
-		g.puts("test_init(&t, ")
+		g.puts("test_reset(&t, ")
 		g.str(t)
 		g.puts(");")
 		g.nl()
@@ -57,7 +58,7 @@ func (g *Gen) MainTestDriver(tests []string) {
 		g.inc()
 
 		g.indent()
-		g.puts("fmt_buffer_put_test(&buf, &t);")
+		g.puts("fmt_cap_buffer_put_test(&buf, &t);")
 		g.nl()
 
 		g.indent()
@@ -74,7 +75,7 @@ func (g *Gen) MainTestDriver(tests []string) {
 	g.nl()
 
 	g.indent()
-	g.puts("print(fmt_buffer_head(&buf));")
+	g.puts("stdout_print(fmt_cap_buffer_take(&buf));")
 	g.nl()
 
 	g.indent()
@@ -91,6 +92,7 @@ func (g *Gen) MainTestDriver(tests []string) {
 	g.puts("}")
 	g.nl()
 
+	g.level -= 1
 	g.dec()
 	g.puts("}")
 	g.nl()

@@ -15,7 +15,7 @@ func (g *Printer) Fun(f Fun) {
 	g.fun(f)
 }
 
-func (g *Printer) Test(t Fun) {
+func (g *Printer) TestFun(t Fun) {
 	g.puts("test ")
 	g.fun(t)
 }
