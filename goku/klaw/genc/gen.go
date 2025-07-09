@@ -16,6 +16,12 @@ type Gen struct {
 	ib []byte
 
 	State *State
+
+	// Block nesting level.
+	//	0 - file top-level
+	//	1 - function body
+	//	... - all other
+	level uint
 }
 
 func (g *Gen) WriteTo(w io.Writer) (int64, error) {

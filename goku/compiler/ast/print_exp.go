@@ -270,6 +270,14 @@ func (g *Printer) Cast(c Cast) {
 	g.puts(")")
 }
 
+func (g *Printer) Tint(t Tint) {
+	g.puts("tint(")
+	g.TypeSpec(t.Type)
+	g.puts(", ")
+	g.Exp(t.Exp)
+	g.puts(")")
+}
+
 func (g *Printer) Symbol(n Symbol) {
 	g.puts(n.Name)
 }

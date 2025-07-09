@@ -25,11 +25,11 @@ func (g *Gen) MainTestDriver(tests []string) {
 	g.nl()
 
 	g.indent()
-	g.puts("FormatBuffer buf;")
+	g.puts("FormatCapBuffer buf;")
 	g.nl()
 
 	g.indent()
-	g.puts("init_fmt_buffer(&buf, make_span_u8(test_output_buf, TEST_OUTPUT_BUF_SIZE));")
+	g.puts("init_fmt_cap_buffer(&buf, make_span_u8(test_output_buf, TEST_OUTPUT_BUF_SIZE));")
 	g.nl()
 
 	g.indent()

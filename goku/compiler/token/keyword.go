@@ -24,6 +24,8 @@ var kw = map[string]Kind{
 
 	"must":  Must,
 	"panic": Panic,
+	"cast":  Cast,
+	"tint":  Tint,
 
 	"nil":   Nil,
 	"true":  True,

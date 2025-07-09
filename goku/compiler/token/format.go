@@ -76,6 +76,9 @@ var literal = [...]string{
 	Nillable:       "?|",
 	NillableChunk:  "[?]",
 
+	LeftShiftAssign:  "<<=",
+	RightShiftAssign: ">>=",
+
 	// Keywords
 
 	Import: "import",
@@ -100,6 +103,8 @@ var literal = [...]string{
 	Gen:    "gen",
 	Must:   "must",
 	Panic:  "panic",
+	Cast:   "cast",
+	Tint:   "tint",
 
 	// Special literals
 
@@ -113,8 +118,6 @@ var literal = [...]string{
 	Build:  "#build",
 	Stub:   "#stub",
 	Never:  "#never",
-	Cast:   "#cast",
-	Tint:   "#tint",
 	Size:   "#size",
 	Lookup: "#lookup",
 

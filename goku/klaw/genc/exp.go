@@ -61,6 +61,8 @@ func (g *Gen) Exp(exp ast.Exp) {
 		g.Size(e)
 	case ast.Cast:
 		g.Cast(e)
+	case ast.Tint:
+		g.Tint(e)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) expression (%T)", e.Kind(), e.Kind(), e))
 	}
@@ -189,15 +191,44 @@ func (g *Gen) Rune(r ast.Rune) {
 }
 
 func (g *Gen) str(s string) {
-	if len(s) == 0 {
+	if g.level == 0 {
+		g.objstr(s)
+		return
+	}
+
+	g.makestr(s)
+}
+
+func (g *Gen) makestr(s string) {
+	if s == "" {
 		g.puts("empty_str")
 		return
 	}
-	g.puts("make_str((u8*)(u8\"")
-	g.puts(char.Escape(s))
-	g.puts("\"), ")
+
+	g.puts("make_str(")
+	g.cstr(s)
+	g.puts(", ")
 	g.putlen(len(s))
 	g.putb(')')
+}
+
+func (g *Gen) objstr(s string) {
+	if s == "" {
+		g.puts("{}")
+		return
+	}
+
+	g.puts("{.ptr = ")
+	g.cstr(s)
+	g.puts(", .len = ")
+	g.putlen(len(s))
+	g.puts("}")
+}
+
+func (g *Gen) cstr(s string) {
+	g.puts("(u8*)(u8\"")
+	g.puts(char.Escape(s))
+	g.puts("\")")
 }
 
 func (g *Gen) True(t ast.True) {
@@ -233,6 +264,14 @@ func (g *Gen) Cast(c ast.Cast) {
 	g.TypeSpec(c.Type)
 	g.puts(")(")
 	g.Exp(c.Exp)
+	g.puts(")")
+}
+
+func (g *Gen) Tint(t ast.Tint) {
+	g.puts("(")
+	g.TypeSpec(t.Type)
+	g.puts(")(")
+	g.Exp(t.Exp)
 	g.puts(")")
 }
 

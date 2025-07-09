@@ -57,6 +57,9 @@ const (
 	DivAssign // /=
 	RemAssign // %=
 
+	LeftShiftAssign  // <<=
+	RightShiftAssign // >>=
+
 	And        // &&
 	Or         // ||
 	LeftArrow  // <-
@@ -116,6 +119,8 @@ const (
 
 	Must
 	Panic
+	Cast // cast
+	Tint // tint - truncate (cast with storage size change) integer
 
 	// Special literals
 
@@ -129,8 +134,6 @@ const (
 	Build  // #build
 	Never  // #never
 	Stub   // #stub
-	Cast   // #cast
-	Tint   // #tint - truncate (cast with storage size change) integer
 	Size   // #size - query type size
 	Lookup // #lookup
 

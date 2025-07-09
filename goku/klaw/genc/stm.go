@@ -65,6 +65,7 @@ func (g *Gen) Block(b ast.Block) {
 	g.puts("{")
 	g.nl()
 	g.inc()
+	g.level += 1
 
 	for _, n := range b.Nodes {
 		g.indent()
@@ -72,6 +73,7 @@ func (g *Gen) Block(b ast.Block) {
 		g.nl()
 	}
 
+	g.level -= 1
 	g.dec()
 	g.indent()
 	g.puts("}")
@@ -155,7 +157,12 @@ func (g *Gen) Var(v ast.Var) {
 	g.NameDef(v.Name.Str, v.Type)
 
 	if v.Exp == nil {
-		g.puts("{};")
+		g.puts(" = {};")
+		return
+	}
+	_, ok := v.Exp.(ast.Dirty)
+	if ok {
+		g.semi()
 		return
 	}
 

@@ -363,8 +363,8 @@ const (
 var text = [...]string{
 	empty: "<nil>",
 
-	Cast: "#cast",
-	Tint: "#tint",
+	Cast: "cast",
+	Tint: "tint",
 	Size: "#size",
 
 	TypeId:  "#typeid",

@@ -81,8 +81,8 @@ func (p *Parser) Operand() (ast.Operand, diag.Error) {
 		return p.Size()
 	case token.Cast:
 		return p.Cast()
-	// case token.Tint:
-	// 	return p.tint()
+	case token.Tint:
+		return p.Tint()
 	// case token.MemCast:
 	// 	return p.memcast()
 	case token.LeftCurly:
@@ -468,6 +468,40 @@ func (p *Parser) Cast() (ast.Cast, diag.Error) {
 	p.advance() // skip ")"
 
 	return ast.Cast{
+		Type: typ,
+		Exp:  exp,
+	}, nil
+}
+
+func (p *Parser) Tint() (ast.Tint, diag.Error) {
+	p.advance() // skip "tint"
+
+	if p.c.Kind != token.LeftParen {
+		return ast.Tint{}, p.unexpected()
+	}
+	p.advance() // skip "("
+
+	typ, err := p.TypeSpec()
+	if err != nil {
+		return ast.Tint{}, err
+	}
+
+	if p.c.Kind != token.Comma {
+		return ast.Tint{}, p.unexpected()
+	}
+	p.advance() // skip ","
+
+	exp, err := p.Exp()
+	if err != nil {
+		return ast.Tint{}, err
+	}
+
+	if p.c.Kind != token.RightParen {
+		return ast.Tint{}, p.unexpected()
+	}
+	p.advance() // skip ")"
+
+	return ast.Tint{
 		Type: typ,
 		Exp:  exp,
 	}, nil

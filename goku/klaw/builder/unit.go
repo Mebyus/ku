@@ -33,7 +33,7 @@ type Module struct {
 	Main *Unit
 }
 
-func loadUnitTexts(pool *srcmap.Pool, path string) ([]*srcmap.Text, error) {
+func loadUnitTexts(pool *srcmap.Pool, env eval.Env, path string) ([]*srcmap.Text, error) {
 
 	text, err := pool.Load(filepath.Join(path, "unit.klaw"))
 	if err != nil {
@@ -45,7 +45,7 @@ func loadUnitTexts(pool *srcmap.Pool, path string) ([]*srcmap.Text, error) {
 	if err != nil {
 		return nil, diag.Format(pool, err.(diag.Error))
 	}
-	u, err := eval.EvalUnit(nil, unit)
+	u, err := eval.EvalUnit(env, unit)
 	if err != nil {
 		return nil, diag.Format(pool, err.(diag.Error))
 	}
@@ -61,7 +61,7 @@ func loadUnitTexts(pool *srcmap.Pool, path string) ([]*srcmap.Text, error) {
 
 func GenUnit(out io.Writer, path string) error {
 	pool := srcmap.New()
-	texts, err := loadUnitTexts(pool, path)
+	texts, err := loadUnitTexts(pool, nil, path)
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,10 @@ func GenUnit(out io.Writer, path string) error {
 
 func GenUnitWithTests(out io.Writer, path string) error {
 	pool := srcmap.New()
-	texts, err := loadUnitTexts(pool, path)
+	env := eval.Env{
+		"build.target.kind": "test",
+	}
+	texts, err := loadUnitTexts(pool, env, path)
 	if err != nil {
 		return err
 	}

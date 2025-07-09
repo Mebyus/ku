@@ -19,6 +19,9 @@ const (
 	Mul // "*="
 	Div // "/="
 	Rem // "%="
+
+	LeftShift  // "<<="
+	RightShift // ">>="
 )
 
 var text = [...]string{
@@ -32,6 +35,9 @@ var text = [...]string{
 	Mul: "*=",
 	Div: "/=",
 	Rem: "%=",
+
+	LeftShift:  "<<=",
+	RightShift: ">>=",
 }
 
 func (k Kind) String() string {
@@ -56,6 +62,10 @@ func FromToken(kind token.Kind) (Kind, bool) {
 		k = Div
 	case token.RemAssign:
 		k = Rem
+	case token.LeftShiftAssign:
+		k = LeftShift
+	case token.RightShiftAssign:
+		k = RightShift
 	default:
 		return 0, false
 	}

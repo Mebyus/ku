@@ -399,10 +399,6 @@ func (lx *Lexer) static() token.Token {
 		tok.Kind = token.TypeId
 	case "error":
 		tok.Kind = token.ErrorId
-	case "cast":
-		tok.Kind = token.Cast
-	case "tint":
-		tok.Kind = token.Tint
 	case "size":
 		tok.Kind = token.Size
 	case "never":
@@ -642,7 +638,20 @@ func (lx *Lexer) other() token.Token {
 		case '=':
 			return lx.twoBytesToken(token.LessOrEqual)
 		case '<':
-			return lx.twoBytesToken(token.LeftShift)
+			pin := lx.pin()
+			lx.advance() // skip "<"
+			lx.advance() // skip "<"
+			if lx.c() == '=' {
+				lx.advance() // skip "="
+				return token.Token{
+					Pin:  pin,
+					Kind: token.LeftShiftAssign,
+				}
+			}
+			return token.Token{
+				Pin:  pin,
+				Kind: token.LeftShift,
+			}
 		case '-':
 			return lx.twoBytesToken(token.LeftArrow)
 		default:
@@ -653,7 +662,20 @@ func (lx *Lexer) other() token.Token {
 		case '=':
 			return lx.twoBytesToken(token.GreaterOrEqual)
 		case '>':
-			return lx.twoBytesToken(token.RightShift)
+			pin := lx.pin()
+			lx.advance() // skip ">"
+			lx.advance() // skip ">"
+			if lx.c() == '=' {
+				lx.advance() // skip "="
+				return token.Token{
+					Pin:  pin,
+					Kind: token.RightShiftAssign,
+				}
+			}
+			return token.Token{
+				Pin:  pin,
+				Kind: token.RightShift,
+			}
 		default:
 			return lx.oneByteToken(token.RightAngle)
 		}

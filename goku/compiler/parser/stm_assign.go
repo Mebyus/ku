@@ -16,18 +16,13 @@ func (p *Parser) AssignOrInvoke() (ast.Statement, diag.Error) {
 		return nil, err
 	}
 
-	switch p.c.Kind {
-	case token.Semicolon:
+	if p.c.Kind == token.Semicolon {
 		return p.invoke(pack)
-	case token.AddAssign, token.SubAssign, token.MulAssign, token.DivAssign, token.RemAssign:
-	case token.Assign, token.Walrus:
-	default:
-		return nil, p.unexpected()
 	}
 
 	k, ok := aok.FromToken(p.c.Kind)
 	if !ok {
-		panic(fmt.Sprintf("\"%s\" token must be assign operator", p.c.Kind))
+		return nil, p.unexpected()
 	}
 	op := ast.AssignOp{Pin: p.c.Pin, Kind: k}
 	p.advance() // skip assign operator
