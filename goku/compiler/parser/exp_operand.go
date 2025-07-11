@@ -77,6 +77,8 @@ func (p *Parser) Operand() (ast.Operand, diag.Error) {
 		return p.TypeId()
 	case token.ErrorId:
 		return p.ErrorId()
+	case token.Enum:
+		return p.EnumMacro()
 	case token.Size:
 		return p.Size()
 	case token.Cast:
@@ -439,8 +441,42 @@ func (p *Parser) ErrorId() (ast.ErrorId, diag.Error) {
 	return ast.ErrorId{Name: name}, nil
 }
 
+func (p *Parser) EnumMacro() (ast.EnumMacro, diag.Error) {
+	p.advance() // skip "#enum"
+
+	if p.c.Kind != token.LeftParen {
+		return ast.EnumMacro{}, p.unexpected()
+	}
+	p.advance() // skip "("
+
+	if p.c.Kind != token.Word {
+		return ast.EnumMacro{}, p.unexpected()
+	}
+	name := p.word()
+
+	if p.c.Kind != token.Period {
+		return ast.EnumMacro{}, p.unexpected()
+	}
+	p.advance() // skip "."
+
+	if p.c.Kind != token.Word {
+		return ast.EnumMacro{}, p.unexpected()
+	}
+	entry := p.word()
+
+	if p.c.Kind != token.RightParen {
+		return ast.EnumMacro{}, p.unexpected()
+	}
+	p.advance() // skip ")"
+
+	return ast.EnumMacro{
+		Name:  name,
+		Entry: entry,
+	}, nil
+}
+
 func (p *Parser) Cast() (ast.Cast, diag.Error) {
-	p.advance() // skip "#size"
+	p.advance() // skip "cast"
 
 	if p.c.Kind != token.LeftParen {
 		return ast.Cast{}, p.unexpected()

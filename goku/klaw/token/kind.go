@@ -36,6 +36,7 @@ const (
 
 	Import
 	Test
+	Exe
 	Include
 	Set
 	Unit

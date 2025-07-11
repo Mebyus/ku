@@ -139,6 +139,7 @@ const (
 
 	TypeId  // #typeid
 	ErrorId // #error
+	Enum    // #enum
 
 	Any // designator to use as *any (void* analog)
 

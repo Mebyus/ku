@@ -7,12 +7,6 @@ import (
 	"github.com/mebyus/ku/goku/klaw/ast"
 )
 
-type Env map[string]string
-
-func (e Env) isTestExe() bool {
-	return e["build.target.kind"] == "test"
-}
-
 // Unit represents result of evaluating unit build script.
 type Unit struct {
 	Imports  []string
@@ -73,6 +67,11 @@ func (r *Interpreter) dir(dir ast.Dir) diag.Error {
 		r.unit.Includes = append(r.unit.Includes, d.Val)
 	case ast.Test:
 		if !r.env.isTestExe() {
+			return nil
+		}
+		return r.eval(d.Dirs)
+	case ast.Exe:
+		if !r.env.isExe() {
 			return nil
 		}
 		return r.eval(d.Dirs)

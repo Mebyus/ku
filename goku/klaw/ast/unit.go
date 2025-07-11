@@ -43,6 +43,12 @@ type Test struct {
 	Block
 }
 
+type Exe struct {
+	nodeDir
+
+	Block
+}
+
 type Unit struct {
 	Dirs []Dir
 }

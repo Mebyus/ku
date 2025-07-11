@@ -322,3 +322,11 @@ func (g *Printer) ErrorId(e ErrorId) {
 	g.puts(e.Name.Str)
 	g.puts(")")
 }
+
+func (g *Printer) EnumMacro(e EnumMacro) {
+	g.puts("#enum(")
+	g.puts(e.Name.Str)
+	g.puts(".")
+	g.puts(e.Entry.Str)
+	g.puts(")")
+}

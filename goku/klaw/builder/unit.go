@@ -34,7 +34,6 @@ type Module struct {
 }
 
 func loadUnitTexts(pool *srcmap.Pool, env eval.Env, path string) ([]*srcmap.Text, error) {
-
 	text, err := pool.Load(filepath.Join(path, "unit.klaw"))
 	if err != nil {
 		return nil, err

@@ -37,6 +37,7 @@ var literal = [...]string{
 	Import:  "import",
 	Include: "include",
 	Test:    "test",
+	Exe:     "exe",
 	Set:     "set",
 	Module:  "module",
 	Unit:    "unit",

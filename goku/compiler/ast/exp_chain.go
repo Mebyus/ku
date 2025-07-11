@@ -21,6 +21,9 @@ func (Chain) Kind() exk.Kind {
 }
 
 func (c Chain) TailSpan() srcmap.Span {
+	if len(c.Parts) == 0 {
+		return c.Span()
+	}
 	return c.Parts[len(c.Parts)-1].Span()
 }
 

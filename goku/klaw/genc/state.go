@@ -11,6 +11,9 @@ type State struct {
 	// Maps error name to its id.
 	errors NameBook
 
+	// Maps enum name to its values.
+	enums map[string]*NameBook
+
 	// If true then generate code for statements marked as debug.
 	Debug bool
 
@@ -21,6 +24,7 @@ type State struct {
 func (s *State) Init() {
 	s.types.Init()
 	s.errors.Init()
+	s.enums = make(map[string]*NameBook)
 }
 
 func (s *State) GetTypeId(name string) uint64 {
@@ -29,6 +33,17 @@ func (s *State) GetTypeId(name string) uint64 {
 
 func (s *State) GetErrorId(name string) uint64 {
 	return s.errors.Get(name)
+}
+
+func (s *State) GetEnumValue(name, entry string) uint64 {
+	enum, ok := s.enums[name]
+	if !ok {
+		enum = &NameBook{}
+		enum.Init()
+		s.enums[name] = enum
+	}
+
+	return enum.Get(entry)
 }
 
 // NameBook generates sequential integer ids for each unique given name (string).

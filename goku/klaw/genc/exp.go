@@ -5,6 +5,7 @@ import (
 
 	"github.com/mebyus/ku/goku/compiler/ast"
 	"github.com/mebyus/ku/goku/compiler/char"
+	"github.com/mebyus/ku/goku/compiler/enums/uok"
 )
 
 func (g *Gen) Exp(exp ast.Exp) {
@@ -57,6 +58,8 @@ func (g *Gen) Exp(exp ast.Exp) {
 		g.TypeId(e)
 	case ast.ErrorId:
 		g.ErrorId(e)
+	case ast.EnumMacro:
+		g.EnumMacro(e)
 	case ast.Size:
 		g.Size(e)
 	case ast.Cast:
@@ -77,7 +80,11 @@ func (g *Gen) Binary(b ast.Binary) {
 }
 
 func (g *Gen) Unary(u ast.Unary) {
-	g.puts(u.Op.Kind.String())
+	if u.Op.Kind == uok.BitNot {
+		g.puts("~")
+	} else {
+		g.puts(u.Op.Kind.String())
+	}
 	g.Exp(u.Exp)
 }
 
@@ -251,6 +258,11 @@ func (g *Gen) TypeId(t ast.TypeId) {
 func (g *Gen) ErrorId(e ast.ErrorId) {
 	id := g.State.GetErrorId(e.Name.Str)
 	g.putn(id)
+}
+
+func (g *Gen) EnumMacro(e ast.EnumMacro) {
+	v := g.State.GetEnumValue(e.Name.Str, e.Entry.Str)
+	g.putn(v)
 }
 
 func (g *Gen) Size(s ast.Size) {

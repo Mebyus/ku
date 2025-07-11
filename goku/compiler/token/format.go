@@ -123,6 +123,7 @@ var literal = [...]string{
 
 	TypeId:  "#typeid",
 	ErrorId: "#error",
+	Enum:    "#enum",
 
 	Any: "any",
 

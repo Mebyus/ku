@@ -399,6 +399,8 @@ func (lx *Lexer) static() token.Token {
 		tok.Kind = token.TypeId
 	case "error":
 		tok.Kind = token.ErrorId
+	case "enum":
+		tok.Kind = token.Enum
 	case "size":
 		tok.Kind = token.Size
 	case "never":

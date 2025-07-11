@@ -8,11 +8,11 @@ func (g *Gen) MainTestDriver(tests []string) {
 		return
 	}
 
-	g.puts("#define TEST_OUTPUT_BUF_SIZE 1 << 16")
+	g.puts("#define TEST_OUTPUT_BUFFER_SIZE 1 << 16")
 	g.nl()
 	g.nl()
 
-	g.puts("static u8 test_output_buf[TEST_OUTPUT_BUF_SIZE];")
+	g.puts("static u8 test_output_buffer[TEST_OUTPUT_BUFFER_SIZE];")
 	g.nl()
 	g.nl()
 
@@ -30,7 +30,7 @@ func (g *Gen) MainTestDriver(tests []string) {
 	g.nl()
 
 	g.indent()
-	g.puts("init_fmt_cap_buffer(&buf, make_span_u8(test_output_buf, TEST_OUTPUT_BUF_SIZE));")
+	g.puts("init_fmt_cap_buffer(&buf, make_span_u8(test_output_buffer, TEST_OUTPUT_BUFFER_SIZE));")
 	g.nl()
 
 	g.indent()
@@ -68,6 +68,7 @@ func (g *Gen) MainTestDriver(tests []string) {
 		g.dec()
 		g.indent()
 		g.puts("}")
+		g.nl()
 
 		g.nl()
 	}

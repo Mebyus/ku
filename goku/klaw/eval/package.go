@@ -51,9 +51,14 @@ func evalModules(pkg *Package, modules []ast.Module) diag.Error {
 }
 
 func evalModule(pkg *Package, module ast.Module) diag.Error {
+	var mainName string
+	if module.Main != nil {
+		mainName = module.Main.Val
+	}
+
 	m := Module{
 		Name:  module.Name.Val,
-		Main:  module.Main.Val,
+		Main:  mainName,
 		Units: listUnits(module.Units),
 		Links: listLinks(module.Links),
 	}

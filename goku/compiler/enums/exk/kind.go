@@ -357,6 +357,8 @@ const (
 	//	#error(WRITE_EOF)
 	ErrorId
 
+	EnumMacro
+
 	maxKind
 )
 
@@ -367,8 +369,9 @@ var text = [...]string{
 	Tint: "tint",
 	Size: "#size",
 
-	TypeId:  "#typeid",
-	ErrorId: "#error",
+	TypeId:    "#typeid",
+	ErrorId:   "#error",
+	EnumMacro: "#enum",
 
 	Unary:  "unary",
 	Binary: "binary",

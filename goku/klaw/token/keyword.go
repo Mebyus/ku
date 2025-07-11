@@ -3,6 +3,7 @@ package token
 var kw = map[string]Kind{
 	"import":  Import,
 	"test":    Test,
+	"exe":     Exe,
 	"else":    Else,
 	"if":      If,
 	"include": Include,

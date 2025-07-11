@@ -10,6 +10,7 @@ import (
 	"github.com/mebyus/ku/goku/cmd/klaw/genc"
 	"github.com/mebyus/ku/goku/cmd/klaw/lex"
 	"github.com/mebyus/ku/goku/cmd/klaw/parse"
+	"github.com/mebyus/ku/goku/cmd/klaw/run"
 	"github.com/mebyus/ku/goku/cmd/klaw/test"
 )
 
@@ -39,5 +40,6 @@ var root = &butler.Butler{
 		genc.Butler,
 		compile.Butler,
 		test.Butler,
+		run.Butler,
 	},
 }

@@ -37,6 +37,8 @@ func (p *Parser) dir() (ast.Dir, diag.Error) {
 		return p.include()
 	case token.Test:
 		return p.test()
+	case token.Exe:
+		return p.exe()
 	default:
 		return nil, p.unexpected()
 	}
@@ -93,6 +95,17 @@ func (p *Parser) test() (ast.Test, diag.Error) {
 	}
 
 	return ast.Test{Block: block}, nil
+}
+
+func (p *Parser) exe() (ast.Exe, diag.Error) {
+	p.advance() // skip "exe"
+
+	block, err := p.block()
+	if err != nil {
+		return ast.Exe{}, err
+	}
+
+	return ast.Exe{Block: block}, nil
 }
 
 func (p *Parser) block() (ast.Block, diag.Error) {
