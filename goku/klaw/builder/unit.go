@@ -16,8 +16,8 @@ type Unit struct {
 	// in unit build file.
 	Texts []*srcmap.Text
 
-	// List of test functions found in unit source files.
-	Tests []string
+	// List of unit imports.
+	Imports []string
 
 	// Does not include unit or main directory prefix.
 	Path string

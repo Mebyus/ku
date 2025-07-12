@@ -29,6 +29,10 @@ type Module struct {
 
 func EvalPackage(pkg *ast.Package) (*Package, diag.Error) {
 	var p Package
+
+	p.MainDir = "src/cmd"
+	p.SourceDir = "src"
+
 	err := evalSets(&p, pkg.Sets)
 	if err != nil {
 		return nil, err

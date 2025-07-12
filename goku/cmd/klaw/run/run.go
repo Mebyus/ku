@@ -11,6 +11,7 @@ import (
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/enums/bk"
 	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/klaw/builder"
 	"github.com/mebyus/ku/goku/klaw/eval"
 	"github.com/mebyus/ku/goku/klaw/parser"
 )
@@ -80,6 +81,17 @@ func runModule(name string, kind string) error {
 		return err
 	}
 
+	err = genFromMain(codegenOutPath, &builder.GenProgramConfig{
+		Main:      name,
+		MainDir:   pkg.MainDir,
+		SourceDir: pkg.SourceDir,
+		Pool:      pool,
+		BuildKind: k,
+	})
+	if err != nil {
+		return err
+	}
+
 	exePath := getExecutablePath(name)
 	err = mkdir(filepath.Dir(exePath))
 	if err != nil {
@@ -91,6 +103,16 @@ func runModule(name string, kind string) error {
 		return err
 	}
 	return runExecutable(exePath)
+}
+
+func genFromMain(out string, c *builder.GenProgramConfig) error {
+	genOut, err := os.Create(out)
+	if err != nil {
+		return err
+	}
+	defer genOut.Close()
+
+	return builder.GenFromMain(genOut, c)
 }
 
 func getPackageModule(pkg *eval.Package, name string) *eval.Module {
