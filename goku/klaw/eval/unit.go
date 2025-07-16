@@ -23,7 +23,7 @@ func (u *Unit) valid() diag.Error {
 	return nil
 }
 
-func EvalUnit(env Env, unit *ast.Unit) (*Unit, diag.Error) {
+func EvalUnit(env *Env, unit *ast.Unit) (*Unit, diag.Error) {
 	r := Interpreter{env: env}
 	err := r.eval(unit.Dirs)
 	if err != nil {
@@ -40,7 +40,7 @@ type Interpreter struct {
 	// Keeps track of result object.
 	unit Unit
 
-	env Env
+	env *Env
 }
 
 func (r *Interpreter) eval(dirs []ast.Dir) diag.Error {
@@ -66,12 +66,12 @@ func (r *Interpreter) dir(dir ast.Dir) diag.Error {
 		}
 		r.unit.Includes = append(r.unit.Includes, d.Val)
 	case ast.Test:
-		if !r.env.isTestExe() {
+		if !r.env.TestExe {
 			return nil
 		}
 		return r.eval(d.Dirs)
 	case ast.Exe:
-		if !r.env.isExe() {
+		if !r.env.Exe {
 			return nil
 		}
 		return r.eval(d.Dirs)

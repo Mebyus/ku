@@ -33,7 +33,7 @@ type Module struct {
 	Main *Unit
 }
 
-func loadUnitTexts(pool *srcmap.Pool, env eval.Env, path string) ([]*srcmap.Text, error) {
+func loadUnitTexts(pool *srcmap.Pool, env *eval.Env, path string) ([]*srcmap.Text, error) {
 	text, err := pool.Load(filepath.Join(path, "unit.klaw"))
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func loadUnitTexts(pool *srcmap.Pool, env eval.Env, path string) ([]*srcmap.Text
 
 func GenUnit(out io.Writer, path string) error {
 	pool := srcmap.New()
-	texts, err := loadUnitTexts(pool, nil, path)
+	texts, err := loadUnitTexts(pool, eval.NewEnv(), path)
 	if err != nil {
 		return err
 	}
@@ -70,9 +70,9 @@ func GenUnit(out io.Writer, path string) error {
 
 func GenUnitWithTests(out io.Writer, path string) error {
 	pool := srcmap.New()
-	env := eval.Env{
-		"build.target.kind": "test",
-	}
+	env := eval.NewEnv()
+	env.TestExe = true
+
 	texts, err := loadUnitTexts(pool, env, path)
 	if err != nil {
 		return err

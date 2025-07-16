@@ -1,11 +1,7 @@
-package builder
+package graphs
 
 import (
-	"fmt"
 	"slices"
-
-	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
-	"github.com/mebyus/ku/goku/compiler/typer/stg"
 )
 
 type Node struct {
@@ -22,11 +18,11 @@ type Node struct {
 	Des []uint32
 }
 
-func (n *Node) addAnc(i uint32) {
+func (n *Node) AddAnc(i uint32) {
 	n.Anc = append(n.Anc, i)
 }
 
-func (n *Node) addDes(i uint32) {
+func (n *Node) AddDes(i uint32) {
 	n.Des = append(n.Des, i)
 }
 
@@ -49,6 +45,12 @@ type Graph struct {
 	Cohorts [][]uint32
 }
 
+// Init use this when you need to fill nodes descendants and graph roots
+// from nodes ancestors.
+func (g *Graph) Init() {
+
+}
+
 type Cycle struct {
 	// Contains node indices.
 	// Always has at least two nodes.
@@ -58,7 +60,7 @@ type Cycle struct {
 
 // Performs a cyclical shift of nodes inside the cycle.
 // After this operation the node with the minimum index will be placed first.
-func (c *Cycle) shift() {
+func (c *Cycle) Shift() {
 	m := 0 // index of minimal element in nodes
 	v := c.Nodes[m]
 	for i, n := range c.Nodes {
@@ -77,40 +79,6 @@ func (c *Cycle) shift() {
 	copy(nodes, c.Nodes[m:])
 	copy(nodes[l-m:], c.Nodes[:m])
 	c.Nodes = nodes
-}
-
-// Fills Unit.Imports.Units according to import paths.
-func (b *Bundle) mapGraphNodes() {
-	m := make(map[origin.Path]*stg.Unit, len(b.Units))
-	b.Graph.Nodes = make([]Node, len(b.Units))
-	b.Graph.Rank = make([]uint32, len(b.Units))
-	b.Context.Map = m
-
-	for _, unit := range b.Units {
-		m[unit.Path] = unit
-	}
-
-	for i, unit := range b.Units {
-		// i = unit.Index inside this loop, because we sorted
-		// and indexed units beforehand
-
-		for _, s := range unit.Imports {
-			u, ok := m[s.Path]
-			if !ok {
-				panic(fmt.Sprintf("imported unit \"%s\" not found", s.Path))
-			}
-			if u == unit {
-				panic("unit imported itself")
-			}
-
-			b.Graph.Nodes[i].addAnc(u.Index)
-			b.Graph.Nodes[u.Index].addDes(uint32(i))
-		}
-
-		if len(unit.Imports) == 0 {
-			b.Graph.Roots = append(b.Graph.Roots, uint32(i))
-		}
-	}
 }
 
 // Scout traverses graph of unit imports. If graph has a cycle than Scout
@@ -150,7 +118,7 @@ type ScoutPos struct {
 	des uint32
 }
 
-func (s *Scout) rankOrFindCycle(g *Graph) *Cycle {
+func (s *Scout) RankOrFindCycle(g *Graph) *Cycle {
 	s.Graph = g
 	s.visited = make([]bool, len(g.Nodes))
 
@@ -235,7 +203,7 @@ func (s *Scout) findCycle() *Cycle {
 		if !s.visited[i] {
 			c := s.traverse(i)
 			if c != nil {
-				c.shift()
+				c.Shift()
 				return c
 			}
 		}
@@ -372,27 +340,4 @@ func (s *Scout) save(d uint32) {
 	tip := s.tip()
 	tip.des = d
 	s.path[len(s.path)-1] = tip
-}
-
-func convertImportCycle(c *Cycle, units []*stg.Unit) []stg.ImportSite {
-	if len(c.Nodes) < 2 {
-		panic("bad cycle data")
-	}
-
-	sites := make([]stg.ImportSite, 0, len(c.Nodes))
-	for i := 0; i < len(c.Nodes)-1; i += 1 {
-		j := c.Nodes[i]
-		k := c.Nodes[i+1]
-
-		u := units[j]
-		next := units[k]
-
-		s, ok := u.FindImportSite(next.Path)
-		if !ok {
-			panic(fmt.Sprintf("unable to find \"%s\" import inside \"%s\"", next.Path, u.Path))
-		}
-
-		sites = append(sites, s)
-	}
-	return sites
 }

@@ -1,11 +1,12 @@
 package eval
 
-type Env map[string]string
+type Env struct {
+	Exe     bool
+	TestExe bool
 
-func (e Env) isTestExe() bool {
-	return e["build.target.kind"] == "test"
+	m map[string]string
 }
 
-func (e Env) isExe() bool {
-	return e["build.target.kind"] == "exe"
+func NewEnv() *Env {
+	return &Env{m: make(map[string]string)}
 }

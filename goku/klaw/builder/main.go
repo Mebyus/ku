@@ -8,6 +8,7 @@ import (
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/enums/bk"
 	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/graphs"
 	"github.com/mebyus/ku/goku/klaw/eval"
 	"github.com/mebyus/ku/goku/klaw/parser"
 )
@@ -28,7 +29,10 @@ type GenProgramConfig struct {
 }
 
 func GenFromMain(out io.Writer, c *GenProgramConfig) error {
-	unit, err := loadUnit(c.Pool, nil, filepath.Join(c.MainDir, c.Main))
+	env := eval.NewEnv()
+	env.Exe = true
+
+	unit, err := loadUnit(c.Pool, env, filepath.Join(c.MainDir, c.Main))
 	if err != nil {
 		return err
 	}
@@ -43,7 +47,7 @@ func GenFromMain(out io.Writer, c *GenProgramConfig) error {
 			break
 		}
 
-		u, err := loadUnit(c.Pool, nil, filepath.Join(c.SourceDir, item.Path))
+		u, err := loadUnit(c.Pool, env, filepath.Join(c.SourceDir, item.Path))
 		if err != nil {
 			return err
 		}
@@ -59,13 +63,53 @@ func GenFromMain(out io.Writer, c *GenProgramConfig) error {
 		}
 
 		m[u.Path] = uint32(i)
-		fmt.Println(u.Path)
 	}
 
-	return nil
+	var g graphs.Graph
+	g.Nodes = make([]graphs.Node, len(units))
+	g.Rank = make([]uint32, len(units))
+
+	for i, unit := range units {
+		// i = unit.Index inside this loop, because we sorted
+		// and indexed units beforehand
+
+		g.Nodes[i].Anc = make([]uint32, 0, len(unit.Imports))
+		for _, s := range unit.Imports {
+			u, ok := m[s]
+			if !ok {
+				panic(fmt.Sprintf("imported unit \"%s\" not found", s))
+			}
+			if u == uint32(i) {
+				panic(fmt.Sprintf("unit \"%s\" imported itself", s))
+			}
+
+			g.Nodes[i].AddAnc(u)
+			g.Nodes[u].AddDes(uint32(i))
+		}
+
+		if len(unit.Imports) == 0 {
+			g.Roots = append(g.Roots, uint32(i))
+		}
+	}
+
+	var s graphs.Scout
+	cycle := s.RankOrFindCycle(&g)
+	if cycle != nil {
+		return fmt.Errorf("import cycle: %v", cycle.Nodes)
+	}
+
+	var texts []*srcmap.Text
+	for _, c := range g.Cohorts {
+		for _, i := range c {
+			u := units[i]
+			texts = append(texts, u.Texts...)
+		}
+	}
+
+	return GenTexts(c.Pool, out, texts)
 }
 
-func loadUnit(pool *srcmap.Pool, env eval.Env, path string) (*Unit, error) {
+func loadUnit(pool *srcmap.Pool, env *eval.Env, path string) (*Unit, error) {
 	text, err := pool.Load(filepath.Join(path, "unit.kub"))
 	if err != nil {
 		return nil, err

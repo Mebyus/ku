@@ -6,6 +6,7 @@ import (
 
 	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
 	"github.com/mebyus/ku/goku/compiler/typer/stg"
+	"github.com/mebyus/ku/goku/graphs"
 )
 
 type GraphTestCase struct {
@@ -40,12 +41,12 @@ func unit(p string, list ...string) *stg.Unit {
 	}
 }
 
-func dumpCycleForTest(c *Cycle, units []*stg.Unit) []string {
+func dumpCycleForTest(c *graphs.Cycle, units []*stg.Unit) []string {
 	if c == nil {
 		return nil
 	}
 
-	c.shift()
+	c.Shift()
 	list := make([]string, 0, len(c.Nodes))
 	for _, n := range c.Nodes {
 		list = append(list, units[n].Path.Import)
@@ -53,7 +54,7 @@ func dumpCycleForTest(c *Cycle, units []*stg.Unit) []string {
 	return list
 }
 
-func dumpCohortsForTest(g *Graph, units []*stg.Unit) [][]string {
+func dumpCohortsForTest(g *graphs.Graph, units []*stg.Unit) [][]string {
 	var r [][]string
 	for _, c := range g.Cohorts {
 		var list []string
