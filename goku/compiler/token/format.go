@@ -37,6 +37,8 @@ var literal = [...]string{
 	MulAssign:      "*=",
 	DivAssign:      "/=",
 	RemAssign:      "%=",
+	AndAssign:      "&=",
+	OrAssign:       "|=",
 	Pipe:           "|",
 	Caret:          "^",
 	LeftShift:      "<<",

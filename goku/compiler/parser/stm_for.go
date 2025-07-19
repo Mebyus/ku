@@ -47,43 +47,47 @@ func (p *Parser) while() (ast.While, diag.Error) {
 	}, nil
 }
 
-func (p *Parser) forRange() (ast.ForRange, diag.Error) {
+func (p *Parser) forRange() (ast.Statement, diag.Error) {
 	name := p.word()
 	p.advance() // skip ":"
 
 	typ, err := p.TypeSpec()
 	if err != nil {
-		return ast.ForRange{}, err
+		return nil, err
 	}
 
 	if p.c.Kind != token.In {
-		return ast.ForRange{}, p.unexpected()
+		return nil, p.unexpected()
 	}
 	p.advance() // skip "in"
 
 	if p.c.Kind != token.Word && p.c.Data != "range" {
-		return ast.ForRange{}, p.unexpected()
+		return nil, p.unexpected()
 	}
 	p.advance() // skip "range"
 
 	if p.c.Kind != token.LeftParen {
-		return ast.ForRange{}, p.unexpected()
+		return nil, p.unexpected()
 	}
 	p.advance() // skip "("
 
 	exp, err := p.Exp()
 	if err != nil {
-		return ast.ForRange{}, err
+		return nil, err
+	}
+
+	if p.c.Kind == token.Comma {
+		return p.continueForRange2(name, typ, exp)
 	}
 
 	if p.c.Kind != token.RightParen {
-		return ast.ForRange{}, p.unexpected()
+		return nil, p.unexpected()
 	}
 	p.advance() // skip ")"
 
 	body, err := p.Block()
 	if err != nil {
-		return ast.ForRange{}, err
+		return nil, err
 	}
 
 	return ast.ForRange{
@@ -91,5 +95,32 @@ func (p *Parser) forRange() (ast.ForRange, diag.Error) {
 		Exp:  exp,
 		Type: typ,
 		Body: body,
+	}, nil
+}
+
+func (p *Parser) continueForRange2(name ast.Word, spec ast.TypeSpec, start ast.Exp) (ast.ForRange2, diag.Error) {
+	p.advance() // skip ","
+
+	end, err := p.Exp()
+	if err != nil {
+		return ast.ForRange2{}, err
+	}
+
+	if p.c.Kind != token.RightParen {
+		return ast.ForRange2{}, p.unexpected()
+	}
+	p.advance() // skip ")"
+
+	body, err := p.Block()
+	if err != nil {
+		return ast.ForRange2{}, err
+	}
+
+	return ast.ForRange2{
+		Name:  name,
+		Type:  spec,
+		Start: start,
+		End:   end,
+		Body:  body,
 	}, nil
 }

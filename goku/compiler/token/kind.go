@@ -56,6 +56,8 @@ const (
 	MulAssign // *=
 	DivAssign // /=
 	RemAssign // %=
+	AndAssign // &=
+	OrAssign  // |=
 
 	LeftShiftAssign  // <<=
 	RightShiftAssign // >>=

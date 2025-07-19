@@ -19,6 +19,8 @@ const (
 	Mul // "*="
 	Div // "/="
 	Rem // "%="
+	And // "&="
+	Or  // "|="
 
 	LeftShift  // "<<="
 	RightShift // ">>="
@@ -35,6 +37,8 @@ var text = [...]string{
 	Mul: "*=",
 	Div: "/=",
 	Rem: "%=",
+	And: "&=",
+	Or:  "|=",
 
 	LeftShift:  "<<=",
 	RightShift: ">>=",
@@ -62,6 +66,10 @@ func FromToken(kind token.Kind) (Kind, bool) {
 		k = Div
 	case token.RemAssign:
 		k = Rem
+	case token.AndAssign:
+		k = And
+	case token.OrAssign:
+		k = Or
 	case token.LeftShiftAssign:
 		k = LeftShift
 	case token.RightShiftAssign:

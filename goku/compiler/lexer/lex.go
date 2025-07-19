@@ -765,6 +765,9 @@ func (lx *Lexer) other() token.Token {
 		if lx.n() == '&' {
 			return lx.twoBytesToken(token.And)
 		}
+		if lx.n() == '=' {
+			return lx.twoBytesToken(token.AndAssign)
+		}
 		return lx.oneByteToken(token.Ampersand)
 	case '/':
 		if lx.n() == '=' {
@@ -783,6 +786,9 @@ func (lx *Lexer) other() token.Token {
 	case '|':
 		if lx.n() == '|' {
 			return lx.twoBytesToken(token.Or)
+		}
+		if lx.n() == '=' {
+			return lx.twoBytesToken(token.OrAssign)
 		}
 		return lx.oneByteToken(token.Pipe)
 	default:

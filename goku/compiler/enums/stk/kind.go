@@ -20,6 +20,7 @@ const (
 	Loop
 	While
 	ForRange
+	ForRange2
 	Match
 	MatchBool
 	Jump
@@ -56,6 +57,7 @@ var text = [...]string{
 	Loop:      "loop",
 	While:     "while",
 	ForRange:  "for.range",
+	ForRange2: "for.range2",
 	Match:     "match",
 	MatchBool: "match.bool",
 	Defer:     "defer",

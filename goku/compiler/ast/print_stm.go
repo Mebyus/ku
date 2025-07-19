@@ -89,6 +89,19 @@ func (g *Printer) ForRange(r ForRange) {
 	g.Block(r.Body)
 }
 
+func (g *Printer) ForRange2(r ForRange2) {
+	g.puts("for ")
+	g.puts(r.Name.Str)
+	g.puts(": ")
+	g.TypeSpec(r.Type)
+	g.puts(" in range(")
+	g.Exp(r.Start)
+	g.puts(", ")
+	g.Exp(r.End)
+	g.puts(") ")
+	g.Block(r.Body)
+}
+
 func (g *Printer) Stub(s Stub) {
 	g.puts("#stub;")
 }
