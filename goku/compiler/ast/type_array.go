@@ -13,6 +13,7 @@ import (
 //
 //	Size => Exp
 type Array struct {
+	// May be nil if array is specified as auto-len.
 	Size Exp
 
 	// Array element type specifier.

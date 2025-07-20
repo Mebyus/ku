@@ -128,13 +128,23 @@ func (g *Gen) While(w ast.While) {
 
 func (g *Gen) ForRange(r ast.ForRange) {
 	g.puts("for (")
-	g.TypeSpec(r.Type)
+	if r.Type != nil {
+		g.TypeSpec(r.Type)
+	} else {
+		g.puts("uint")
+	}
 	g.space()
 	g.puts(r.Name.Str)
-	g.puts(" = 0; ")
+	g.puts(" = ")
+	if r.Start != nil {
+		g.Exp(r.Start)
+	} else {
+		g.puts("0")
+	}
+	g.puts("; ")
 	g.puts(r.Name.Str)
 	g.puts(" < ")
-	g.Exp(r.Exp)
+	g.Exp(r.End)
 	g.puts("; ")
 	g.puts(r.Name.Str)
 	g.puts(" += 1) ")

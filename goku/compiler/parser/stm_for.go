@@ -12,8 +12,13 @@ func (p *Parser) For() (ast.Statement, diag.Error) {
 	}
 
 	p.advance() // skip "for"
-	if p.c.Kind == token.Word && p.n.Kind == token.Colon {
-		return p.forRange()
+	if p.c.Kind == token.Word {
+		switch p.n.Kind {
+		case token.Assign:
+			return p.forRangeAutoType()
+		case token.Colon:
+			return p.forRange()
+		}
 	}
 
 	return p.while()
@@ -47,6 +52,28 @@ func (p *Parser) while() (ast.While, diag.Error) {
 	}, nil
 }
 
+func (p *Parser) forRangeAutoType() (ast.Statement, diag.Error) {
+	name := p.word()
+	p.advance() // skip "="
+
+	start, end, err := p.forRangeStartEnd()
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := p.Block()
+	if err != nil {
+		return nil, err
+	}
+
+	return ast.ForRange{
+		Name:  name,
+		Start: start,
+		End:   end,
+		Body:  body,
+	}, nil
+}
+
 func (p *Parser) forRange() (ast.Statement, diag.Error) {
 	name := p.word()
 	p.advance() // skip ":"
@@ -56,34 +83,15 @@ func (p *Parser) forRange() (ast.Statement, diag.Error) {
 		return nil, err
 	}
 
-	if p.c.Kind != token.In {
+	if p.c.Kind != token.Assign {
 		return nil, p.unexpected()
 	}
-	p.advance() // skip "in"
+	p.advance() // skip "="
 
-	if p.c.Kind != token.Word && p.c.Data != "range" {
-		return nil, p.unexpected()
-	}
-	p.advance() // skip "range"
-
-	if p.c.Kind != token.LeftParen {
-		return nil, p.unexpected()
-	}
-	p.advance() // skip "("
-
-	exp, err := p.Exp()
+	start, end, err := p.forRangeStartEnd()
 	if err != nil {
-		return nil, err
-	}
-
-	if p.c.Kind == token.Comma {
-		return p.continueForRange2(name, typ, exp)
-	}
-
-	if p.c.Kind != token.RightParen {
 		return nil, p.unexpected()
 	}
-	p.advance() // skip ")"
 
 	body, err := p.Block()
 	if err != nil {
@@ -91,36 +99,43 @@ func (p *Parser) forRange() (ast.Statement, diag.Error) {
 	}
 
 	return ast.ForRange{
-		Name: name,
-		Exp:  exp,
-		Type: typ,
-		Body: body,
+		Name:  name,
+		Start: start,
+		End:   end,
+		Type:  typ,
+		Body:  body,
 	}, nil
 }
 
-func (p *Parser) continueForRange2(name ast.Word, spec ast.TypeSpec, start ast.Exp) (ast.ForRange2, diag.Error) {
-	p.advance() // skip ","
+func (p *Parser) forRangeStartEnd() (ast.Exp, ast.Exp, diag.Error) {
+	if p.c.Kind != token.LeftSquare {
+		return nil, nil, p.unexpected()
+	}
+	p.advance() // skip "["
+
+	var start ast.Exp
+	if p.c.Kind != token.Colon {
+		exp, err := p.Exp()
+		if err != nil {
+			return nil, nil, err
+		}
+		start = exp
+	}
+
+	if p.c.Kind != token.Colon {
+		return nil, nil, p.unexpected()
+	}
+	p.advance() // skip ":"
 
 	end, err := p.Exp()
 	if err != nil {
-		return ast.ForRange2{}, err
+		return nil, nil, err
 	}
 
-	if p.c.Kind != token.RightParen {
-		return ast.ForRange2{}, p.unexpected()
+	if p.c.Kind != token.RightSquare {
+		return nil, nil, p.unexpected()
 	}
-	p.advance() // skip ")"
+	p.advance() // skip "["
 
-	body, err := p.Block()
-	if err != nil {
-		return ast.ForRange2{}, err
-	}
-
-	return ast.ForRange2{
-		Name:  name,
-		Type:  spec,
-		Start: start,
-		End:   end,
-		Body:  body,
-	}, nil
+	return start, end, nil
 }

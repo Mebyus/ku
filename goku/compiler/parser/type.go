@@ -77,6 +77,8 @@ func (p *Parser) TypeSpec() (ast.TypeSpec, diag.Error) {
 		return p.Chunk()
 	case token.LeftSquare:
 		return p.Array()
+	case token.AutoLen:
+		return p.AutoLenArray()
 	case token.Type:
 		return p.AnyType(), nil
 	case token.Fun:
@@ -145,6 +147,17 @@ func (p *Parser) Array() (ast.Array, diag.Error) {
 		Size: size,
 		Type: t,
 	}, nil
+}
+
+func (p *Parser) AutoLenArray() (ast.Array, diag.Error) {
+	p.advance() // skip "[_]"
+
+	t, err := p.TypeSpec()
+	if err != nil {
+		return ast.Array{}, err
+	}
+
+	return ast.Array{Type: t}, nil
 }
 
 func (p *Parser) ArrayPointer() (ast.ArrayPointer, diag.Error) {

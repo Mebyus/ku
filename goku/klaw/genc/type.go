@@ -168,7 +168,9 @@ func (g *Gen) NameDef(name string, spec ast.TypeSpec) {
 		g.space()
 		g.puts(name)
 		g.putb('[')
-		g.Exp(a.Size)
+		if a.Size != nil {
+			g.Exp(a.Size)
+		}
 		g.putb(']')
 		return
 	}

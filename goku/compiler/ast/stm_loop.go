@@ -62,12 +62,19 @@ func (w While) String() string {
 //
 // Formal definition:
 //
-//	ForRange => "for" Name ":" TypeSpec "in" "range" "(" Exp ")" Block
+//	ForRange => "for" Name [ ":" TypeSpec ] "=" "[" [ Exp ] ":" Exp "]" Block
 //	Name => word
 type ForRange struct {
 	Body Block
 	Name Word
-	Exp  Exp
+
+	// May be nil when start is omitted. Means it equals zero value.
+	Start Exp
+
+	// Always not nil.
+	End Exp
+
+	// May be nil for auto-type loop variable.
 	Type TypeSpec
 }
 
@@ -84,35 +91,5 @@ func (r ForRange) Span() srcmap.Span {
 func (r ForRange) String() string {
 	var g Printer
 	g.ForRange(r)
-	return g.Output()
-}
-
-// ForRange represents for loop over a range of integers.
-//
-// Formal definition:
-//
-//	ForRange2 => "for" Name ":" TypeSpec "in" "range" "(" Exp "," Exp ")" Block
-//	Name => word
-type ForRange2 struct {
-	Body  Block
-	Name  Word
-	Start Exp
-	End   Exp
-	Type  TypeSpec
-}
-
-var _ Statement = ForRange2{}
-
-func (ForRange2) Kind() stk.Kind {
-	return stk.ForRange2
-}
-
-func (r ForRange2) Span() srcmap.Span {
-	return r.Name.Span()
-}
-
-func (r ForRange2) String() string {
-	var g Printer
-	g.ForRange2(r)
 	return g.Output()
 }
