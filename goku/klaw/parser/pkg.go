@@ -22,7 +22,7 @@ func (p *Parser) pkgParse() diag.Error {
 func (p *Parser) pkgTop() diag.Error {
 	switch p.peek.Kind {
 	case token.Set:
-		return p.set()
+		return p.setBlock()
 	case token.Module:
 		return p.module()
 	default:
@@ -30,7 +30,7 @@ func (p *Parser) pkgTop() diag.Error {
 	}
 }
 
-func (p *Parser) set() diag.Error {
+func (p *Parser) setBlock() diag.Error {
 	p.advance() // skip "set"
 
 	if p.peek.Kind != token.LeftCurly {
@@ -44,9 +44,79 @@ func (p *Parser) set() diag.Error {
 			p.advance() // skip "}"
 			return nil
 		default:
-			p.advance() // TODO: remove dummy code
+			set, err := p.set()
+			if err != nil {
+				return err
+			}
+			p.pkg.Sets = append(p.pkg.Sets, set)
 		}
 	}
+}
+
+func (p *Parser) namePart() (ast.Word, diag.Error) {
+	var val string
+	switch p.peek.Kind {
+	case token.Word:
+		val = p.peek.Data
+	case token.Main, token.Link:
+		val = p.peek.Kind.String()
+	default:
+		return ast.Word{}, p.unexpected()
+	}
+	pin := p.peek.Pin
+	p.advance() // skip name part
+
+	return ast.Word{
+		Str: val,
+		Pin: pin,
+	}, nil
+}
+
+func (p *Parser) set() (ast.Set, diag.Error) {
+	var parts []ast.Word
+
+	part, err := p.namePart()
+	if err != nil {
+		return ast.Set{}, err
+	}
+	parts = append(parts, part)
+
+	for {
+		if p.peek.Kind != token.Period {
+			break
+		}
+		p.advance() // skip "."
+
+		part, err := p.namePart()
+		if err != nil {
+			return ast.Set{}, err
+		}
+		parts = append(parts, part)
+	}
+
+	if p.peek.Kind != token.Assign {
+		return ast.Set{}, p.unexpected()
+	}
+	p.advance() // skip "="
+
+	if p.peek.Kind != token.String {
+		return ast.Set{}, p.unexpected()
+	}
+	exp := ast.String{
+		Val: p.peek.Data,
+		Pin: p.peek.Pin,
+	}
+	p.advance() // skip exp string
+
+	if p.peek.Kind != token.Semicolon {
+		return ast.Set{}, p.unexpected()
+	}
+	p.advance() // skip ";"
+
+	return ast.Set{
+		Name: ast.Name{Parts: parts},
+		Exp:  exp,
+	}, nil
 }
 
 func (p *Parser) module() diag.Error {

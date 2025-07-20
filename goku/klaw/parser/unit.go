@@ -1,7 +1,11 @@
 package parser
 
 import (
+	"fmt"
+
 	"github.com/mebyus/ku/goku/compiler/diag"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
 	"github.com/mebyus/ku/goku/klaw/ast"
 	"github.com/mebyus/ku/goku/klaw/token"
 )
@@ -44,12 +48,64 @@ func (p *Parser) dir() (ast.Dir, diag.Error) {
 	}
 }
 
-func (p *Parser) imp() (ast.Import, diag.Error) {
+func (p *Parser) imp() (ast.Dir, diag.Error) {
 	p.advance() // skip "import"
 
-	if p.peek.Kind != token.String {
-		return ast.Import{}, p.unexpected()
+	var originPin srcmap.Pin
+	var originName string
+	if p.peek.Kind == token.Word {
+		originPin = p.peek.Pin
+		originName = p.peek.Data
+		p.advance() // skip origin name
 	}
+	o, ok := origin.Parse(originName)
+	if !ok {
+		return nil, &diag.SimpleMessageError{
+			Pin:  originPin,
+			Text: fmt.Sprintf("unexpected import origin \"%s\"", originName),
+		}
+	}
+
+	if p.peek.Kind == token.String {
+		return p.simpleImport(o)
+	}
+	if p.peek.Kind != token.LeftCurly {
+		return nil, p.unexpected()
+	}
+	p.advance() // skip "{"
+
+	var imports []ast.ImportString
+	for {
+		if p.peek.Kind == token.RightCurly {
+			p.advance() // skip "}"
+			break
+		}
+
+		if p.peek.Kind != token.String {
+			return nil, p.unexpected()
+		}
+		pin := p.peek.Pin
+		val := p.peek.Data
+		p.advance() // skip string
+
+		if p.peek.Kind != token.Semicolon {
+			return ast.Import{}, p.unexpected()
+		}
+		p.advance() // skip ";"
+
+		imports = append(imports, ast.ImportString{
+			Pin: pin,
+			Val: val,
+		})
+	}
+
+	return ast.ImportBlock{
+		Origin:  o,
+		Imports: imports,
+	}, nil
+}
+
+func (p *Parser) simpleImport(o origin.Origin) (ast.Import, diag.Error) {
 	pin := p.peek.Pin
 	val := p.peek.Data
 	p.advance() // skip string
@@ -60,6 +116,8 @@ func (p *Parser) imp() (ast.Import, diag.Error) {
 	p.advance() // skip ";"
 
 	return ast.Import{
+		Origin: o,
+
 		Val: val,
 		Pin: pin,
 	}, nil

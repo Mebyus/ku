@@ -1,15 +1,20 @@
 package builder
 
+import (
+	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
+)
+
 type QueueItem struct {
 	// Path to unit inside the queue.
-	Path string
+	Path origin.Path
 
 	// Place where unit with this path is imported.
 	//
 	// There may be more than one import place for a specific unit inside the
 	// whole program. This field tracks the first one we encounter during unit
 	// walk phase.
-	// Pin srcmap.Pin
+	Pin srcmap.Pin
 }
 
 // UnitQueue keeps track which unit were already visited and
@@ -22,12 +27,12 @@ type UnitQueue struct {
 	units []*Unit
 
 	// Set which contains paths of already visited units.
-	visited map[string]struct{}
+	visited map[origin.Path]struct{}
 }
 
 func NewUnitQueue() *UnitQueue {
 	return &UnitQueue{
-		visited: make(map[string]struct{}),
+		visited: make(map[origin.Path]struct{}),
 	}
 }
 
@@ -64,7 +69,8 @@ func (q *UnitQueue) AddUnit(unit *Unit) {
 
 	for _, p := range unit.Imports {
 		q.Add(QueueItem{
-			Path: p,
+			Path: p.Path,
+			Pin:  p.Pin,
 		})
 	}
 }

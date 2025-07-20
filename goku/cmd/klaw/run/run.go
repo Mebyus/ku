@@ -85,6 +85,7 @@ func runModule(name string, kind string) error {
 		Main:      name,
 		MainDir:   pkg.MainDir,
 		SourceDir: pkg.SourceDir,
+		RootDir:   pkg.RootDir,
 		Pool:      pool,
 		BuildKind: k,
 	})

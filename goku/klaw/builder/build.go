@@ -57,13 +57,20 @@ func genTexts(c *Context, out io.Writer, texts []*srcmap.Text) error {
 		}
 	}
 
+	g.Reset()
+	g.NameBooks()
+	_, err := g.WriteTo(out)
+	if err != nil {
+		return err
+	}
+
 	if !c.Test {
 		return nil
 	}
 
 	g.Reset()
 	g.MainTestDriver(tests)
-	_, err := g.WriteTo(out)
+	_, err = g.WriteTo(out)
 	return err
 }
 

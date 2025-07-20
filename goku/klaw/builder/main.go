@@ -8,6 +8,7 @@ import (
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/enums/bk"
 	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
 	"github.com/mebyus/ku/goku/graphs"
 	"github.com/mebyus/ku/goku/klaw/eval"
 	"github.com/mebyus/ku/goku/klaw/parser"
@@ -16,6 +17,9 @@ import (
 type GenProgramConfig struct {
 	// Path to main unit (relative to MainDir).
 	Main string
+
+	// Directory where to search for standard library units.
+	RootDir string
 
 	// Directory where to search for main unit.
 	MainDir string
@@ -28,7 +32,27 @@ type GenProgramConfig struct {
 	BuildKind bk.Kind
 }
 
+func (c *GenProgramConfig) resolveUnitPath(p origin.Path) string {
+	switch p.Origin {
+	case 0:
+		panic("unspecified origin")
+	case origin.Std:
+		return filepath.Join(c.RootDir, "src/std", p.Import)
+	case origin.Loc:
+		return filepath.Join(c.SourceDir, p.Import)
+	default:
+		panic(fmt.Sprintf("unexpected origin \"%s\" (=%d)", p.Origin, p.Origin))
+	}
+}
+
 func GenFromMain(out io.Writer, c *GenProgramConfig) error {
+	if c.RootDir == "" {
+		panic("empty root dir")
+	}
+	if c.SourceDir == "" {
+		panic("empty source dir")
+	}
+
 	env := eval.NewEnv()
 	env.Exe = true
 
@@ -47,7 +71,7 @@ func GenFromMain(out io.Writer, c *GenProgramConfig) error {
 			break
 		}
 
-		u, err := loadUnit(c.Pool, env, filepath.Join(c.SourceDir, item.Path))
+		u, err := loadUnit(c.Pool, env, c.resolveUnitPath(item.Path))
 		if err != nil {
 			return err
 		}
@@ -56,7 +80,7 @@ func GenFromMain(out io.Writer, c *GenProgramConfig) error {
 	}
 
 	units := queue.units
-	m := make(map[string]uint32, len(units))
+	m := make(map[origin.Path]uint32, len(units))
 	for i, u := range units {
 		if u.Main {
 			continue
@@ -75,12 +99,12 @@ func GenFromMain(out io.Writer, c *GenProgramConfig) error {
 
 		g.Nodes[i].Anc = make([]uint32, 0, len(unit.Imports))
 		for _, s := range unit.Imports {
-			u, ok := m[s]
+			u, ok := m[s.Path]
 			if !ok {
-				panic(fmt.Sprintf("imported unit \"%s\" not found", s))
+				panic(fmt.Sprintf("imported unit \"%s\" not found", s.Path))
 			}
 			if u == uint32(i) {
-				panic(fmt.Sprintf("unit \"%s\" imported itself", s))
+				panic(fmt.Sprintf("unit \"%s\" imported itself", s.Path))
 			}
 
 			g.Nodes[i].AddAnc(u)

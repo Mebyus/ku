@@ -13,6 +13,7 @@ type Package struct {
 
 	MainDir   string
 	SourceDir string
+	RootDir   string
 }
 
 type Module struct {
@@ -87,9 +88,23 @@ func evalSet(pkg *Package, set ast.Set) diag.Error {
 	name := joinNameParts(set.Name.Parts)
 	switch name {
 	case "source.dir":
+		pkg.SourceDir = getStringFromExp(set.Exp)
 	case "main.dir":
+		pkg.MainDir = getStringFromExp(set.Exp)
+	case "root.dir":
+		pkg.RootDir = getStringFromExp(set.Exp)
 	}
 	return nil
+}
+
+func getStringFromExp(exp ast.Exp) string {
+	fmt.Printf("%+v\n", exp)
+	switch e := exp.(type) {
+	case ast.String:
+		return e.Val
+	default:
+		return ""
+	}
 }
 
 func listLinks(entries []ast.LinkEntry) []string {

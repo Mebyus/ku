@@ -1,6 +1,9 @@
 package ast
 
-import "github.com/mebyus/ku/goku/compiler/srcmap"
+import (
+	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
+)
 
 // Dir represents unit build directive.
 type Dir interface {
@@ -13,6 +16,7 @@ type nodeDir struct{}
 
 func (nodeDir) _dir() {}
 
+// Import represents single import (without block).
 type Import struct {
 	nodeDir
 
@@ -20,6 +24,21 @@ type Import struct {
 	Val string
 
 	Pin srcmap.Pin
+
+	Origin origin.Origin
+}
+
+type ImportBlock struct {
+	nodeDir
+
+	Imports []ImportString
+
+	Origin origin.Origin
+}
+
+type ImportString struct {
+	Pin srcmap.Pin
+	Val string
 }
 
 type Include struct {

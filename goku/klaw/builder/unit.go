@@ -7,6 +7,7 @@ import (
 
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
 	"github.com/mebyus/ku/goku/klaw/eval"
 	"github.com/mebyus/ku/goku/klaw/parser"
 )
@@ -17,10 +18,10 @@ type Unit struct {
 	Texts []*srcmap.Text
 
 	// List of unit imports.
-	Imports []string
+	Imports []eval.Import
 
 	// Does not include unit or main directory prefix.
-	Path string
+	Path origin.Path
 
 	Main bool
 }

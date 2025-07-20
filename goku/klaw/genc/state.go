@@ -1,6 +1,11 @@
 package genc
 
-import "github.com/mebyus/ku/goku/compiler/srcmap"
+import (
+	"cmp"
+	"slices"
+
+	"github.com/mebyus/ku/goku/compiler/srcmap"
+)
 
 type State struct {
 	Map srcmap.PinMap
@@ -46,6 +51,10 @@ func (s *State) GetEnumValue(name, entry string) uint64 {
 	return enum.Get(entry)
 }
 
+func (s *State) ErrorRecords() []BookRecord {
+	return s.errors.Records()
+}
+
 // NameBook generates sequential integer ids for each unique given name (string).
 // Generated ids start from 1.
 type NameBook struct {
@@ -69,4 +78,28 @@ func (b *NameBook) Get(name string) uint64 {
 	id = b.prev
 	b.m[name] = id
 	return id
+}
+
+type BookRecord struct {
+	Name string
+	Id   uint64
+}
+
+// List returns all stored book records sorted by their ids.
+func (b *NameBook) Records() []BookRecord {
+	if len(b.m) == 0 {
+		return nil
+	}
+
+	records := make([]BookRecord, 0, len(b.m))
+	for name, id := range b.m {
+		records = append(records, BookRecord{
+			Name: name,
+			Id:   id,
+		})
+	}
+	slices.SortFunc(records, func(a, b BookRecord) int {
+		return cmp.Compare(a.Id, b.Id)
+	})
+	return records
 }
