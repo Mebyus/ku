@@ -1,0 +1,270 @@
+fun os_linux_convert_syscall_write_error(c: uint) => error_id {
+    ret #error(TODO_WRITE);
+}
+
+fun os_linux_write(fd: uint, s: []u8) => RetWrite {
+    var r: RetWrite;
+    if s.len == 0 {
+        ret r;
+    }
+    must(s.ptr != nil);
+
+    const n: sint = os_linux_amd64_syscall_write(fd, s.ptr, s.len);
+    if n < 0 {
+        r.eid = os_linux_convert_syscall_write_error(cast(uint, -n));
+        ret r;
+    }
+
+    r.count = cast(uint, n);
+    ret r;
+}
+
+fun os_linux_write_all(fd: uint, s: []u8) => RetWrite {
+    var r: RetWrite;
+	if s.len == 0 {
+		ret r;
+	}
+
+	for r.count < s.len {
+		var w: RetWrite = os_linux_write(fd, span_u8_slice_tail(s, r.count));
+        r.count += w.count;
+		
+        if w.eid != 0 {
+            r.eid = w.eid;
+			ret r;
+		}
+	}
+
+    ret r;
+}
+
+let OS_LINUX_STDOUT => 1;
+
+fun stdout_print(s: str) {
+    os_linux_write_all(OS_LINUX_STDOUT, s);
+}
+
+let OS_LINUX_STDERR => 2;
+
+fun stderr_print(s: str) {
+    os_linux_write_all(OS_LINUX_STDERR, s);
+}
+
+fun os_exit(code: uint) => #never {
+    os_linux_amd64_syscall_exit(code);
+}
+
+fun os_linux_convert_syscall_read_error(c: uint) => error_id {
+    ret #error(TODO_READ);
+}
+
+fun os_linux_read(fd: uint, buf: []u8) => RetRead {
+    var r: RetRead;
+    if buf.len == 0 {
+        ret r;
+    }
+    must(buf.ptr != nil);
+
+    const n: sint = os_linux_amd64_syscall_read(fd, buf.ptr, buf.len);
+    if n == 0 {
+        r.eid = #error(READ_EOF);
+        ret r;
+    }
+    if n < 0 {
+        r.eid = os_linux_convert_syscall_read_error(cast(uint, -n));
+        ret r;
+    }
+
+    r.count = cast(uint, n);
+    ret r;
+}
+
+/*/doc
+Reads until reaching EOF on given file descriptor or no more
+space left in buffer.
+
+Returns READ_EOF error if reading was stopped due to EOF.
+*/
+fun os_linux_read_until_full(fd: uint, buf: []u8) => RetRead {
+    var rr: RetRead;
+    for rr.count < buf.len {
+        const r: RetRead = os_linux_read(fd, span_u8_slice_tail(buf, rr.count));
+        rr.count += r.count;
+        if r.eid != 0 {
+            rr.eid = r.eid;
+            ret rr;
+        }
+    }
+    ret rr;
+}
+
+let OS_LINUX_STDIN => 0;
+
+fun stdin_read(buf: []u8) => RetRead {
+    var r: RetRead = os_linux_read(OS_LINUX_STDIN, buf);
+    if r.eid == #error(READ_EOF) {
+        r.eid = 0;
+    }
+    ret r;
+}
+
+fun stdin_read_until_full(buf: []u8) => RetRead {
+    var rr: RetRead;
+    for rr.count < buf.len {
+        const r: RetRead = stdin_read(span_u8_slice_tail(buf, rr.count));
+        rr.count += r.count;
+        if r.eid != 0 || r.count == 0 {
+            rr.eid = r.eid;
+            ret rr;
+        }
+    }
+    ret rr;
+}
+
+let OS_LINUX_MAX_PATH_LENGTH => 1 << 14;
+
+let OS_LINUX_OPEN_FLAG_READ_ONLY  => 0x0;
+let OS_LINUX_OPEN_FLAG_WRITE_ONLY => 0x1;
+let OS_LINUX_OPEN_FLAG_READ_WRITE => 0x2;
+
+let OS_LINUX_OPEN_FLAG_CREATE   => 0x40;
+let OS_LINUX_OPEN_FLAG_TRUNCATE => 0x200;
+let OS_LINUX_OPEN_FLAG_APPEND   => 0x400;
+
+fun os_linux_convert_syscall_open_error(c: uint) => error_id {
+    ret #error(TODO_OPEN);
+}
+
+type RetOpen => struct {
+    // File descriptor of opened file.
+    fd: uint,
+
+    eid: error_id,
+}
+
+fun os_open_file(path: str, flags: u32, mode: u32) => RetOpen {
+    must(path.len != 0);
+
+    var r: RetOpen;
+    if path.len >= OS_LINUX_MAX_PATH_LENGTH {
+        r.eid = #error(LONG_PATH);
+        ret r;
+    }
+
+    var path_buf: [OS_LINUX_MAX_PATH_LENGTH]u8 = ?;
+    const cstr_path: c_string = unsafe_copy_as_c_string(make_span_u8(path_buf, OS_LINUX_MAX_PATH_LENGTH), path);
+    const n: sint = os_linux_amd64_syscall_open(cstr_path.ptr, flags, mode);
+    if n < 0 {
+        r.eid = os_linux_convert_syscall_open_error(cast(uint, -n)); 
+        ret r;
+    }
+    r.fd = cast(uint, n);
+    ret r;
+}
+
+fun os_open(path: str) => RetOpen {
+    ret os_open_file(path, OS_LINUX_OPEN_FLAG_READ_ONLY, 0);
+}
+
+fun os_create(path: str) => RetOpen {
+    ret os_open_file(path, OS_LINUX_OPEN_FLAG_WRITE_ONLY | OS_LINUX_OPEN_FLAG_CREATE | OS_LINUX_OPEN_FLAG_TRUNCATE, 0o644);
+}
+
+fun os_linux_convert_syscall_close_error(c: uint) => error_id {
+    ret #error(TODO_CLOSE);
+}
+
+fun os_linux_close(fd: uint) => error_id {
+    const n: sint = os_linux_amd64_syscall_close(fd);
+    if n < 0 {
+        ret os_linux_convert_syscall_close_error(cast(uint, -n));
+    }
+    ret 0;
+}
+
+fun os_linux_convert_syscall_stat_error(c: uint) => error_id {
+    ret #error(TODO_STAT);
+}
+
+/*/doc
+Reads entire file into memory provided by allocator.
+
+File must exist. Must be regular file.
+*/
+fun os_load_file(al: MemoryAllocator, path: str, blob: *Blob) => error_id {
+    must(path.len != 0);
+
+    if path.len >= OS_LINUX_MAX_PATH_LENGTH {
+        ret #error(LONG_PATH);
+    }
+
+    var path_buf: [OS_LINUX_MAX_PATH_LENGTH]u8 = ?;
+    const cstr_path: c_string = unsafe_copy_as_c_string(make_span_u8(path_buf, OS_LINUX_MAX_PATH_LENGTH), path);
+
+    var stat: LinuxFileStat = ?;
+    var n: sint = os_linux_amd64_syscall_stat(cstr_path.ptr, stat.&);
+    if n < 0 {
+        ret os_linux_convert_syscall_stat_error(cast(uint, -n));
+    }
+    if stat.size == 0 {
+        blob_clear_fields(blob);
+        ret 0;
+    }
+
+    n = os_linux_amd64_syscall_open(cstr_path.ptr, OS_LINUX_OPEN_FLAG_READ_ONLY, 0);
+    if n < 0 {
+        ret os_linux_convert_syscall_open_error(cast(uint, -n));
+    }
+    const fd: uint = cast(uint, n);
+
+    blob.*.block.span.len = stat.size;
+    blob.*.size = stat.size;
+    const eid: error_id = memory_alloc(al, blob.*.block.&);
+    if eid != 0 {
+        os_linux_close(fd);
+        ret eid;
+    }
+
+    const r: RetRead = os_linux_read_until_full(fd, blob.*.block.span);
+    os_linux_close(fd);
+    if r.eid != 0 && r.eid != #error(READ_EOF) {
+        memory_free(al, blob.*.block.&);
+        ret r.eid;
+    }
+    blob.*.size = r.count;
+
+    ret 0;
+}
+
+fun os_linux_convert_syscall_mmap_error(c: uint) => error_id {
+    ret #error(TODO_MMAP);
+}
+
+let OS_LINUX_PAGE_SIZE => 1 << 12;
+
+/*/doc
+Allocates memory in page-sized chunks directly from operating system.
+*/
+fun os_linux_memory_alloc(block: *MemoryBlock) => error_id {
+    var len: uint = block.*.span.len;
+    must(len != 0);
+    
+    len = align_uint(len, OS_LINUX_PAGE_SIZE);
+    const prot: uint  = OS_LINUX_MEMORY_MAP_PROT_READ | OS_LINUX_MEMORY_MAP_PROT_WRITE;
+    const flags: uint = OS_LINUX_MEMORY_MAP_PRIVATE | OS_LINUX_MEMORY_MAP_ANONYMOUS;
+    
+    const n: sint = os_linux_amd64_syscall_mmap(nil, len, prot, flags, 0, 0);
+    if n <= 0 {
+        ret os_linux_convert_syscall_mmap_error(cast(uint, -n));
+    }
+
+    block.*.span.ptr = cast([*]u8, n);
+    block.*.span.len = len;
+    block.*.id = 0;
+    ret 0;
+}
+
+fun os_linux_memory_free(block: *MemoryBlock) {
+    const n: sint = os_linux_amd64_syscall_munmap(block.*.span.ptr, block.*.span.len);
+    must(n == 0);
+}

@@ -1,0 +1,257 @@
+const max_integer_u8:  u8  = 0xFF;
+const max_integer_u16: u16 = 0xFFFF;
+const max_integer_u32: u32 = 0xFFFFFFFF;
+const max_integer_u64: u64 = 0xFFFFFFFFFFFFFFFF;
+
+const max_integer_s8:  s8  = 0x7F;
+const max_integer_s16: s16 = 0x7FFF;
+const max_integer_s32: s32 = 0x7FFFFFFF;
+const max_integer_s64: s64 = 0x7FFFFFFFFFFFFFFF;
+
+const max_integer_uint: uint = ^cast(uint, 0);
+
+fun min_uint(a: uint, b: uint) => uint {
+    if a < b {
+        ret a;
+    }
+    ret b;
+}
+
+fun max_uint(a: uint, b: uint) => uint {
+    if a < b {
+        ret b;
+    }
+    ret a;
+}
+
+fun is_power_of_2(n: uint) => bool {
+	ret (n != 0) && ((n & (n - 1)) == 0);
+}
+
+/*/doc
+Align integer {n} to an integer {a}.
+
+Alignment {a} must be a power of 2.
+*/
+fun align_uint(n: uint, a: uint) => uint {
+	must(is_power_of_2(a));
+	const mask: uint = a - 1;
+	ret (n + mask) & (^mask);
+}
+
+fun get_align_offset(ptr: *any, a: uint) => uint {
+	const p: uint = cast(uint, ptr);
+	ret align_uint(p, a) - p;
+}
+
+fun make_span_u8(ptr: [*]u8, len: uint) => []u8 {
+    var s: []u8;
+	if len == 0 {
+		ret s;
+	}
+
+    s.ptr = ptr;
+    s.len = len;
+    ret s;
+}
+
+fun span_u8_slice_head(s: []u8, n: uint) => []u8 {
+	must(n <= s.len);
+	ret make_span_u8(s.ptr, n);
+}
+
+fun span_u8_slice_tail(s: []u8, n: uint) => []u8 {
+	must(n <= s.len);
+	ret make_span_u8(s.ptr + n, s.len - n);
+}
+
+fun span_u8_slice(s: []u8, i: uint, j: uint) => []u8 {
+	must(i <= j);
+	must(j <= s.len);
+	ret make_span_u8(s.ptr + i, j - i);
+}
+
+fun span_u8_clip_head(s: []u8, n: uint) => []u8 {
+    var head: []u8;
+    if n > s.len {
+        ret head;
+    }
+    ret span_u8_slice_head(s, n);
+}
+
+fun span_u8_clip_tail(s: []u8, n: uint) => []u8 {
+    var tail: []u8;
+    if n > s.len {
+        ret tail;
+    }
+    ret span_u8_slice_tail(s, n);
+}
+
+/*/doc
+Represents a blob that was fully loaded into memory.
+*/
+type Blob => struct {
+    // Memory block that holds loaded data.
+    block: MemoryBlock,
+
+    // Actual blob size in bytes.
+    size: uint,
+}
+
+fun blob_get_data(blob: *Blob) => []u8 {
+    ret make_span_u8(blob.*.block.span.ptr, blob.*.size);
+}
+
+fun blob_clear_fields(blob: *Blob) {
+    memory_block_clear_fields(blob.*.block.&);
+	blob.*.size = 0;
+}
+
+fun make_str(ptr: [*]u8, len: uint) => str {
+	ret make_span_u8(ptr, len);
+}
+
+fun str_slice_head(s: str, n: uint) => str {
+	ret span_u8_slice_head(s, n);
+}
+
+fun str_slice_tail(s: str, n: uint) => str {
+	ret span_u8_slice_tail(s, n);
+}
+
+/*/doc
+Returns true if two strings contain the same data.
+*/
+fun str_equal(a: str, b: str) => bool {
+	if a.len != b.len {
+		ret false;
+	}
+	if a.ptr == b.ptr {
+		ret true;
+	}
+
+    const n: uint = a.len;
+	for i = [:n] {
+		if a.ptr.[i] != b.ptr.[i] {
+			ret false;
+		}
+	}
+	ret true;
+}
+
+fun str_has_prefix(s: str, prefix: str) => bool {
+	if s.len < prefix.len {
+		ret false;
+	}
+	ret str_equal(str_slice_head(s, prefix.len), prefix);
+}
+
+fun unsafe_get_c_string_length(p: [*]u8) => uint {
+	var i: uint = 0;
+	for p.[i] != 0 {
+		i += 1;
+	}
+	ret i;
+}
+
+fun unsafe_make_c_string_from_pointer(p: [*]u8) => c_string {
+	const len: uint = unsafe_get_c_string_length(p);
+	
+	var s: c_string = {
+		ptr: p,
+		len: len,
+	};
+	ret s;
+}
+
+type span_s64 => struct {
+	ptr: [*]s64,
+	len: uint,
+}
+
+/*/doc
+Copies {n} bytes of memory from source {b} to destination {a}. Number of copied bytes
+must be greater than zero.
+
+Do not use for overlapping memory regions.
+
+Params:
+	{a} - array pointer, must be not nil
+	{b} - array pointer, must be not nil
+	{n} - must be not 0
+*/
+fun unsafe_copy(a: [*]u8, b: [*]u8, n: uint) {
+	for i = [:n] {
+		a.[i] = b.[i];
+	}
+}
+
+// Same as unsafe_copy, but bytes are copied in reverse order.
+fun unsafe_reverse_copy(a: [*]u8, b: [*]u8, n: uint) {
+	var i: uint = 0;
+	var j: uint = n - 1;
+	for i < n {
+		a.[j] = b.[i];
+		i += 1;
+		j -= 1;
+	}
+}
+
+/*/doc
+Returns number of bytes copied.
+*/
+fun copy(a: []u8, b: []u8) => uint {
+    const n: uint = min_uint(a.len, b.len);
+    if n == 0 {
+        ret 0;
+    }
+
+    must(a.ptr != nil);
+    must(b.ptr != nil);
+	must(a.ptr != b.ptr);
+
+    unsafe_copy(a.ptr, b.ptr, n);
+	ret n;
+}
+
+fun clear(s: []u8) {
+	for i = [:s.len] {
+		s.ptr.[i] = 0;
+	}
+}
+
+/*/doc
+Copy the string {s} into buffer {buf} and place null byte at the end.
+Returns {c_string} sliced from {buf}.
+
+Buffer must be not nil and {buf.len} >= {s.len} + 1. 
+*/
+fun unsafe_copy_as_c_string(buf: []u8, s: str) => c_string {
+	must(s.len != 0);
+	must(s.ptr != 0);
+	must(buf.len >= s.len + 1);
+	must(buf.ptr != nil);
+
+	unsafe_copy(buf.ptr, s.ptr, s.len);
+	buf.ptr[s.len] = 0;
+	
+	var cstr: c_string = {
+		ptr: buf.ptr,
+		len: s.len,
+	};
+	ret cstr;
+}
+
+/*/doc
+Get least significant byte of u64 integer.
+*/
+fun get_u64_lsb(x: u64) => u8 {
+    ret tint(u8, x & 0xFF);
+}
+
+/*/doc
+Get least significant half-byte of u64 integer.
+*/
+fun get_u64_lshb(x: u64) => u8 {
+    ret tint(u8, x & 0xF);
+}

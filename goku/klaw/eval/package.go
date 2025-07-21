@@ -98,7 +98,6 @@ func evalSet(pkg *Package, set ast.Set) diag.Error {
 }
 
 func getStringFromExp(exp ast.Exp) string {
-	fmt.Printf("%+v\n", exp)
 	switch e := exp.(type) {
 	case ast.String:
 		return e.Val
@@ -116,7 +115,6 @@ func listLinks(entries []ast.LinkEntry) []string {
 		list = append(list, l.Val)
 	}
 	return list
-
 }
 
 func listUnits(entries []ast.UnitEntry) []string {

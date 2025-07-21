@@ -1,0 +1,467 @@
+fun fmt_dec_digit(x: u8) => u8 {
+    must(x < 10);
+
+	ret x + '0';
+}
+
+fun fmt_hex_digit(x: u8) => u8 {
+    must(x < 16);
+
+	if x <= 9 {
+		ret fmt_dec_digit(x);
+	}
+	ret x - 10 + 'A';
+}
+
+const fmt_hex_byte_length: uint = 2;
+
+fun unsafe_fmt_hex_byte(p: [*]u8, x: u8) {
+    must(p != nil);
+
+	p.[0] = fmt_hex_digit(x >> 4);
+	p.[1] = fmt_hex_digit(x & 0xF);
+}
+
+fun unsafe_fmt_bin_byte(p: [*]u8, x: u8) {
+    must(p != nil);
+
+	var i: uint = 8;
+    // digits are written from least to most significant bit
+	for i != 0 {
+		i -= 1;
+		p.[i] = fmt_dec_digit(x & 1);
+		x >>= 1;
+	}
+}
+
+const fmt_bin_bytes_u16_length: uint = 8 + 1 + 8;
+
+fun unsafe_fmt_bin_bytes_u16(p: [*]u8, x: u16) {
+    must(p != nil);
+
+    unsafe_fmt_bin_byte(p, cast(u8, x >> 8));
+    p[8] = ' ';
+    unsafe_fmt_bin_byte(p + 9, cast(u8, x & 0xFF));
+}
+
+const fmt_bin_bytes_u32_length: uint = 8 + 1 + 8 + 1 + 8 + 1 + 8;
+
+fun unsafe_fmt_bin_bytes_u32(p: [*]u8, x: u32) {
+    must(p != nil);
+
+    unsafe_fmt_bin_byte(p + 27, cast(u8, x & 0xFF));
+    p[26] = ' ';
+    
+    x >>= 8;
+    unsafe_fmt_bin_byte(p + 18, cast(u8, x & 0xFF));
+    p[17] = ' ';
+
+    x >>= 8;
+    unsafe_fmt_bin_byte(p + 9, cast(u8, x & 0xFF));
+    p[8] = ' ';
+
+    x >>= 8;
+    unsafe_fmt_bin_byte(p, cast(u8, x));
+}
+
+const max_u32_fmt_hex_length: uint = 8;
+
+/*/doc
+
+Formats a given u32 integer as a hexadecimal number of
+fixed width (=8) format, prefixing significant digits with
+zeroes if necessary. Buffer must be at least 8 bytes
+long.
+*/
+fun unsafe_fmt_hex_prefix_zeroes_u32(p: [*]u8, x: u32) {
+    must(p != nil);
+
+	var i: uint = max_u32_fmt_hex_length;
+	// digits are written from least to most significant byte
+	for i != 0 {
+		i -= 1;
+		const n: u8 = get_u64_lshb(x);
+		p.[i] = fmt_hex_digit(n);
+		x = x >> 4;
+	}
+}
+
+const max_u64_fmt_hex_length: uint = 16;
+
+/*/doc
+
+Formats a given u64 integer as a hexadecimal number of
+fixed width (=16) format, prefixing significant digits with
+zeroes if necessary. Buffer must be at least 16 bytes
+long.
+*/
+fun unsafe_fmt_hex_prefix_zeroes_u64(p: [*]u8, x: u64) {
+    must(p != nil);
+
+	var i: uint = max_u64_fmt_hex_length;
+	// digits are written from least to most significant byte
+	for i != 0 {
+		i -= 1;
+		const n: u8 = get_u64_lshb(x);
+		p.[i] = fmt_hex_digit(n);
+		x = x >> 4;
+	}
+}
+
+/*/doc
+
+Puts decimal digits of a number in reverse order inside a buffer.
+Returns number of digits written.
+
+Array must have enough space to hold produced bytes.
+
+To clarify: last (least significant) digit is placed at {p.[0]}.
+
+This operation is safe if buffer is at least {max_u64_fmt_dec_length} (=20) bytes long.
+*/
+fun unsafe_fmt_reverse_dec_u64(p: [*]u8, x: u64) => uint {
+	var i: uint = 0;
+	for {
+		const n: u8 = tint(u8, x % 10);
+		x /= 10;
+		p.[i] = fmt_dec_digit(n);
+		i += 1;
+		if x == 0 {
+			ret i;
+		}
+	}
+}
+
+/*/doc
+Maximum number of bytes (digits) needed to format any u64 integer as decimal number.
+*/
+const max_u64_fmt_dec_length: uint = 20;
+
+/*/doc
+
+Same as fmt_dec_u64, but has no buffer boundary checks.
+*/
+fun unsafe_fmt_dec_u64(p: [*]u8, x: u64) => uint {
+	var digits: [max_u64_fmt_dec_length]u8 = ?;
+	const n: uint = unsafe_fmt_reverse_dec_u64(digits, x);
+	unsafe_reverse_copy(p, digits, n);
+	ret n;
+}
+
+fun unsafe_fmt_reverse_dec_fixed_width_u64(p: [*]u8, x: u64, w: uint) {
+	var i: uint = 0;
+	for i < w {
+		const n: u8 = cast(u8, x % 10);
+		x /= 10;
+		p.[i] = fmt_dec_digit(n);
+		i += 1;
+	}
+}
+
+/*/doc
+Formats integer as decimal number with fixed number of digits.
+If number does not have enough digits to fill the whole width than
+zeroes are prefixed. If number has more digits then specified width
+than only least significant ones will be written.
+*/
+fun unsafe_fmt_dec_fixed_width_u64(p: [*]u8, x: u64, w: uint) {
+	var digits: [max_u64_fmt_dec_length]u8 = ?;
+	unsafe_fmt_reverse_dec_fixed_width_u64(digits, x, w);
+	unsafe_reverse_copy(p, digits, w);
+}
+
+/*/doc
+Puts integer {x} into a given buffer as text in decimal format.
+
+Returns number of bytes written. Returns 0 if buffer does not
+have enough bytes for the operation.
+*/
+fun fmt_dec_u64(buf: []u8, x: u64) => uint {
+	if buf.len == 0 {
+		ret 0;
+	}
+	must(buf.ptr != nil);
+	
+	if buf.len >= max_u64_fmt_dec_length {
+		ret unsafe_fmt_dec_u64(buf.ptr, x);
+	}
+	
+	var digits: [max_u64_fmt_dec_length]u8 = ?;
+	const n: uint = unsafe_fmt_reverse_dec_u64(digits, x);
+	if (n > buf.len) {
+		// Not enough space in buffer to represent integer.
+		ret 0;
+	}
+
+	unsafe_reverse_copy(buf.ptr, digits, n);
+	ret n;
+}
+
+/*/doc
+
+Maximum number of bytes (digits) needed to format any u64 integer as decimal number.
+*/
+const max_s64_fmt_dec_length: uint = max_u64_fmt_dec_length + 1;
+
+fun unsafe_fmt_dec_s64(p: [*]u8, x: s64) => uint {
+	if x >= 0 {
+		ret unsafe_fmt_dec_u64(p, cast(u64, x));
+	}
+
+	p.[0] = '-';
+	const n: uint = unsafe_fmt_dec_u64(p + 1, cast(u64, -x));
+	ret n + 1;
+}
+
+
+const max_time_dur_fmt_micro_length: uint = max_s64_fmt_dec_length + 1 + 6;
+
+/*/doc
+
+Formats time duration like this: 17.053793 (with microsecond precision).
+Returns number of bytes actually written.
+*/
+fun unsafe_fmt_time_dur_micro(p: [*]u8, t: TimeDur) => uint {
+	// TODO: maybe we should support negative durations as well
+	var n: uint = unsafe_fmt_dec_u64(p, cast(u64, t.sec));
+	
+	p.[n] = '.';
+	n += 1;
+	
+	unsafe_fmt_dec_fixed_width_u64(p + n, cast(u64, t.nsec) / 1000, 6);
+	ret n + 6;
+}
+
+type FormatCapBuffer => struct {
+	// Pointer to buffer memory.
+	// Always not nil for initialized struct.
+	ptr: [*]u8,
+
+	// Content length. How many bytes is already written to buffer.
+	// Length cannot be greater than capacity.
+	len: uint,
+
+	// Buffer storage capacity. Max bytes it can hold.
+	cap: uint,
+
+    // Indicates that buffer is full and no more formatted data can be written to it.
+    eof: bool,
+}
+
+fun fmt_cap_buffer_reset(buf: *FormatCapBuffer) {
+	buf.*.len = 0;
+    buf.*.eof = false;
+}
+
+const fmt_buffer_eof: str = "(...)";
+
+fun init_fmt_cap_buffer(buf: *FormatCapBuffer, s: []u8) {
+    const min_initial_size: uint = 1 << 8;
+    must(min_initial_size > fmt_buffer_eof.len); // could be #must, but C compiler is unable to work with that
+	must(s.len >= min_initial_size);
+	must(s.ptr != nil);
+
+	buf.*.ptr = s.ptr;
+	buf.*.cap = s.len;
+    fmt_cap_buffer_reset(buf);
+}
+
+fun fmt_cap_buffer_tail(buf: *FormatCapBuffer) => []u8 {
+    var tail: []u8;
+    if buf.*.eof {
+        ret tail;
+    }
+    if buf.*.len >= buf.*.cap {
+        buf.*.eof = true;
+        ret tail;
+    }
+
+    var body: []u8 = make_span_u8(buf.*.ptr, buf.*.cap);
+    tail = span_u8_slice_tail(body, buf.*.len);
+
+    ret tail;
+}
+
+fun fmt_cap_buffer_take(buf: *FormatCapBuffer) => str {
+    var body: []u8 = make_span_u8(buf.*.ptr, buf.*.cap);
+
+    if !buf.*.eof {
+        const s: str = span_u8_slice_head(body, buf.*.len);
+        fmt_cap_buffer_reset(buf);
+        ret s;
+    }
+
+    const pos: uint = min_uint(buf.*.len, buf.*.cap - fmt_buffer_eof.len);
+    var tail: []u8 = span_u8_slice_tail(body, pos);
+    copy(tail, fmt_buffer_eof);
+    
+    const s: str = span_u8_slice_head(body, pos + fmt_buffer_eof.len);
+    fmt_cap_buffer_reset(buf);
+    ret s;
+}
+
+fun fmt_cap_buffer_put_byte(buf: *FormatCapBuffer, x: u8) {
+    var tail: []u8 = fmt_cap_buffer_tail(buf);
+    if tail.len == 0 {
+        ret;
+    }
+
+    tail.ptr.[0] = x;
+    buf.*.len += 1;
+}
+
+fun fmt_cap_buffer_put_byte_repeat(buf: *FormatCapBuffer, x: u8, k: uint) {
+    var tail: []u8 = fmt_cap_buffer_tail(buf);
+    if tail.len == 0 {
+        ret;
+    }
+
+    const n: uint = min_uint(tail.len, k);
+    for i = [:n] {
+        tail.ptr.[i] = x;
+    }
+    buf.*.len += n;
+    if n < k {
+        buf.*.eof = true;
+    }
+}
+
+fun fmt_cap_buffer_put_newline(buf: *FormatCapBuffer) {
+    fmt_cap_buffer_put_byte(buf, '\n');
+}
+
+fun fmt_cap_buffer_put_space(buf: *FormatCapBuffer) {
+    fmt_cap_buffer_put_byte(buf, ' ');
+}
+
+fun fmt_cap_buffer_put_space_repeat(buf: *FormatCapBuffer, k: uint) {
+    fmt_cap_buffer_put_byte_repeat(buf, ' ', k);
+}
+
+fun fmt_cap_buffer_put_str(buf: *FormatCapBuffer, s: str) {
+    if s.len == 0 {
+        ret;
+    }
+
+    var tail: []u8 = fmt_cap_buffer_tail(buf);
+    if tail.len == 0 {
+        ret;
+    }
+
+    const n: uint = copy(tail, s);
+    buf.*.len += n;
+    if n < s.len {
+        buf.*.eof = true;
+    }
+}
+
+fun fmt_cap_buffer_put_dec_u64(buf: *FormatCapBuffer, x: u64) {
+    var tail: []u8 = fmt_cap_buffer_tail(buf);
+    if tail.len == 0 {
+        ret;
+    }
+
+    const n: uint = fmt_dec_u64(tail, x);
+    buf.*.len += n;
+    if n == 0 {
+        buf.*.eof = true;
+    }
+}
+
+fun fmt_cap_buffer_put_hex_prefix_zeroes_u32(buf: *FormatCapBuffer, x: u32) {
+    var tail: []u8 = fmt_cap_buffer_tail(buf);
+    if tail.len == 0 {
+        ret;
+    }
+    if tail.len < max_u32_fmt_hex_length {
+        buf.*.eof = true;
+        ret;
+    }
+
+    unsafe_fmt_hex_prefix_zeroes_u32(tail.ptr, x);
+    buf.*.len += max_u32_fmt_hex_length;
+}
+
+fun fmt_cap_buffer_put_bin_bytes_u16(buf: *FormatCapBuffer, x: u16) {
+    var tail: []u8 = fmt_cap_buffer_tail(buf);
+    if tail.len == 0 {
+        ret;
+    }
+    if tail.len < fmt_bin_bytes_u16_length {
+        buf.*.eof = true;
+        ret;
+    }
+
+    unsafe_fmt_bin_bytes_u16(tail.ptr, x);
+    buf.*.len += fmt_bin_bytes_u16_length;
+}
+
+fun fmt_cap_buffer_put_bin_bytes_u32(buf: *FormatCapBuffer, x: u32) {
+    var tail: []u8 = fmt_cap_buffer_tail(buf);
+    if tail.len == 0 {
+        ret;
+    }
+    if tail.len < fmt_bin_bytes_u32_length {
+        buf.*.eof = true;
+        ret;
+    }
+
+    unsafe_fmt_bin_bytes_u32(tail.ptr, x);
+    buf.*.len += fmt_bin_bytes_u32_length;
+}
+
+type FormatBuffer => struct {
+    // Memory allocated by this buffer from {al}.
+    block: MemoryBlock,
+
+    // Additional memory for buffer can be requested from this allocator.
+    // Can be nil in case buffer operates on a fixed preallocated span.
+    al: MemoryAllocator,
+
+	// Pointer to buffer memory.
+	// Always not nil for initialized struct.
+	ptr: [*]u8,
+
+	// Content length. How many bytes is already written to buffer.
+	// Length cannot be greater than capacity.
+	len: uint,
+
+	// Buffer storage capacity. Max bytes it can hold.
+	cap: uint,
+
+    // Indicates that buffer is full and cannot be expanded via allocations.
+    eof: bool,
+}
+
+fun fmt_buffer_reset(buf: *FormatBuffer) {
+	buf.*.len = 0;
+    buf.*.eof = false;
+}
+
+fun init_fmt_buffer(buf: *FormatBuffer, s: []u8, al: MemoryAllocator) {
+    const min_buffer_initial_size: uint = 1 << 8;
+
+	must(s.len >= min_buffer_initial_size);
+	must(s.ptr != nil);
+
+    memory_block_clear_fields(buf.*.block.&);
+    buf.*.al = al;
+	buf.*.ptr = s.ptr;
+	buf.*.cap = s.len;
+    fmt_buffer_reset(buf);
+}
+
+/*
+
+fun free_fmt_buffer(buf: *FormatBuffer) {
+    if buf.*.al.kind == 0 {
+        ret;
+    }
+    if buf.*.block.span.ptr == nil {
+        ret;
+    }
+
+    memory_free(buf.*.al, buf.*.block.&);
+}
+
+*/

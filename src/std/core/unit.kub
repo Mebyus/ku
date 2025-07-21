@@ -1,0 +1,26 @@
+include "prelude.c";
+include "prelude.ku";
+include "bytes.ku";
+include "time.ku";
+include "io.ku";
+include "fmt.ku";
+include "panic.ku";
+include "str.ku";
+include "memory.ku";
+include "os_proc.ku";
+
+include "os_linux_amd64.c";
+include "os.linux.amd64.ku";
+include "terminal.linux.ku";
+
+include "libc.h";
+include "log.ku";
+
+exe {
+    include "c_main.ku";
+}
+
+test {
+    include "test.ku";
+    include "fmt.test.ku";
+}

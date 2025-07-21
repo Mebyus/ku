@@ -1,0 +1,111 @@
+type LinuxTerminalProperties => struct {
+    // various mode flags
+    input:   u32,
+    output:  u32,
+    control: u32,
+    local:   u32,
+    
+    // line discipline
+    line: u8,
+    
+    // control characters
+    cc: [32]u8,
+}
+
+fun fmt_cap_buffer_put_linux_terminal_properties(buf: *FormatCapBuffer, p: *LinuxTerminalProperties) {
+    fmt_cap_buffer_put_str(buf, "local: ");
+    fmt_cap_buffer_put_bin_bytes_u32(buf, p.*.local);
+    fmt_cap_buffer_put_newline(buf);
+}
+
+/*
+#[
+    link.name = "tcgetattr";
+    link.type = "external";
+]
+#stub
+fun os_linux_get_terminal_properties(fd: sint, p: *LinuxTerminalProperties) => sint
+*/
+
+let OS_LINUX_TERMINAL_GET_PROPERTIES => 0x5401;
+
+fun os_linux_get_terminal_properties(ptr: *LinuxTerminalProperties) => error_id {
+    const n: sint = os_linux_amd64_syscall_ioctl(OS_LINUX_STDOUT, OS_LINUX_TERMINAL_GET_PROPERTIES, ptr);
+    if n < 0 {
+        ret #error(TODO_IOCTL);
+    }
+    ret 0;
+}
+
+let OS_LINUX_TERMINAL_DRAIN_FLUSH_SET_PROPERTIES => 0x5404;
+
+fun os_linux_set_terminal_properties(ptr: *LinuxTerminalProperties) => error_id {
+    const n: sint = os_linux_amd64_syscall_ioctl(OS_LINUX_STDOUT, OS_LINUX_TERMINAL_DRAIN_FLUSH_SET_PROPERTIES, ptr);
+    if n < 0 {
+        ret #error(TODO_IOCTL);
+    }
+    ret 0;
+}
+
+let OS_LINUX_TERMINAL_ECHO  => 0x08;
+let OS_LINUX_TERMINAL_CANON => 0x02;
+let OS_LINUX_TERMINAL_EXTEN => 0x8000;
+let OS_LINUX_TERMINAL_SIG   => 0x01;
+
+let OS_LINUX_TERMINAL_OUTPUT_PROCESSING => 0x01;
+let OS_LINUX_TERMINAL_CHARACTER_SIZE_8  => 0x30;
+
+let OS_LINUX_TERMINAL_BREAK_INTERRUPT => 0x02;
+let OS_LINUX_TERMINAL_INPUT_PARITY    => 0x10;
+let OS_LINUX_TERMINAL_STRIP_BIT       => 0x20;
+let OS_LINUX_TERMINAL_TRANSLATE_CR    => 0x100;
+let OS_LINUX_TERMINAL_X_FLOW_CONTROL  => 0x400;
+
+let OS_LINUX_TERMINAL_WAIT_INPUT_TIMEOUT_SLOT => 5;
+let OS_LINUX_TERMINAL_MIN_INPUT_SIZE_SLOT     => 6;
+
+/*/doc
+Save terminal state into a given pointer and then set terminal into raw mode.
+*/
+fun os_linux_enter_terminal_raw_mode(old: *LinuxTerminalProperties) => error_id {
+    var eid: error_id = os_linux_get_terminal_properties(old);
+    if eid != 0 {
+        ret eid;
+    }
+    var properties: LinuxTerminalProperties = old.*;
+    
+    const input_mask: u32 = cast(u32, OS_LINUX_TERMINAL_BREAK_INTERRUPT) | cast(u32, OS_LINUX_TERMINAL_INPUT_PARITY) | cast(u32, OS_LINUX_TERMINAL_STRIP_BIT) | cast(u32, OS_LINUX_TERMINAL_TRANSLATE_CR) | cast(u32, OS_LINUX_TERMINAL_X_FLOW_CONTROL);
+    properties.input &= ^input_mask;
+
+    const output_mask: u32 = cast(u32, OS_LINUX_TERMINAL_OUTPUT_PROCESSING);
+    properties.output &= ^output_mask;
+
+    properties.control |= cast(u32, OS_LINUX_TERMINAL_CHARACTER_SIZE_8);
+
+    const local_mask: u32 = cast(u32, OS_LINUX_TERMINAL_ECHO) | cast(u32, OS_LINUX_TERMINAL_CANON) | cast(u32, OS_LINUX_TERMINAL_EXTEN) | cast(u32, OS_LINUX_TERMINAL_SIG);
+    properties.local &= ^local_mask;
+
+    properties.cc[OS_LINUX_TERMINAL_WAIT_INPUT_TIMEOUT_SLOT] = 1;
+    properties.cc[OS_LINUX_TERMINAL_MIN_INPUT_SIZE_SLOT] = 0;
+    
+    eid = os_linux_set_terminal_properties(properties.&);
+    ret eid;
+}
+
+type TerminalViewportInfo => struct {
+    rows: u16,
+    cols: u16,
+
+    x_pixel: u16,
+    y_pixel: u16,
+}
+
+let OS_LINUX_TERMINAL_GET_VIEWPORT_INFO => 0x5413;
+
+fun os_linux_get_terminal_viewport_info(ptr: *TerminalViewportInfo) => error_id {
+    const n: sint = os_linux_amd64_syscall_ioctl(OS_LINUX_STDOUT, OS_LINUX_TERMINAL_GET_VIEWPORT_INFO, ptr);
+    if n < 0 {
+        ret #error(TODO_IOCTL);
+    }
+    ret 0;
+}

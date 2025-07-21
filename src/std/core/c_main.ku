@@ -1,0 +1,35 @@
+#stub
+fun ku_main() => uint
+
+let MAIN_EXIT_FORMAT_BUFFER_SIZE => 1 << 12;
+
+fun print_main_exit_code(c: uint) {
+    var output_buffer: [MAIN_EXIT_FORMAT_BUFFER_SIZE]u8 = ?;
+    var buf: FormatCapBuffer = ?;
+    init_fmt_cap_buffer(buf.&, make_span_u8(output_buffer, MAIN_EXIT_FORMAT_BUFFER_SIZE));
+
+    fmt_cap_buffer_put_str(buf.&, "exit code: ");
+    fmt_cap_buffer_put_dec_u64(buf.&, c);
+    fmt_cap_buffer_put_newline(buf.&);
+
+    stderr_print(fmt_cap_buffer_take(buf.&));
+}
+
+#[
+    link.type = "c.main";
+]
+fun c_main(argc: sint, argv: [*][*]u8, envp: [*][*]u8) => i32 {
+    init_proc_memory_arena_allocator();
+    const eid: error_id = init_os_proc_input(tint(uint, argc), cast([*][*]u8, argv), cast([*][*]u8, envp));
+    if eid != 0 {
+        stderr_print("failed to init process input struct");
+        ret 4;
+    }
+
+    const c: uint = ku_main();
+    if c == 0 {
+        ret 0;
+    }
+    print_main_exit_code(c);
+    ret 1;
+}

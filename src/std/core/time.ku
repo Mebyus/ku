@@ -1,0 +1,26 @@
+/*/doc
+Represents time duration of something with nanosecond precision.
+Both positive and negative durations are possible.
+*/
+type TimeDur => struct {
+	// Number of seconds.
+	sec: s64,
+
+	// Number of nanoseconds.
+	nsec: s64,
+}
+
+/*/doc
+Subtract two time durations from one another.
+Returns equivalent of {a - b} operation.
+*/
+fun time_dur_sub(a: TimeDur, b: TimeDur) => TimeDur {
+	var sub: TimeDur;
+	sub.sec = a.sec - b.sec;
+	sub.nsec = a.nsec - b.nsec;
+  	if sub.nsec < 0 {
+		sub.sec -= 1;
+		sub.nsec += 1000000000; // number of nanoseconds in one second
+	}
+	ret sub;
+}

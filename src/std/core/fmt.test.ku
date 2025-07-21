@@ -1,0 +1,17 @@
+test fmt_dec_u64(t: *TestContext) {
+    var output_buffer: [TEST_FORMAT_BUFFER_SIZE]u8 = ?;
+    var buf: FormatCapBuffer = ?;
+    init_fmt_cap_buffer(buf.&, make_span_u8(output_buffer, TEST_FORMAT_BUFFER_SIZE));
+
+    fmt_cap_buffer_put_dec_u64(buf.&, 0);
+    var s: str = fmt_cap_buffer_take(buf.&);
+    test(str_equal(s, "0"));
+
+    fmt_cap_buffer_put_dec_u64(buf.&, 90141);
+    s = fmt_cap_buffer_take(buf.&);
+    test(str_equal(s, "90141"));
+}
+
+test fmt_dec_s64(t: *TestContext) {
+    test(true);
+}

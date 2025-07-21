@@ -1,0 +1,90 @@
+type MemoryArenaAllocator => struct {
+	// Base pointer of the allocator.
+	// Remains unchanged during its lifetime.
+	base: [*]u8,
+
+	// Current allocator position (offset) relative to base.
+	// Equals number of bytes already in use.
+	pos: uint,
+
+	// Number of bytes in the underlying block of memory.
+	// Remains unchanged during its lifetime.
+	limit: uint,
+}
+
+fun init_memory_arena_allocator(al: *MemoryArenaAllocator, s: []u8) {
+	must(s.len != 0);
+	must(s.ptr != nil);
+
+	al.*.base = s.ptr;
+	al.*.pos = get_align_offset(s.ptr, 8);
+	al.*.limit = s.len;
+}
+
+fun make_memory_allocator_from_arena(al: *MemoryArenaAllocator) => MemoryAllocator {
+	var iface: MemoryAllocator;
+	iface.ptr = al;
+	iface.kind = #enum(MEMORY_ALLOCATOR.ARENA);
+	ret iface;
+}
+
+fun memory_arena_alloc(al: *MemoryArenaAllocator, block: *MemoryBlock) => error_id {
+	var n: uint = block.*.span.len;
+    must(n != 0);
+
+	n = align_uint(n, 8);
+	const left: uint = al.*.limit - al.*.pos;
+	if left < n {
+		ret #error(NO_MEMORY);
+	}
+
+	block.*.span.len = n;
+	block.*.span.ptr = al.*.base + al.*.pos;
+	block.*.id = al.*.pos;
+
+	al.*.pos += n;
+	ret 0;
+}
+
+/*
+Request memory block from allocator.
+
+Requested number of bytes (x) is specified by setting the field:
+
+	block.span.len = x;
+
+Allocator returns 0 on successfully allocating a block. In this case
+allocator sets all fields in {block} argument.
+
+	block.span.ptr - points to start (first byte) of the block
+	block.span.len - actual number of bytes in allocated block, which is always not less than requested.
+	block.id       - pseudo-unique identifier of the block
+
+Number of requested bytes must be not zero.
+*/
+fun memory_alloc(al: MemoryAllocator, block: *MemoryBlock) => error_id {
+	must(al.ptr != nil);
+	must(block.*.span.len != 0);
+
+	if al.kind
+	=> 0 { #never; }
+	=> #enum(MEMORY_ALLOCATOR.ARENA) {
+        ret memory_arena_alloc(al.ptr, block);
+    }
+	else { #never; }
+}
+
+fun memory_free(al: MemoryAllocator, block: *MemoryBlock) {
+	must(al.ptr != nil);
+	must(block.*.span.len != 0);
+	must(block.*.span.ptr != nil);
+
+	if al.kind
+	=> 0 { #never; }
+	=> #enum(MEMORY_ALLOCATOR.ARENA) {
+		// Arena allocator does not free memory blocks
+    }
+	else { #never; }
+
+    memory_block_clear_fields(block);
+}

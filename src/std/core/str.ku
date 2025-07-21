@@ -1,0 +1,46 @@
+type span_str => struct {
+    ptr: [*]str,
+    len: uint,
+}
+
+fun make_span_str(ptr: [*]str, len: uint) => []str {
+    var s: []str;
+	if len == 0 {
+		ret s;
+	}
+
+    s.ptr = ptr;
+    s.len = len;
+    ret s;
+}
+
+type RetIndex => struct {
+    val: uint,
+    ok:  bool,
+}
+
+fun str_index_byte(s: str, x: u8) => RetIndex {
+    var r: RetIndex;
+    for i = [:s.len] {
+        if s.ptr.[i] == x {
+            r.val = i;
+            r.ok = true;
+            ret r;
+        }
+    }
+    ret r;
+}
+
+fun str_index_back_byte(s: str, x: u8) => RetIndex {
+    var r: RetIndex;
+    var i: uint = s.len;
+    for i != 0 {
+        i -= 1;
+        if s.ptr.[i] == x {
+            r.val = i;
+            r.ok = true;
+            ret r;
+        }
+    }
+    ret r;
+}

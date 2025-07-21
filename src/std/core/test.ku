@@ -1,0 +1,42 @@
+let TEST_FORMAT_BUFFER_SIZE => 1 << 14;
+
+type TestContext => struct {
+    name: str,
+
+    fail_path: str,
+    fail_line: uint,
+ 
+    failed: bool,
+}
+
+fun test_reset(t: *TestContext, name: str) {
+    t.*.name = name;
+    t.*.fail_path = "";
+    t.*.fail_line = 0;
+    t.*.failed = false;
+}
+
+fun test_pos(t: *TestContext, c: bool, path: str, line: uint) => bool {
+    must(!t.*.failed);
+
+    if c {
+        ret false;
+    }
+
+    t.*.failed = true;
+    t.*.fail_path = path;
+    t.*.fail_line = line;
+
+    ret true;
+}
+
+fun fmt_cap_buffer_put_test(buf: *FormatCapBuffer, t: *TestContext) {
+    fmt_cap_buffer_put_str(buf, t.*.name);
+    fmt_cap_buffer_put_newline(buf);
+    
+    fmt_cap_buffer_put_space_repeat(buf, 4);
+    fmt_cap_buffer_put_str(buf, t.*.fail_path);
+    fmt_cap_buffer_put_byte(buf, ':');
+    fmt_cap_buffer_put_dec_u64(buf, t.*.fail_line);
+    fmt_cap_buffer_put_newline(buf);    
+}

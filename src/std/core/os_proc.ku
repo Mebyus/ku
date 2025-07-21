@@ -1,0 +1,55 @@
+let PROC_MEMORY_BUFFER_SIZE => 1 << 24;
+
+var proc_memory_buffer: [PROC_MEMORY_BUFFER_SIZE]u8;
+var proc_memory_arena_allocator: MemoryArenaAllocator;
+
+fun init_proc_memory_arena_allocator() {
+    var buf: []u8 = make_span_u8(proc_memory_buffer, PROC_MEMORY_BUFFER_SIZE);
+	init_memory_arena_allocator(proc_memory_arena_allocator.&, buf);
+}
+
+/*/doc
+Global allocation mechanism which is meant for things that are created once
+during process lifetime (and most likely live until process exits).
+*/
+fun proc_memory_alloc(block: *MemoryBlock) => error_id {
+	ret memory_arena_alloc(proc_memory_arena_allocator.&, block);
+}
+
+type EnvEntry => struct {
+	name:  str,
+	value: str,
+}
+
+type span_env => struct {
+	ptr: [*]EnvEntry,
+	len: uint,
+}
+
+type OsProcInput => struct {
+	args: []str,
+	envs: span_env,
+}
+
+var os_proc_input: OsProcInput;
+
+fun init_os_proc_input(argc: uint, argv: [*][*]u8, envp: [*][*]u8) => error_id {
+	var block: MemoryBlock;
+	block.span.len = argc * #size(str);
+	var eid: error_id = proc_memory_alloc(block.&);
+	if eid != 0 {
+		ret eid;
+	}
+
+	os_proc_input.args = make_span_str(cast(*any, block.span.ptr), argc);
+	for i = [:argc] {
+		var p: [*]u8 = argv.[i];
+		if p == nil {
+            os_proc_input.args.len = i;
+			jump @.out;
+		}
+		os_proc_input.args.ptr.[i] = unsafe_make_c_string_from_pointer(p);
+	}
+
+	ret 0;
+}
