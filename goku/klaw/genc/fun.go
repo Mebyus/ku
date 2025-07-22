@@ -88,13 +88,18 @@ func getTestFunName(name string) string {
 	return "run_test_" + name
 }
 
-func (g *Gen) TestFun(t ast.Fun) {
+func (g *Gen) TestFun(t ast.TestFun) {
 	if !g.test() {
 		return
 	}
 
-	t.Name.Str = getTestFunName(t.Name.Str)
-	g.Fun(t)
+	name := getTestFunName(t.Name.Str)
+
+	g.puts("static void")
+	g.nl()
+	g.puts(name)
+	g.puts("(TestContext* t) ")
+	g.Block(t.Body)
 }
 
 func (g *Gen) FunHead(name string, s ast.Signature) {

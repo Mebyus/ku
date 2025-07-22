@@ -35,14 +35,32 @@ func (p *Parser) Fun(traits ast.Traits) (ast.Fun, diag.Error) {
 func (p *Parser) TestFun(traits ast.Traits) diag.Error {
 	p.advance() // skip "test"
 
-	t, err := p.fun()
+	t, err := p.testFun()
 	if err != nil {
 		return err
 	}
 
-	t.Traits = traits
+	// TODO: maybe we need traits on tests?
+	// t.Traits = traits
 	p.text.AddTest(t)
 	return nil
+}
+
+func (p *Parser) testFun() (ast.TestFun, diag.Error) {
+	if p.c.Kind != token.Word {
+		return ast.TestFun{}, p.unexpected()
+	}
+	name := p.word()
+
+	body, err := p.Block()
+	if err != nil {
+		return ast.TestFun{}, err
+	}
+
+	return ast.TestFun{
+		Name: name,
+		Body: body,
+	}, nil
 }
 
 func (p *Parser) FunStub(traits ast.Traits) diag.Error {

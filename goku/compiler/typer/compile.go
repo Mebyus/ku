@@ -262,7 +262,7 @@ func (t *Typer) addMethods(methods []ast.Method) diag.Error {
 	return nil
 }
 
-func (t *Typer) addTests(tests []ast.Fun) diag.Error {
+func (t *Typer) addTests(tests []ast.TestFun) diag.Error {
 	for _, test := range tests {
 		err := t.addTest(test)
 		if err != nil {
@@ -400,7 +400,7 @@ func (t *Typer) addMethod(m ast.Method) diag.Error {
 	return nil
 }
 
-func (t *Typer) addTest(test ast.Fun) diag.Error {
+func (t *Typer) addTest(test ast.TestFun) diag.Error {
 	name := test.Name.Str
 	pin := test.Name.Pin
 

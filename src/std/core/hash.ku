@@ -1,7 +1,7 @@
 fun hash64_djb2(s: []u8) => u64 {
     var h: u64 = 5381; // magic number
     for i = [:s.len] {
-        h = ((h << 5) + h) + cast(u64, s.ptr.[i]);
+        h += (h << 5) + cast(u64, s.ptr.[i]);
     }
     ret h;
 }

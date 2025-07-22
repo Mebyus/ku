@@ -20,7 +20,7 @@ type Box struct {
 	Functions []ast.Fun
 
 	// List of unit test functions.
-	Tests []ast.Fun
+	Tests []ast.TestFun
 
 	// List of top function stub nodes.
 	FunStubs []ast.FunStub
@@ -75,7 +75,7 @@ func (b *Box) init(texts []*ast.Text) {
 		b.Variables = make([]ast.TopVar, 0, vars)
 	}
 	if tests != 0 {
-		b.Tests = make([]ast.Fun, 0, tests)
+		b.Tests = make([]ast.TestFun, 0, tests)
 	}
 	if types != 0 {
 		b.Types = make([]ast.Type, 0, types)
@@ -148,7 +148,7 @@ func (b *Box) addMethod(node ast.Method) uint32 {
 	return i
 }
 
-func (b *Box) addTest(node ast.Fun) uint32 {
+func (b *Box) addTest(node ast.TestFun) uint32 {
 	i := uint32(len(b.Tests))
 	b.Tests = append(b.Tests, node)
 	return i
@@ -189,7 +189,7 @@ func (b *Box) FunStub(i uint32) ast.FunStub {
 	return b.FunStubs[i]
 }
 
-func (b *Box) Test(i uint32) ast.Fun {
+func (b *Box) Test(i uint32) ast.TestFun {
 	return b.Tests[i]
 }
 

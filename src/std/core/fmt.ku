@@ -89,7 +89,6 @@ fun unsafe_fmt_hex_prefix_zeroes_u32(p: [*]u8, x: u32) {
 const max_u64_fmt_hex_length: uint = 16;
 
 /*/doc
-
 Formats a given u64 integer as a hexadecimal number of
 fixed width (=16) format, prefixing significant digits with
 zeroes if necessary. Buffer must be at least 16 bytes
@@ -109,7 +108,6 @@ fun unsafe_fmt_hex_prefix_zeroes_u64(p: [*]u8, x: u64) {
 }
 
 /*/doc
-
 Puts decimal digits of a number in reverse order inside a buffer.
 Returns number of digits written.
 
@@ -138,7 +136,6 @@ Maximum number of bytes (digits) needed to format any u64 integer as decimal num
 const max_u64_fmt_dec_length: uint = 20;
 
 /*/doc
-
 Same as fmt_dec_u64, but has no buffer boundary checks.
 */
 fun unsafe_fmt_dec_u64(p: [*]u8, x: u64) => uint {
@@ -198,7 +195,6 @@ fun fmt_dec_u64(buf: []u8, x: u64) => uint {
 }
 
 /*/doc
-
 Maximum number of bytes (digits) needed to format any u64 integer as decimal number.
 */
 const max_s64_fmt_dec_length: uint = max_u64_fmt_dec_length + 1;
@@ -217,7 +213,6 @@ fun unsafe_fmt_dec_s64(p: [*]u8, x: s64) => uint {
 const max_time_dur_fmt_micro_length: uint = max_s64_fmt_dec_length + 1 + 6;
 
 /*/doc
-
 Formats time duration like this: 17.053793 (with microsecond precision).
 Returns number of bytes actually written.
 */
@@ -380,6 +375,20 @@ fun fmt_cap_buffer_put_hex_prefix_zeroes_u32(buf: *FormatCapBuffer, x: u32) {
 
     unsafe_fmt_hex_prefix_zeroes_u32(tail.ptr, x);
     buf.*.len += max_u32_fmt_hex_length;
+}
+
+fun fmt_cap_buffer_put_hex_prefix_zeroes_u64(buf: *FormatCapBuffer, x: u64) {
+    var tail: []u8 = fmt_cap_buffer_tail(buf);
+    if tail.len == 0 {
+        ret;
+    }
+    if tail.len < max_u64_fmt_hex_length {
+        buf.*.eof = true;
+        ret;
+    }
+
+    unsafe_fmt_hex_prefix_zeroes_u64(tail.ptr, x);
+    buf.*.len += max_u64_fmt_hex_length;
 }
 
 fun fmt_cap_buffer_put_bin_bytes_u16(buf: *FormatCapBuffer, x: u16) {

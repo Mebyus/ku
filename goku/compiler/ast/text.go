@@ -39,7 +39,7 @@ type Text struct {
 	Aliases []TopAlias
 
 	// List of unit test functions.
-	Tests []Fun
+	Tests []TestFun
 
 	// List of top function declaration nodes.
 	FunStubs []FunStub
@@ -109,7 +109,7 @@ func (t *Text) AddFun(f Fun) {
 	t.Functions = append(t.Functions, f)
 }
 
-func (t *Text) AddTest(f Fun) {
+func (t *Text) AddTest(f TestFun) {
 	t.OrderIndex = append(t.OrderIndex, NodeIndex{
 		Kind:  tnk.Test,
 		Index: uint32(len(t.Tests)),

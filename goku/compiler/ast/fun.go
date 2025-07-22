@@ -16,6 +16,16 @@ type Fun struct {
 
 // Formal definition:
 //
+//	Fun  => "test" Name Body
+//	Body => Block
+//	Name => word
+type TestFun struct {
+	Body Block
+	Name Word
+}
+
+// Formal definition:
+//
 //	Function => "stub" "fun" Name Signature
 //	Name     => word
 type FunStub struct {

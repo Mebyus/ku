@@ -234,13 +234,8 @@ func text9() *Text {
 
 func text10() *Text {
 	t := New()
-	t.AddTest(Fun{
+	t.AddTest(TestFun{
 		Name: word("inc"),
-		Signature: Signature{
-			Params: []Param{
-				param("t", ptr(typename("Test"))),
-			},
-		},
 		Body: block(
 			ret(nil),
 		),

@@ -15,9 +15,11 @@ func (g *Printer) Fun(f Fun) {
 	g.fun(f)
 }
 
-func (g *Printer) TestFun(t Fun) {
+func (g *Printer) TestFun(t TestFun) {
 	g.puts("test ")
-	g.fun(t)
+	g.puts(t.Name.Str)
+	g.space()
+	g.Block(t.Body)
 }
 
 func (g *Printer) fun(f Fun) {

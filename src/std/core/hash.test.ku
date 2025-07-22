@@ -1,0 +1,13 @@
+test hash64_djb2 {
+    test(hash64_djb2("") == 5381);
+    test(hash64_djb2("hello") == 0x310F923099);
+    test(hash64_djb2("   hello   123") == 0xC4342501C24F490F);
+    test(hash64_djb2("00000000 \n \t  AZ3 113") == 0x430DC73450E7127B);
+}
+
+test hash64_sdbm {
+    test(hash64_sdbm("") == 0);
+    test(hash64_sdbm("hello") == 0x66EB1BB328D19932);
+    test(hash64_sdbm("   hello   123") == 0xF15D829B0CFE3224);
+    test(hash64_sdbm("00000000 \n \t  AZ3 113") == 0x48E4E5AF36EF6FDA);
+}

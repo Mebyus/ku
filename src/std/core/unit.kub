@@ -23,5 +23,6 @@ exe {
 
 test {
     include "test.ku";
+    include "hash.test.ku";
     include "fmt.test.ku";
 }
