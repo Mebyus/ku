@@ -64,6 +64,10 @@ func (g *Gen) Exp(exp ast.Exp) {
 		g.Size(e)
 	case ast.Cast:
 		g.Cast(e)
+	case ast.CheckFlag:
+		g.CheckFlag(e)
+	case ast.ArrayLen:
+		g.ArrayLen(e)
 	case ast.Tint:
 		g.Tint(e)
 	default:
@@ -269,6 +273,22 @@ func (g *Gen) Size(s ast.Size) {
 	g.puts("sizeof(")
 	g.TypeSpec(s.Exp)
 	g.puts(")")
+}
+
+func (g *Gen) CheckFlag(c ast.CheckFlag) {
+	g.puts("((")
+	g.Exp(c.Exp)
+	g.puts(" & ")
+	g.Exp(c.Flag)
+	g.puts(") != 0)")
+}
+
+func (g *Gen) ArrayLen(l ast.ArrayLen) {
+	g.puts("(sizeof(")
+	g.Exp(l.Exp)
+	g.puts(") / sizeof(")
+	g.Exp(l.Exp)
+	g.puts("[0]))")
 }
 
 func (g *Gen) Cast(c ast.Cast) {

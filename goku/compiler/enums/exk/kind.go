@@ -316,6 +316,12 @@ const (
 	//	#cast(Foo, bar)
 	Cast
 
+	// Operand
+	CheckFlag
+
+	// Operand
+	ArrayLen
+
 	// Operand.
 	//
 	// AST and STG.
@@ -372,6 +378,9 @@ var text = [...]string{
 	TypeId:    "#typeid",
 	ErrorId:   "#error",
 	EnumMacro: "#enum",
+
+	CheckFlag: "#check",
+	ArrayLen:  "#len",
 
 	Unary:  "unary",
 	Binary: "binary",

@@ -129,6 +129,7 @@ const (
 	Nil
 	True
 	False
+	Any // designator to use as *any (void* analog)
 
 	StaticMust // #must
 
@@ -143,7 +144,8 @@ const (
 	ErrorId // #error
 	Enum    // #enum
 
-	Any // designator to use as *any (void* analog)
+	Check // #check
+	Len   // #len
 
 	LabelNext // @.next
 	LabelOut  // @.out

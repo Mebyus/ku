@@ -403,6 +403,10 @@ func (lx *Lexer) static() token.Token {
 		tok.Kind = token.Enum
 	case "size":
 		tok.Kind = token.Size
+	case "check":
+		tok.Kind = token.Check
+	case "len":
+		tok.Kind = token.Len
 	case "never":
 		tok.Kind = token.Never
 	case "stub":

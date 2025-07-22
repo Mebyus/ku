@@ -83,10 +83,12 @@ func (p *Parser) Operand() (ast.Operand, diag.Error) {
 		return p.Size()
 	case token.Cast:
 		return p.Cast()
+	case token.Check:
+		return p.CheckFlag()
+	case token.Len:
+		return p.ArrayLen()
 	case token.Tint:
 		return p.Tint()
-	// case token.MemCast:
-	// 	return p.memcast()
 	case token.LeftCurly:
 		return p.Object()
 	case token.Word, token.Unsafe:
@@ -509,6 +511,40 @@ func (p *Parser) Cast() (ast.Cast, diag.Error) {
 	}, nil
 }
 
+func (p *Parser) CheckFlag() (ast.CheckFlag, diag.Error) {
+	p.advance() // skip "#check"
+
+	if p.c.Kind != token.LeftParen {
+		return ast.CheckFlag{}, p.unexpected()
+	}
+	p.advance() // skip "("
+
+	exp, err := p.Exp()
+	if err != nil {
+		return ast.CheckFlag{}, err
+	}
+
+	if p.c.Kind != token.Comma {
+		return ast.CheckFlag{}, p.unexpected()
+	}
+	p.advance() // skip ","
+
+	flag, err := p.Exp()
+	if err != nil {
+		return ast.CheckFlag{}, err
+	}
+
+	if p.c.Kind != token.RightParen {
+		return ast.CheckFlag{}, p.unexpected()
+	}
+	p.advance() // skip ")"
+
+	return ast.CheckFlag{
+		Exp:  exp,
+		Flag: flag,
+	}, nil
+}
+
 func (p *Parser) Tint() (ast.Tint, diag.Error) {
 	p.advance() // skip "tint"
 
@@ -562,6 +598,27 @@ func (p *Parser) Size() (ast.Size, diag.Error) {
 	p.advance() // skip ")"
 
 	return ast.Size{Exp: spec}, nil
+}
+
+func (p *Parser) ArrayLen() (ast.ArrayLen, diag.Error) {
+	p.advance() // skip "#len"
+
+	if p.c.Kind != token.LeftParen {
+		return ast.ArrayLen{}, p.unexpected()
+	}
+	p.advance() // skip "("
+
+	exp, err := p.Exp()
+	if err != nil {
+		return ast.ArrayLen{}, err
+	}
+
+	if p.c.Kind != token.RightParen {
+		return ast.ArrayLen{}, p.unexpected()
+	}
+	p.advance() // skip ")"
+
+	return ast.ArrayLen{Exp: exp}, nil
 }
 
 func (p *Parser) List() (ast.List, diag.Error) {

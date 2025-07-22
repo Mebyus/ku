@@ -270,6 +270,20 @@ func (g *Printer) Cast(c Cast) {
 	g.puts(")")
 }
 
+func (g *Printer) CheckFlag(c CheckFlag) {
+	g.puts("#check(")
+	g.Exp(c.Exp)
+	g.puts(", ")
+	g.Exp(c.Flag)
+	g.puts(")")
+}
+
+func (g *Printer) ArrayLen(l ArrayLen) {
+	g.puts("#len(")
+	g.Exp(l.Exp)
+	g.puts(")")
+}
+
 func (g *Printer) Tint(t Tint) {
 	g.puts("tint(")
 	g.TypeSpec(t.Type)

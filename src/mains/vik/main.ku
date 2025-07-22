@@ -86,7 +86,7 @@ fun read_key() => RetKey {
     var rk: RetKey;
 
     var input_buffer: [8]u8 = ?;
-    var buf: []u8 = make_span_u8(input_buffer, 8);
+    var buf: []u8 = make_span_u8(input_buffer, #len(input_buffer));
     const r: RetRead = stdin_read_until_full(buf);
     if r.eid != 0 {
         rk.eid = r.eid;
@@ -139,7 +139,7 @@ fun run_editor() => error_id {
             jump @.out;
         }
 
-        if ((rk.key.flags & KEY_FLAG_CTRL) != 0) && rk.key.c == 'q' {
+        if #check(rk.key.flags, KEY_FLAG_CTRL) && rk.key.c == 'q' {
             jump @.out;
         }
     }

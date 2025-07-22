@@ -113,6 +113,7 @@ var literal = [...]string{
 	Nil:   "nil",
 	True:  "true",
 	False: "false",
+	Any:   "any",
 
 	StaticMust: "#must",
 
@@ -127,7 +128,8 @@ var literal = [...]string{
 	ErrorId: "#error",
 	Enum:    "#enum",
 
-	Any: "any",
+	Check: "#check",
+	Len:   "#len",
 
 	LabelNext: "@.next",
 	LabelOut:  "@.out",
