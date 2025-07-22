@@ -15,7 +15,7 @@ fun os_linux_write(fd: uint, s: []u8) => RetWrite {
         ret r;
     }
 
-    r.count = cast(uint, n);
+    r.num = cast(uint, n);
     ret r;
 }
 
@@ -25,9 +25,9 @@ fun os_linux_write_all(fd: uint, s: []u8) => RetWrite {
 		ret r;
 	}
 
-	for r.count < s.len {
-		var w: RetWrite = os_linux_write(fd, span_u8_slice_tail(s, r.count));
-        r.count += w.count;
+	for r.num < s.len {
+		var w: RetWrite = os_linux_write(fd, span_u8_slice_tail(s, r.num));
+        r.num += w.num;
 		
         if w.eid != 0 {
             r.eid = w.eid;
@@ -75,7 +75,7 @@ fun os_linux_read(fd: uint, buf: []u8) => RetRead {
         ret r;
     }
 
-    r.count = cast(uint, n);
+    r.num = cast(uint, n);
     ret r;
 }
 
@@ -87,9 +87,9 @@ Returns READ_EOF error if reading was stopped due to EOF.
 */
 fun os_linux_read_until_full(fd: uint, buf: []u8) => RetRead {
     var rr: RetRead;
-    for rr.count < buf.len {
-        const r: RetRead = os_linux_read(fd, span_u8_slice_tail(buf, rr.count));
-        rr.count += r.count;
+    for rr.num < buf.len {
+        const r: RetRead = os_linux_read(fd, span_u8_slice_tail(buf, rr.num));
+        rr.num += r.num;
         if r.eid != 0 {
             rr.eid = r.eid;
             ret rr;
@@ -110,10 +110,10 @@ fun stdin_read(buf: []u8) => RetRead {
 
 fun stdin_read_until_full(buf: []u8) => RetRead {
     var rr: RetRead;
-    for rr.count < buf.len {
-        const r: RetRead = stdin_read(span_u8_slice_tail(buf, rr.count));
-        rr.count += r.count;
-        if r.eid != 0 || r.count == 0 {
+    for rr.num < buf.len {
+        const r: RetRead = stdin_read(span_u8_slice_tail(buf, rr.num));
+        rr.num += r.num;
+        if r.eid != 0 || r.num == 0 {
             rr.eid = r.eid;
             ret rr;
         }
@@ -231,7 +231,7 @@ fun os_load_file(al: MemoryAllocator, path: str, blob: *Blob) => error_id {
         memory_free(al, blob.*.block.&);
         ret r.eid;
     }
-    blob.*.size = r.count;
+    blob.*.size = r.num;
 
     ret 0;
 }

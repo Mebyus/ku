@@ -1,9 +1,9 @@
 type RetRead => struct {
-    count: uint,
+    num: uint,
     eid: error_id,
 }
 
 type RetWrite => struct {
-    count: uint,
+    num: uint,
     eid: error_id,
 }
