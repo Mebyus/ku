@@ -1,3 +1,11 @@
+set {
+    root.dir = ".";
+}
+
 module "core" {
     unit "std/core";
+}
+
+module "vik" {
+    main "vik";
 }

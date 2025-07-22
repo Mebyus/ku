@@ -1,0 +1,188 @@
+let KEY_FLAG_SHIFT => 1 << 1;
+let KEY_FLAG_CTRL  => 1 << 2;
+let KEY_FLAG_ALT   => 1 << 3;
+
+type KeyCode => u8 {
+    KEY_CODE_0 = '0',
+    KEY_CODE_1 = '1',
+    KEY_CODE_2 = '2',
+    KEY_CODE_3 = '3',
+    KEY_CODE_4 = '4',
+    KEY_CODE_5 = '5',
+    KEY_CODE_6 = '6',
+    KEY_CODE_7 = '7',
+    KEY_CODE_8 = '8',
+    KEY_CODE_9 = '9',
+
+    KEY_CODE_A = 'A',
+    KEY_CODE_B = 'B',
+    KEY_CODE_Z = 'Z',
+}
+
+/*/doc
+Describes a single input key (or key combination) pressed.
+*/
+type Key => struct {
+    flags: u32,
+
+    // Zero means no key press.
+    c: KeyCode,
+}
+
+let KEY_BUFFER_SIZE => 16;
+
+/*/doc
+Circular buffer for tracking key presses.
+*/
+type KeyBuffer => struct {
+    buf: [KEY_BUFFER_SIZE]Key,
+
+    // Index position (inside {buf}) of next buffer write slot.
+    pos: uint,
+
+    // Number of stored elements.
+    len: uint,
+}
+
+fun key_buffer_get(kb: *KeyBuffer) => Key {
+    var key: Key;
+    if kb.*.len == 0 {
+        ret key;
+    }
+
+    const i: uint = (KEY_BUFFER_SIZE + kb.*.pos - kb.*.len) % KEY_BUFFER_SIZE;
+    kb.*.len -= 1;
+
+    ret kb.*.buf.[i];
+}
+
+fun key_buffer_add(kb: *KeyBuffer, key: Key) {
+    const i: uint = kb.*.pos;
+    kb.*.pos = (kb.*.pos + 1) % KEY_BUFFER_SIZE;
+
+    kb.*.buf.[i] = key;
+
+    if kb.*.len < KEY_BUFFER_SIZE {
+        kb.*.len += 1;
+    }
+}
+
+type RetKey => struct {
+    key: Key,
+    eid: error_id,
+}
+
+let KEY_CTRL_A => cast(u8, 'a') & 0x1F;
+let KEY_CTRL_Z => cast(u8, 'z') & 0x1F;
+
+fun is_ctrl_key(c: u8) => bool {
+    ret (KEY_CTRL_A <= c) && (c <= KEY_CTRL_Z);
+}
+
+var log_sink: LogSink;
+var lg: Logger;
+
+fun read_key() => RetKey {
+    var rk: RetKey;
+
+    var input_buffer: [8]u8 = ?;
+    var buf: []u8 = make_span_u8(input_buffer, 8);
+    const r: RetRead = stdin_read_until_full(buf);
+    if r.eid != 0 {
+        rk.eid = r.eid;
+        ret rk;
+    }
+
+    var input: []u8 = span_u8_slice_head(buf, r.num);
+    if input.len == 0 {
+        ret rk;
+    }
+
+    log_debug_field(lg.&, "input received", log_field_bytes("bytes", input));
+    log_sink_flush(log_sink.&);
+
+    if input.len != 1 {
+        rk.eid = #error(UNEXPECTED_INPUT);
+        ret rk;
+    }
+
+    var c: u8 = input.ptr.[0];
+    log_debug_field(lg.&, "input char", log_field_byte("char", c));
+    log_sink_flush(log_sink.&);
+
+    if is_ctrl_key(c) {
+        rk.key.flags |= KEY_FLAG_CTRL;
+        c |= 0b01100000;
+    }
+
+    rk.key.c = c;
+
+    ret rk;
+}
+
+fun run_editor() => error_id {
+    var properties: LinuxTerminalProperties = ?;
+    var eid: error_id = os_linux_enter_terminal_raw_mode(properties.&);
+    if eid != 0 {
+        ret eid;
+    }
+
+    var info: TerminalViewportInfo = ?;
+    eid = os_linux_get_terminal_viewport_info(info.&);
+    if eid != 0 {
+        ret eid;
+    }
+
+    for {
+        var rk: RetKey = read_key();
+        if rk.eid != 0 {
+            jump @.out;
+        }
+
+        if ((rk.key.flags & KEY_FLAG_CTRL) != 0) && rk.key.c == 'q' {
+            jump @.out;
+        }
+    }
+
+    eid = os_linux_set_terminal_properties(properties.&);
+    if eid != 0 {
+        ret eid;
+    }
+    ret 0;
+}
+
+fun ku_main() => uint {
+    init_log_sink(log_sink.&, "vik.log");
+    init_log(lg.&, log_sink.&, LOG_LEVEL_DEBUG);
+
+    const eid: error_id = run_editor();
+
+    log_sink_close(log_sink.&);
+    ret eid;
+
+    /*
+    
+    var output_buffer: [1024]u8 = ?;
+    var buf: FormatCapBuffer = ?;
+    init_fmt_cap_buffer(buf.&, make_span_u8(output_buffer, 1024));
+
+    fmt_cap_buffer_put_str(buf.&, "rows: ");
+    fmt_cap_buffer_put_dec_u64(buf.&, info.rows);
+    fmt_cap_buffer_put_newline(buf.&);
+
+    fmt_cap_buffer_put_str(buf.&, "cols: ");
+    fmt_cap_buffer_put_dec_u64(buf.&, info.cols);
+    fmt_cap_buffer_put_newline(buf.&);
+
+    fmt_cap_buffer_put_str(buf.&, "x_pixel: ");
+    fmt_cap_buffer_put_dec_u64(buf.&, info.x_pixel);
+    fmt_cap_buffer_put_newline(buf.&);
+
+    fmt_cap_buffer_put_str(buf.&, "y_pixel: ");
+    fmt_cap_buffer_put_dec_u64(buf.&, info.y_pixel);
+    fmt_cap_buffer_put_newline(buf.&);
+
+    stdout_print(fmt_cap_buffer_take(buf.&));
+
+    */
+}

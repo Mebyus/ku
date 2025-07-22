@@ -220,6 +220,17 @@ fun log_sink_format_bytes(sink: *LogSink, s: []u8) {
     log_sink_put_byte(sink, ']');
 }
 
+fun log_sink_format_bin_byte(sink: *LogSink, x: u8) {
+    const fmt_byte_length: uint = 2 + 8; // 0b + bin number
+    log_sink_threshold_flush(sink, fmt_byte_length);
+
+    var tail: []u8 = log_sink_buffer_tail(sink);
+    tail.ptr.[0] = '0';
+    tail.ptr.[1] = 'b';
+    unsafe_fmt_bin_byte(tail.ptr + 2, x);
+    sink.*.pos += fmt_byte_length;
+}
+
 fun log_sink_format_span_s64(sink: *LogSink, s: []s64) {
     log_sink_put_byte(sink, '[');
     if s.len == 0 {
@@ -255,6 +266,7 @@ let LOG_FIELD_PTR => 3;
 let LOG_FIELD_SPAN_S64 => 4;
 
 let LOG_FIELD_BYTES => 5;
+let LOG_FIELD_BYTE  => 6;
 
 type LogFieldValue => union {
     u64: u64,
@@ -266,6 +278,8 @@ type LogFieldValue => union {
     bytes: []u8,
 
     ptr: *any,
+
+    byte: u8,
 }
 
 type LogField => struct {
@@ -315,6 +329,14 @@ fun log_field_bytes(name: str, value: []u8) => LogField {
     ret field;
 }
 
+fun log_field_byte(name: str, value: u8) => LogField {
+    var field: LogField;
+    field.val.byte = value;
+    field.name = name;
+    field.kind = LOG_FIELD_BYTE;
+    ret field;
+}
+
 fun log_field_span_s64(name: str, value: []s64) => LogField {
     var field: LogField;
     field.val.span_s64 = value;
@@ -347,6 +369,7 @@ fun log_sink_format_field_value(sink: *LogSink, kind: u8, value: LogFieldValue) 
     => LOG_FIELD_PTR { log_sink_format_ptr(sink, value.ptr); }
     => LOG_FIELD_SPAN_S64 { log_sink_format_span_s64(sink, value.span_s64); }
     => LOG_FIELD_BYTES { log_sink_format_bytes(sink, value.bytes); }
+    => LOG_FIELD_BYTE { log_sink_format_bin_byte(sink, value.byte); }
     else { #never; }
 }
 
