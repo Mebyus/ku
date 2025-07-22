@@ -19,6 +19,7 @@ const (
 	Method
 	FunStub
 	Must
+	RegBag
 
 	Gen
 	GenBind
@@ -38,6 +39,7 @@ var text = [...]string{
 	Method:  "method",
 	FunStub: "fun.stub",
 	Must:    "must",
+	RegBag:  "bag",
 
 	Gen:     "gen",
 	GenBind: "gen.bind",

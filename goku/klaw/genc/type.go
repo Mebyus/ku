@@ -207,7 +207,7 @@ func (g *Gen) typedefFunType(name string, f ast.FunType) {
 	g.puts(");")
 }
 
-func (g *Gen) typedefBagFun(f ast.BagFun) {
+func (g *Gen) typedefBagFun(bag string, f ast.BagFun) {
 	g.puts("typedef ")
 
 	s := f.Signature
@@ -217,7 +217,9 @@ func (g *Gen) typedefBagFun(f ast.BagFun) {
 		g.TypeSpec(s.Result)
 	}
 
-	g.puts(" (*BagFun")
+	g.puts(" (*")
+	g.puts(bag)
+	g.puts("Fun")
 	g.puts(strings.Title(f.Name.Str)) // TODO: make siplified transform for uppercase letter for function name
 	g.puts(")")
 
@@ -235,7 +237,7 @@ func (g *Gen) typedefBagType(name string, b ast.Bag) {
 	}
 
 	for _, f := range b.Funs {
-		g.typedefBagFun(f)
+		g.typedefBagFun(name, f)
 	}
 
 	g.nl()
@@ -243,9 +245,14 @@ func (g *Gen) typedefBagType(name string, b ast.Bag) {
 	g.nl()
 	g.inc()
 
+	g.indent()
+	g.puts("uint type_id;")
+	g.nl()
+
 	for _, f := range b.Funs {
 		g.indent()
-		g.puts("BagFun")
+		g.puts(name)
+		g.puts("Fun")
 		g.puts(strings.Title(f.Name.Str)) // TODO: maybe we should optimize function type name generation
 		g.space()
 		g.puts(f.Name.Str)
@@ -254,7 +261,7 @@ func (g *Gen) typedefBagType(name string, b ast.Bag) {
 	}
 
 	g.dec()
-	g.puts("} Bag")
+	g.puts("} ")
 	g.puts(name)
 	g.puts("Tab;")
 
@@ -268,7 +275,6 @@ func (g *Gen) typedefBagType(name string, b ast.Bag) {
 	g.nl()
 
 	g.indent()
-	g.puts("Bag")
 	g.puts(name)
 	g.puts("Tab* tab;")
 	g.nl()

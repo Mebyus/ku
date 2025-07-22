@@ -43,6 +43,8 @@ func (g *Gen) topByIndex(text *ast.Text, x ast.NodeIndex) {
 		panic("not supported")
 	case tnk.FunStub:
 		g.FunStub(text.FunStubs[i])
+	case tnk.RegBag:
+		g.RegBag(text.RegBags[i])
 	case tnk.Alias:
 		g.Alias(text.Aliases[i])
 	case tnk.Must:

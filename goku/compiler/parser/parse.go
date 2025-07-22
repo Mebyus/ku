@@ -9,9 +9,6 @@ import (
 func (p *Parser) parse() diag.Error {
 	for {
 		if p.c.Kind == token.EOF {
-			// if p.c.Data != "" {
-			// 	return fmt.Errorf(p.tok.Lit)
-			// }
 			return nil
 		}
 
@@ -55,6 +52,8 @@ func (p *Parser) top() diag.Error {
 		return p.topStaticMust()
 	case token.Gen:
 		return p.Gen(traits)
+	case token.Bag:
+		return p.RegBag()
 	default:
 		return p.unexpected()
 	}

@@ -268,3 +268,11 @@ fun os_linux_memory_free(block: *MemoryBlock) {
     const n: sint = os_linux_amd64_syscall_munmap(block.*.span.ptr, block.*.span.len);
     must(n == 0);
 }
+
+bag fd: uint => BagReader {
+    read: os_linux_read,
+}
+
+bag fd: uint => BagWriter {
+    write: os_linux_write,
+}

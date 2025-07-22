@@ -7,3 +7,11 @@ type RetWrite => struct {
     num: uint,
     eid: error_id,
 }
+
+type BagReader => bag {
+    read(buf: []u8) => RetRead;
+}
+
+type BagWriter => bag {
+    write(buf: []u8) => RetWrite;
+}

@@ -44,6 +44,9 @@ type Text struct {
 	// List of top function declaration nodes.
 	FunStubs []FunStub
 
+	// List of bag implementation registrations.
+	RegBags []RegBag
+
 	// List of method nodes.
 	Methods []Method
 
@@ -131,6 +134,14 @@ func (t *Text) AddStub(s FunStub) {
 		Index: uint32(len(t.FunStubs)),
 	})
 	t.FunStubs = append(t.FunStubs, s)
+}
+
+func (t *Text) AddRegBag(r RegBag) {
+	t.OrderIndex = append(t.OrderIndex, NodeIndex{
+		Kind:  tnk.RegBag,
+		Index: uint32(len(t.RegBags)),
+	})
+	t.RegBags = append(t.RegBags, r)
 }
 
 func (t *Text) AddMust(m StaticMust) {
