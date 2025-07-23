@@ -620,6 +620,22 @@ func (lx *Lexer) other() token.Token {
 				Kind: token.ArrayPointer,
 			}
 		}
+		if lx.n() == '&' {
+			pin := lx.pin()
+			lx.advance() // skip "["
+			if lx.n() != ']' {
+				return token.Token{
+					Pin:  pin,
+					Kind: token.LeftSquare,
+				}
+			}
+			lx.advance() // skip "&"
+			lx.advance() // skip "]"
+			return token.Token{
+				Pin:  pin,
+				Kind: token.ArrayRef,
+			}
+		}
 		if lx.n() == '^' {
 			pin := lx.pin()
 			lx.advance() // skip "["

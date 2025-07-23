@@ -66,6 +66,11 @@ func (p *Parser) TypeSpec() (ast.TypeSpec, diag.Error) {
 			return p.TypeFullName()
 		}
 		return p.TypeName(), nil
+	case token.Ampersand:
+		if p.n.Kind == token.Any {
+			return p.AnyRef(), nil
+		}
+		return p.Ref()
 	case token.Asterisk:
 		if p.n.Kind == token.Any {
 			return p.AnyPointer(), nil
@@ -73,6 +78,8 @@ func (p *Parser) TypeSpec() (ast.TypeSpec, diag.Error) {
 		return p.Pointer()
 	case token.ArrayPointer:
 		return p.ArrayPointer()
+	case token.ArrayRef:
+		return p.ArrayRef()
 	case token.Chunk:
 		return p.Chunk()
 	case token.LeftSquare:
@@ -171,6 +178,17 @@ func (p *Parser) ArrayPointer() (ast.ArrayPointer, diag.Error) {
 	return ast.ArrayPointer{Type: t}, nil
 }
 
+func (p *Parser) ArrayRef() (ast.ArrayRef, diag.Error) {
+	p.advance() // skip "[&]"
+
+	t, err := p.TypeSpec()
+	if err != nil {
+		return ast.ArrayRef{}, err
+	}
+
+	return ast.ArrayRef{Type: t}, nil
+}
+
 func (p *Parser) Chunk() (ast.Chunk, diag.Error) {
 	p.advance() // skip "[]"
 
@@ -193,6 +211,17 @@ func (p *Parser) Pointer() (ast.Pointer, diag.Error) {
 	return ast.Pointer{Type: t}, nil
 }
 
+func (p *Parser) Ref() (ast.Ref, diag.Error) {
+	p.advance() // skip "&"
+
+	t, err := p.TypeSpec()
+	if err != nil {
+		return ast.Ref{}, err
+	}
+
+	return ast.Ref{Type: t}, nil
+}
+
 func (p *Parser) AnyPointer() ast.AnyPointer {
 	pin := p.c.Pin
 
@@ -200,6 +229,15 @@ func (p *Parser) AnyPointer() ast.AnyPointer {
 	p.advance() // skip "any"
 
 	return ast.AnyPointer{Pin: pin}
+}
+
+func (p *Parser) AnyRef() ast.AnyRef {
+	pin := p.c.Pin
+
+	p.advance() // skip "&"
+	p.advance() // skip "any"
+
+	return ast.AnyRef{Pin: pin}
 }
 
 func (p *Parser) AnyType() ast.AnyType {

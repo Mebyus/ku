@@ -112,6 +112,11 @@ func (g *Printer) Pointer(p Pointer) {
 	g.TypeSpec(p.Type)
 }
 
+func (g *Printer) Ref(r Ref) {
+	g.puts("&")
+	g.TypeSpec(r.Type)
+}
+
 func (g *Printer) AnyPointer(p AnyPointer) {
 	g.puts("*any")
 }
@@ -119,6 +124,11 @@ func (g *Printer) AnyPointer(p AnyPointer) {
 func (g *Printer) ArrayPointer(p ArrayPointer) {
 	g.puts("[*]")
 	g.TypeSpec(p.Type)
+}
+
+func (g *Printer) ArrayRef(r ArrayRef) {
+	g.puts("[&]")
+	g.TypeSpec(r.Type)
 }
 
 func (g *Printer) Chunk(c Chunk) {

@@ -13,9 +13,12 @@ const (
 	FullName
 	Struct
 	Union
+	Ref
 	Pointer
+	AnyRef
 	AnyPointer
 	Array
+	ArrayRef
 	ArrayPointer
 	Chunk
 	Enum
@@ -34,8 +37,10 @@ var text = [...]string{
 	FullName:     "name.full",
 	Struct:       "struct",
 	Union:        "union",
+	Ref:          "ref",
 	Pointer:      "pointer",
 	Array:        "array",
+	ArrayRef:     "ref.array",
 	ArrayPointer: "pointer.array",
 	Chunk:        "chunk",
 	Enum:         "enum",
@@ -47,6 +52,7 @@ var text = [...]string{
 	Type:         "type",
 
 	AnyPointer: "pointer.any",
+	AnyRef:     "ref.any",
 }
 
 func (k Kind) String() string {

@@ -5,25 +5,25 @@ import (
 	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
-type Ref struct {
+type GetRef struct {
 	nodeOperand
 
 	Chain Chain
 }
 
 // Explicit interface implementation check.
-var _ Operand = Ref{}
+var _ Operand = GetRef{}
 
-func (Ref) Kind() exk.Kind {
+func (GetRef) Kind() exk.Kind {
 	return exk.Ref
 }
 
-func (r Ref) Span() srcmap.Span {
+func (r GetRef) Span() srcmap.Span {
 	return r.Chain.TailSpan()
 }
 
-func (r Ref) String() string {
+func (r GetRef) String() string {
 	var g Printer
-	g.Ref(r)
+	g.GetRef(r)
 	return g.Output()
 }

@@ -55,10 +55,16 @@ func (g *Gen) TypeSpec(spec ast.TypeSpec) {
 		panic("not supported")
 	case ast.Pointer:
 		g.Pointer(s)
+	case ast.Ref:
+		g.Ref(s)
 	case ast.AnyPointer:
 		g.AnyPointer(s)
+	case ast.AnyRef:
+		g.AnyRef(s)
 	case ast.ArrayPointer:
 		g.ArrayPointer(s)
+	case ast.ArrayRef:
+		g.ArrayRef(s)
 	case ast.AnyType:
 		panic("not implemented")
 	case ast.Enum:
@@ -78,13 +84,27 @@ func (g *Gen) AnyPointer(p ast.AnyPointer) {
 	g.puts("void*")
 }
 
+func (g *Gen) AnyRef(r ast.AnyRef) {
+	g.puts("void*")
+}
+
 func (g *Gen) Pointer(p ast.Pointer) {
 	g.TypeSpec(p.Type)
 	g.putb('*')
 }
 
+func (g *Gen) Ref(r ast.Ref) {
+	g.TypeSpec(r.Type)
+	g.putb('*')
+}
+
 func (g *Gen) ArrayPointer(p ast.ArrayPointer) {
 	g.TypeSpec(p.Type)
+	g.putb('*')
+}
+
+func (g *Gen) ArrayRef(r ast.ArrayRef) {
+	g.TypeSpec(r.Type)
 	g.putb('*')
 }
 

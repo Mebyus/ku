@@ -98,11 +98,11 @@ type Blob => struct {
     size: uint,
 }
 
-fun blob_get_data(blob: *Blob) => []u8 {
+fun blob_get_data(blob: &Blob) => []u8 {
     ret make_span_u8(blob.*.block.span.ptr, blob.*.size);
 }
 
-fun blob_clear_fields(blob: *Blob) {
+fun blob_clear_fields(blob: &Blob) {
     memory_block_clear_fields(blob.*.block.&);
 	blob.*.size = 0;
 }
@@ -146,7 +146,7 @@ fun str_has_prefix(s: str, prefix: str) => bool {
 	ret str_equal(str_slice_head(s, prefix.len), prefix);
 }
 
-fun unsafe_get_c_string_length(p: [*]u8) => uint {
+fun unsafe_get_c_string_length(p: [&]u8) => uint {
 	var i: uint = 0;
 	for p.[i] != 0 {
 		i += 1;
@@ -154,7 +154,7 @@ fun unsafe_get_c_string_length(p: [*]u8) => uint {
 	ret i;
 }
 
-fun unsafe_make_c_string_from_pointer(p: [*]u8) => c_string {
+fun unsafe_make_c_string_from_pointer(p: [&]u8) => c_string {
 	const len: uint = unsafe_get_c_string_length(p);
 	
 	var s: c_string = {
@@ -180,14 +180,14 @@ Params:
 	{b} - array pointer, must be not nil
 	{n} - must be not 0
 */
-fun unsafe_copy(a: [*]u8, b: [*]u8, n: uint) {
+fun unsafe_copy(a: [&]u8, b: [&]u8, n: uint) {
 	for i = [:n] {
 		a.[i] = b.[i];
 	}
 }
 
 // Same as unsafe_copy, but bytes are copied in reverse order.
-fun unsafe_reverse_copy(a: [*]u8, b: [*]u8, n: uint) {
+fun unsafe_reverse_copy(a: [&]u8, b: [&]u8, n: uint) {
 	var i: uint = 0;
 	var j: uint = n - 1;
 	for i < n {
@@ -240,6 +240,13 @@ fun unsafe_copy_as_c_string(buf: []u8, s: str) => c_string {
 		len: s.len,
 	};
 	ret cstr;
+}
+
+/*/doc
+Get least significant byte of u32 integer.
+*/
+fun get_u32_lsb(x: u32) => u8 {
+    ret tint(u8, x & 0xFF);
 }
 
 /*/doc

@@ -32,17 +32,17 @@ type LogSink => struct {
 Init log sink with a given file descriptor. It must be open for writes
 in order for logger to work properly.
 */
-fun init_log_sink_from_fd(sink: *LogSink, fd: uint) {
+fun init_log_sink_from_fd(sink: &LogSink, fd: uint) {
     sink.*.fd = fd;
     sink.*.pos = 0;
     sink.*.start = clock_mono();
 }
 
-fun init_log_sink(sink: *LogSink, path: str) {
+fun init_log_sink(sink: &LogSink, path: str) {
     #must(LOG_BUFFER_SIZE >= 1024);
     must(path.len != 0);
 
-   const r: RetOpen = os_create(path);
+    const r: RetOpen = os_create(path);
     if r.eid != 0 {
         init_log_sink_from_fd(sink, 0);
         ret;
@@ -59,19 +59,19 @@ fun log_sink_buffer_full(sink: *LogSink) => bool {
 /*/doc
 Returns length (in bytes) of buffer tail (unoccupied portion).
 */
-fun log_sink_buffer_left(sink: *LogSink) => uint {
+fun log_sink_buffer_left(sink: &LogSink) => uint {
     ret LOG_BUFFER_SIZE - sink.*.pos;
 }
 
-fun log_sink_buffer_tail(sink: *LogSink) => []u8 {
+fun log_sink_buffer_tail(sink: &LogSink) => []u8 {
     ret make_span_u8(sink.*.buf + sink.*.pos, log_sink_buffer_left(sink));
 }
 
-fun log_sink_buffer_head(sink: *LogSink) => []u8 {
+fun log_sink_buffer_head(sink: &LogSink) => []u8 {
     ret make_span_u8(sink.*.buf, sink.*.pos);
 }
 
-fun log_sink_file_write(sink: *LogSink, s: []u8) {
+fun log_sink_file_write(sink: &LogSink, s: []u8) {
     if sink.*.fd == 0 {
         ret;
     }
@@ -79,7 +79,7 @@ fun log_sink_file_write(sink: *LogSink, s: []u8) {
     os_linux_write_all(sink.*.fd, s);
 }
 
-fun log_sink_file_close(sink: *LogSink) {
+fun log_sink_file_close(sink: &LogSink) {
     if sink.*.fd == 0 {
         ret;
     }
@@ -87,7 +87,7 @@ fun log_sink_file_close(sink: *LogSink) {
     os_linux_close(sink.*.fd);
 }
 
-fun log_sink_flush(sink: *LogSink) {
+fun log_sink_flush(sink: &LogSink) {
     log_sink_file_write(sink, log_sink_buffer_head(sink));
     sink.*.pos = 0;
 }
@@ -95,7 +95,7 @@ fun log_sink_flush(sink: *LogSink) {
 /*/doc
 Flushes log buffer if it is full. Does nothing otherwise.
 */
-fun log_sink_check_flush(sink: *LogSink) {
+fun log_sink_check_flush(sink: &LogSink) {
     if !log_sink_buffer_full(sink) {
         ret;
     }
@@ -106,7 +106,7 @@ fun log_sink_check_flush(sink: *LogSink) {
 Flushes log buffer if less then specified number of unoccupied bytes left.
 Does nothing otherwise.
 */
-fun log_sink_threshold_flush(sink: *LogSink, threshold: uint) {
+fun log_sink_threshold_flush(sink: &LogSink, threshold: uint) {
     if log_sink_buffer_left(sink) < threshold {
         log_sink_flush(sink);
     }

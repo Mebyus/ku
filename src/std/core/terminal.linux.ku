@@ -27,10 +27,12 @@ fun fmt_cap_buffer_put_linux_terminal_properties(buf: *FormatCapBuffer, p: *Linu
 fun os_linux_get_terminal_properties(fd: sint, p: *LinuxTerminalProperties) => sint
 */
 
+let OS_LINUX_TERMINAL_FILE_DESCRIPTOR => OS_LINUX_STDIN;
+
 let OS_LINUX_TERMINAL_GET_PROPERTIES => 0x5401;
 
-fun os_linux_get_terminal_properties(ptr: *LinuxTerminalProperties) => error_id {
-    const n: sint = os_linux_amd64_syscall_ioctl(OS_LINUX_STDOUT, OS_LINUX_TERMINAL_GET_PROPERTIES, ptr);
+fun os_linux_get_terminal_properties(ptr: &LinuxTerminalProperties) => error_id {
+    const n: sint = os_linux_amd64_syscall_ioctl(OS_LINUX_TERMINAL_FILE_DESCRIPTOR, OS_LINUX_TERMINAL_GET_PROPERTIES, ptr);
     if n < 0 {
         ret #error(TODO_IOCTL);
     }
@@ -39,8 +41,8 @@ fun os_linux_get_terminal_properties(ptr: *LinuxTerminalProperties) => error_id 
 
 let OS_LINUX_TERMINAL_DRAIN_FLUSH_SET_PROPERTIES => 0x5404;
 
-fun os_linux_set_terminal_properties(ptr: *LinuxTerminalProperties) => error_id {
-    const n: sint = os_linux_amd64_syscall_ioctl(OS_LINUX_STDOUT, OS_LINUX_TERMINAL_DRAIN_FLUSH_SET_PROPERTIES, ptr);
+fun os_linux_set_terminal_properties(ptr: &LinuxTerminalProperties) => error_id {
+    const n: sint = os_linux_amd64_syscall_ioctl(OS_LINUX_TERMINAL_FILE_DESCRIPTOR, OS_LINUX_TERMINAL_DRAIN_FLUSH_SET_PROPERTIES, ptr);
     if n < 0 {
         ret #error(TODO_IOCTL);
     }
@@ -103,7 +105,7 @@ type TerminalViewportInfo => struct {
 let OS_LINUX_TERMINAL_GET_VIEWPORT_INFO => 0x5413;
 
 fun os_linux_get_terminal_viewport_info(ptr: *TerminalViewportInfo) => error_id {
-    const n: sint = os_linux_amd64_syscall_ioctl(OS_LINUX_STDOUT, OS_LINUX_TERMINAL_GET_VIEWPORT_INFO, ptr);
+    const n: sint = os_linux_amd64_syscall_ioctl(OS_LINUX_TERMINAL_FILE_DESCRIPTOR, OS_LINUX_TERMINAL_GET_VIEWPORT_INFO, ptr);
     if n < 0 {
         ret #error(TODO_IOCTL);
     }

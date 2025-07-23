@@ -168,7 +168,7 @@ func (p *Parser) Chain() (ast.Operand, diag.Error) {
 		case token.Deref:
 			part = p.Deref()
 		case token.Address:
-			return p.ref(chain), nil
+			return p.getRef(chain), nil
 		case token.DerefIndex:
 			part, err = p.DerefIndex()
 		// case token.BagSelect:
@@ -203,9 +203,9 @@ func (p *Parser) Chain() (ast.Operand, diag.Error) {
 	}
 }
 
-func (p *Parser) ref(chain ast.Chain) ast.Ref {
+func (p *Parser) getRef(chain ast.Chain) ast.GetRef {
 	p.advance() // skip ".&"
-	return ast.Ref{Chain: chain}
+	return ast.GetRef{Chain: chain}
 }
 
 func (p *Parser) DotName() (ast.DotName, diag.Error) {

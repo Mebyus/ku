@@ -34,8 +34,8 @@ func (g *Printer) Exp(exp Exp) {
 		g.Chain(e)
 	case Call:
 		g.Call(e)
-	case Ref:
-		g.Ref(e)
+	case GetRef:
+		g.GetRef(e)
 	case Slice:
 		g.Slice(e)
 	case Tweak:
@@ -115,7 +115,7 @@ func (g *Printer) Slice(s Slice) {
 	g.puts("]")
 }
 
-func (g *Printer) Ref(r Ref) {
+func (g *Printer) GetRef(r GetRef) {
 	g.Chain(r.Chain)
 	g.puts(".&")
 }

@@ -44,8 +44,8 @@ func (g *Gen) Exp(exp ast.Exp) {
 		g.Chain(e)
 	case ast.Call:
 		g.Call(e)
-	case ast.Ref:
-		g.Ref(e)
+	case ast.GetRef:
+		g.GetRef(e)
 	case ast.Object:
 		g.Object(e)
 	case ast.List:
@@ -98,7 +98,7 @@ func (g *Gen) Paren(p ast.Paren) {
 	g.puts(")")
 }
 
-func (g *Gen) Ref(r ast.Ref) {
+func (g *Gen) GetRef(r ast.GetRef) {
 	g.puts("&")
 	g.Chain(r.Chain)
 }
