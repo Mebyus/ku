@@ -21,7 +21,7 @@ type Text struct {
 	//	- ".ku"
 	//	- ".c"
 	//	- ".h"
-	//	- ".klaw"
+	//	- ".kub"
 	Ext string
 
 	// Assigned automatically when text is loaded by Pool.
