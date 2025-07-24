@@ -25,6 +25,12 @@ func CapitalLatinLetter(c byte) byte {
 	return c & capitalLatinLetterMask
 }
 
+const lowerLatinLetterMask = 0x20
+
+func LowerLatinLetter(c byte) byte {
+	return c | lowerLatinLetterMask
+}
+
 func IsLatinLetter(c byte) bool {
 	c = CapitalLatinLetter(c)
 	return 'A' <= c && c <= 'Z'

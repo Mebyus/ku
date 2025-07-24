@@ -286,31 +286,3 @@ os_linux_amd64_syscall_exit(uint c) {
     );
 	__builtin_unreachable();
 }
-
-
-// const BagReaderTab bag_fd_reader_tab = {
-//     .type_id = 3,
-//     .read = cast(BagFuncRead, cast(void*, os_linux_read)),
-// };
-
-// static Reader
-// bag_fd_reader(uint fd) {
-//     Reader r = {};
-//     r.obj = fd;
-//     r.tab = &bag_fd_reader_tab;
-//     return r;    
-// }
-
-// const BagWriterTab bag_fd_writer_tab = {
-//     .type_id = 4,
-//     .write = cast(BagFuncWrite, cast(void*, os_linux_write)),
-// };
-
-// static Writer
-// bag_fd_writer(uint fd) {
-//     Writer w = {};
-//     w.obj = fd;
-//     w.tab = &bag_fd_writer_tab;
-//     return w;    
-// }
-
