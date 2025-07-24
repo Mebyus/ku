@@ -12,7 +12,7 @@ type MemoryArenaAllocator => struct {
 	limit: uint,
 }
 
-fun init_memory_arena_allocator(al: *MemoryArenaAllocator, s: []u8) {
+fun init_memory_arena_allocator(al: &MemoryArenaAllocator, s: []u8) {
 	must(s.len != 0);
 	must(s.ptr != nil);
 
@@ -21,21 +21,21 @@ fun init_memory_arena_allocator(al: *MemoryArenaAllocator, s: []u8) {
 	al.*.limit = s.len;
 }
 
-fun make_memory_allocator_from_arena(al: *MemoryArenaAllocator) => MemoryAllocator {
+fun make_memory_allocator_from_arena(al: &MemoryArenaAllocator) => MemoryAllocator {
 	var iface: MemoryAllocator;
 	iface.ptr = al;
 	iface.kind = #enum(MEMORY_ALLOCATOR.ARENA);
 	ret iface;
 }
 
-fun memory_arena_alloc(al: *MemoryArenaAllocator, block: *MemoryBlock) => error_id {
+fun memory_arena_alloc(al: &MemoryArenaAllocator, block: &MemoryBlock) => error_id {
 	var n: uint = block.*.span.len;
     must(n != 0);
 
 	n = align_uint(n, 8);
 	const left: uint = al.*.limit - al.*.pos;
 	if left < n {
-		ret #error(NO_MEMORY);
+		ret #error(NOT_ENOUGH_MEMORY);
 	}
 
 	block.*.span.len = n;
@@ -46,7 +46,52 @@ fun memory_arena_alloc(al: *MemoryArenaAllocator, block: *MemoryBlock) => error_
 	ret 0;
 }
 
-/*
+let MEMORY_DYNAMIC_STACK_SIZE => 1 << 26;
+
+type MemoryDynamicStackAllocator => struct {
+	buf: [MEMORY_DYNAMIC_STACK_SIZE]u8,
+	pos: uint,
+}
+
+fun memory_dynamic_stack_alloc(al: &MemoryDynamicStackAllocator, block: &MemoryBlock) => error_id {
+	var n: uint = block.*.span.len;
+    must(n != 0);
+
+	n = align_uint(n, 8);
+	const left: uint = MEMORY_DYNAMIC_STACK_SIZE - al.*.pos;
+	if left < n {
+		ret #error(NOT_ENOUGH_MEMORY);
+	}
+
+	block.*.span.len = n;
+	block.*.span.ptr = al.*.buf + al.*.pos;
+	block.*.id = al.*.pos;
+
+	al.*.pos += n;
+	ret 0;
+}
+
+fun memory_dynamic_stack_free(al: &MemoryDynamicStackAllocator, block: &MemoryBlock) {
+	must(block.*.span.len <= al.*.pos);
+
+	var pos: uint = al.*.pos - block.*.span.len;
+	must(pos == block.*.id);
+	
+	al.*.pos = pos;
+	memory_block_clear_fields(block);
+}
+
+var thread_memory_dynamic_stack: MemoryDynamicStackAllocator;
+
+fun memory_ds_alloc(block: &MemoryBlock) => error_id {
+	ret memory_dynamic_stack_alloc(thread_memory_dynamic_stack.&, block);
+}
+
+fun memory_ds_free(block: &MemoryBlock) {
+	memory_dynamic_stack_free(thread_memory_dynamic_stack.&, block);
+}
+
+/*/doc
 Request memory block from allocator.
 
 Requested number of bytes (x) is specified by setting the field:

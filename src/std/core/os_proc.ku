@@ -1,4 +1,4 @@
-let PROC_MEMORY_BUFFER_SIZE => 1 << 24;
+let PROC_MEMORY_BUFFER_SIZE => 1 << 22;
 
 var proc_memory_buffer: [PROC_MEMORY_BUFFER_SIZE]u8;
 var proc_memory_arena_allocator: MemoryArenaAllocator;

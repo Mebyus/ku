@@ -15,3 +15,56 @@ type BagReader => bag {
 type BagWriter => bag {
     write(buf: []u8) => RetWrite;
 }
+
+type RetCopy => struct {
+    // Total number of bytes read from reader. It may differ from {w_num}
+    // in case of error.
+    //
+    // Could be not 0 even if error occured.
+    r_num: u64,
+
+    // Total number of bytes written to writer. It may differ from {r_num}
+    // in case of error.
+    //
+    // Could be not 0 even if error occured.
+    w_num: u64,
+
+    eid: error_id,
+}
+
+fun bag_copy(writer: BagWriter, reader: BagReader) => RetCopy {
+    var rc: RetCopy;
+
+    var array_buf: [1 << 14]u8 = ?;
+    var buf: []u8 = make_span_u8(array_buf, #len(array_buf));
+    for {
+        const r: RetRead = reader.tab.*.read(reader.obj, buf);
+        rc.r_num += r.num;
+        if r.eid != 0 && r.eid != #error(READ_EOF) {
+            rc.eid = r.eid;
+            ret rc;
+        }
+        if r.num == 0 {
+            if r.eid == #error(READ_EOF) {
+                ret rc;
+            }
+            jump @.next;
+        }
+
+        var data: []u8 = span_u8_slice_head(buf, r.num);
+        var i: uint = 0;
+        for i < data.len {
+            const w: RetWrite = writer.tab.*.write(writer.obj, span_u8_slice_tail(data, i));
+            i += w.num;
+            rc.w_num += w.num;
+            if w.eid != 0 {
+                rc.eid = w.eid;
+                ret rc;
+            }
+        }
+
+        if r.eid == #error(READ_EOF) {
+            ret rc;
+        }
+    }
+}
