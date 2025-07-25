@@ -119,6 +119,16 @@ fun memory_alloc(al: MemoryAllocator, block: *MemoryBlock) => error_id {
 	else { #never; }
 }
 
+fun memory_alloc_clear(al: MemoryAllocator, block: *MemoryBlock) => error_id {
+	const eid: error_id = memory_alloc(al, block);
+	if eid != 0 {
+		ret eid;
+	}
+
+	clear(block.*.span);
+	ret 0;
+}
+
 fun memory_free(al: MemoryAllocator, block: *MemoryBlock) {
 	must(al.ptr != nil);
 	must(block.*.span.len != 0);

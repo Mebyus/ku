@@ -1,0 +1,409 @@
+type MapStrU64Slot => struct {
+    key:  str,
+    hash: u64,
+    val:  u64,
+
+    // Probe sequence length. Probe distance of entry from slot computed
+    // based on hash value.
+    psl: u32,
+
+    flags: u32,
+}
+
+type span_MapStrU64Slot => struct {
+    ptr: [*]MapStrU64Slot,
+    len: uint,
+}
+
+fun make_span_map_str_u64_slot(ptr: [*]MapStrU64Slot, len: uint) => []MapStrU64Slot {
+    var s: []MapStrU64Slot;
+    if len == 0 {
+        ret s;
+    }
+
+    s.ptr = ptr;
+    s.len = len;
+    ret s;
+}
+
+fun span_map_str_u64_slot_clear(s: []MapStrU64Slot) {
+    if s.len == 0 {
+        ret;
+    }
+
+    var ss: []u8 = make_span_u8(cast(*u8, s.ptr), s.len * #size(MapStrU64Slot));
+    clear(ss);
+}
+
+type MapStrU64 => struct {
+    // Received from allocator to hold {entries} span.
+    block: MemoryBlock,
+
+    slots: []MapStrU64Slot,
+
+    al: MemoryAllocator,
+
+    // Number of alive keys stored inside the map.
+    num: uint,
+}
+
+fun init_map_str_u64_noalloc(m: &MapStrU64, buf: []u8) {
+    clear(buf);
+    memory_block_clear_fields(m.*.block.&);
+    m.*.slots = make_span_map_str_u64_slot(cast([*]MapStrU64Slot, buf.ptr), buf.len / #size(MapStrU64Slot));
+
+    var nil_al: MemoryAllocator;
+    m.*.al = nil_al;
+    m.*.num = 0;
+}
+
+/*/doc
+Initializes map with specified initial capacity.
+*/
+fun init_map_str_u64(m: &MapStrU64, al: MemoryAllocator, cap: uint) => error_id {
+    m.*.block.span.len = cap * #size(MapStrU64Slot);
+    const eid: error_id = memory_alloc_clear(al, m.*.block.&);
+    if eid != 0 {
+        ret eid;
+    }
+
+    m.*.al = al;
+    m.*.slots = make_span_map_str_u64_slot(cast([*]MapStrU64Slot, m.*.block.span.ptr), m.*.block.span.len / #size(MapStrU64Slot));
+    m.*.num = 0;
+}
+
+fun map_calc_grow_cap(len: uint) => uint {
+    if len < 8 {
+        ret 16;
+    }
+    if len < (1 << 16) {
+        ret len << 1;
+    }
+
+    ret len + (len >> 2);
+}
+
+fun unsafe_map_str_u64_calc_pos(m: &MapStrU64, hash: u64) => uint {
+    ret cast(uint, hash % m.*.slots.len);
+}
+
+fun map_str_u64_get_load_factor(m: &MapStrU64) => uint {
+    if m.*.slots.len == 0 {
+        ret 100;
+    }
+    ret 100 * m.*.num / m.*.slots.len;
+}
+
+fun fmt_cap_buffer_put_map_str_u64_slot(buf: &FormatCapBuffer, m: &MapStrU64, s: &MapStrU64Slot) {
+    fmt_cap_buffer_put_byte(buf, '[');
+    fmt_cap_buffer_put_hex_prefix_zeroes_u64(buf, s.*.hash);
+    fmt_cap_buffer_put_str(buf, " => ");
+    fmt_cap_buffer_put_dec_u64(buf, unsafe_map_str_u64_calc_pos(m, s.*.hash));
+    fmt_cap_buffer_put_byte(buf, ']');
+    fmt_cap_buffer_put_space(buf);
+    fmt_cap_buffer_put_dec_u64(buf, s.*.psl);
+    fmt_cap_buffer_put_space(buf);
+    
+    if s.*.flags == 0 {
+        fmt_cap_buffer_put_str(buf, "<nil>");
+        ret;
+    }
+
+    fmt_cap_buffer_put_str(buf, "(\"");
+    fmt_cap_buffer_put_str(buf, s.*.key);
+    fmt_cap_buffer_put_str(buf, "\", ");
+    fmt_cap_buffer_put_dec_u64(buf, s.*.val);
+    fmt_cap_buffer_put_str(buf, ")");
+}
+
+fun map_str_u64_print_slots(m: &MapStrU64) {
+    var output_buffer: [1 << 16]u8 = ?;
+    var buf: FormatCapBuffer = ?;
+    init_fmt_cap_buffer(buf.&, make_span_u8(output_buffer, #len(output_buffer)));
+
+    fmt_cap_buffer_put_str(buf.&, "map(num, cap) = (");
+    fmt_cap_buffer_put_dec_u64(buf.&, m.*.num);
+    fmt_cap_buffer_put_str(buf.&, ", ");
+    fmt_cap_buffer_put_dec_u64(buf.&, m.*.slots.len);
+    fmt_cap_buffer_put_str(buf.&, ")");
+    fmt_cap_buffer_put_newline(buf.&);
+
+    const slots: []MapStrU64Slot = m.*.slots;
+    for i = [:slots.len] {
+        var s: MapStrU64Slot = slots.ptr.[i];
+        fmt_cap_buffer_put_dec_u64(buf.&, i);
+        fmt_cap_buffer_put_str(buf.&, ": ");
+        fmt_cap_buffer_put_map_str_u64_slot(buf.&, m, s.&);
+        fmt_cap_buffer_put_newline(buf.&);
+    }
+
+    stdout_print(fmt_cap_buffer_take(buf.&));
+}
+
+fun map_str_u64_get_index(m: &MapStrU64, key: str, hash: u64) => RetIndex {
+    var r: RetIndex;
+    if m.*.num == 0 {
+        ret r;
+    }
+
+    var pos: uint = unsafe_map_str_u64_calc_pos(m, hash);
+    var psl: u32 = 0;
+
+    for {
+        var slot: MapStrU64Slot = m.*.slots.ptr.[pos];
+        if slot.flags == 0 {
+            // found empty slot
+            ret r;
+        }
+
+        if psl > slot.psl {
+            // due to insertion rules this condition means
+            // that there is no entry with such hash in map
+            ret r;
+        }
+
+        if slot.hash == hash && str_equal(slot.key, key) {
+            r.val = pos;
+            r.ok = true;
+            ret r;
+        }
+
+        pos += 1;
+        if pos >= m.*.slots.len {
+            pos = 0;
+        }
+        psl += 1;
+    }
+}
+
+/*/doc
+Always inserts new entry, thus can break the map if used with already
+existing entry.
+
+Map must have at least one empty slot.
+*/
+fun unsafe_map_str_u64_insert_entry(m: &MapStrU64, key: str, val: u64, hash: u64) {
+    var pos: uint = unsafe_map_str_u64_calc_pos(m, hash);
+    var psl: u32 = 0;
+    
+    for {
+        var slot: MapStrU64Slot = m.*.slots.ptr.[pos];
+        if slot.flags == 0 {
+            // found empty slot, thus insert new entry
+            slot.key = key;
+            slot.hash = hash;
+            slot.val = val;
+            slot.psl = psl;
+            slot.flags = 1; // marks slot as occupied
+            
+            m.*.slots.ptr.[pos] = slot;
+            m.*.num += 1;
+            ret;
+        }
+
+        if slot.psl < psl {
+            // swap with entry which has lesser psl
+            const new_entry: MapStrU64Slot = {
+                key:   key,
+                hash:  hash,
+                val:   val,
+                psl:   psl,
+                flags: 1, // marks slot as occupied
+            };
+            m.*.slots.ptr.[pos] = new_entry;
+
+            key = slot.key;
+            hash = slot.hash;
+            val = slot.val;
+            psl = slot.psl;
+        }
+
+        pos += 1;
+        if pos >= m.*.slots.len {
+            pos = 0;
+        }
+        psl += 1;
+    }
+}
+
+fun map_str_u64_grow(m: &MapStrU64) => error_id {
+    if m.*.al.ptr == 0 {
+        ret #error(NIL_MEMORY_ALLOCATOR);
+    }
+
+    const cap: uint = map_calc_grow_cap(m.*.slots.len);
+    var block: MemoryBlock = ?;
+    block.span.len = cap * #size(MapStrU64Slot);
+    const eid: error_id = memory_alloc_clear(m.*.al, block.&);
+    if eid != 0 {
+        ret eid;
+    }
+
+    // insert occupied slots from old span into new one
+    const slots: []MapStrU64Slot = m.*.slots;
+    m.*.slots = make_span_map_str_u64_slot(cast([*]MapStrU64Slot, block.span.ptr), block.span.len / #size(MapStrU64Slot));
+    for i = [:slots.len] {
+        const slot: MapStrU64Slot = slots.ptr.[i];
+        if slot.flags != 0 {
+            unsafe_map_str_u64_insert_entry(m, slot.key, slot.val, slot.hash);
+        }
+    }
+
+    if m.*.block.span.len != 0 {
+        memory_free(m.*.al, m.*.block.&);
+    }
+    m.*.block = block;
+    ret 0;
+}
+
+fun map_str_u64_insert_entry(m: &MapStrU64, key: str, val: u64, hash: u64) => error_id {
+    const n: uint = m.*.num + (m.*.num >> 3);
+    // roughly equivalent to load_factor > 0.87 but does not use division
+    // also works when num == 0 and slots.len == 0
+    if n >= m.*.slots.len {
+        const eid: error_id = map_str_u64_grow(m);
+        if eid != 0 {
+            ret eid;
+        }
+    }
+
+    unsafe_map_str_u64_insert_entry(m, key, val, hash);
+    ret 0;
+}
+
+/*/doc
+Inserts new entry with specified {key} and {val} or updates an existing one.
+*/
+fun map_str_u64_set(m: &MapStrU64, key: str, val: u64) => error_id {
+    const hash: u64 = hash64_sdbm(key);
+    if m.*.num != 0 {
+        const i: RetIndex = map_str_u64_get_index(m, key, hash);
+        if i.ok {
+            // update existing entry
+            m.*.slots.ptr.[i.val].val = val;
+            ret 0;
+        }
+    }
+
+    ret map_str_u64_insert_entry(m, key, val, hash);
+}
+
+/*/doc
+Increase value stored with {key} by {x}.
+If map does not contain {key} add it with value {x}.
+*/
+fun map_str_u64_inc(m: &MapStrU64, key: str, x: u64) => error_id {
+    const hash: u64 = hash64_sdbm(key);
+    if m.*.num != 0 {
+        const i: RetIndex = map_str_u64_get_index(m, key, hash);
+        if i.ok {
+            // update existing entry
+            m.*.slots.ptr.[i.val].val += x;
+            ret 0;
+        }
+    }
+
+    ret map_str_u64_insert_entry(m, key, x, hash);
+}
+
+/*/doc
+Decrease value stored with {key} by {x}.
+If map does not contain {key} add it with value {0 - x}.
+*/
+fun map_str_u64_dec(m: &MapStrU64, key: str, x: u64) => error_id {
+    const hash: u64 = hash64_sdbm(key);
+    if m.*.num != 0 {
+        const i: RetIndex = map_str_u64_get_index(m, key, hash);
+        if i.ok {
+            // update existing entry
+            m.*.slots.ptr.[i.val].val -= x;
+            ret 0;
+        }
+    }
+
+    ret map_str_u64_insert_entry(m, key, 0 - x, hash);
+}
+
+/*/doc
+Returns true if entry with {key} was actually deleted.
+*/
+fun map_str_u64_del(m: &MapStrU64, key: str) => bool {
+    if m.*.num == 0 {
+        ret false;
+    }
+
+    const hash: u64 = hash64_sdbm(key);
+    const i: RetIndex = map_str_u64_get_index(m, key, hash);
+    if !i.ok {
+        ret false;
+    }
+
+    // do backward shift of entries starting from slot with deleted entry
+    var pos: uint = i.val;
+    for {
+        var next_pos: uint = pos + 1; // index of next entry we want to shift
+        if next_pos >= m.*.slots.len {
+            next_pos = 0;
+        }
+
+        var slot: MapStrU64Slot = m.*.slots.ptr.[next_pos];
+        if slot.flags == 0 || slot.psl == 0 {
+            // found empty slot or entry that cannot be shifted due to map rules
+            m.*.slots.ptr.[pos].flags = 0; // mark last shifted slot as empty
+            m.*.num -= 1;
+            ret true;
+        }
+
+        slot.psl -= 1;
+        m.*.slots.ptr.[pos] = slot; // shift entry one slot backward
+        pos = next_pos;
+    }
+}
+
+type RetU64 => struct {
+    val: u64,
+    ok:  bool,
+}
+
+fun map_str_u64_get(m: &MapStrU64, key: str) => RetU64 {
+    var r: RetU64;
+    if m.*.num == 0 {
+        ret r;
+    }
+
+    const hash: u64 = hash64_sdbm(key);
+    const i: RetIndex = map_str_u64_get_index(m, key, hash);
+    if !i.ok {
+        ret r;
+    }
+
+    const pos: uint = i.val;
+    const slot: MapStrU64Slot = m.*.slots.ptr.[pos];
+    r.val = slot.val;
+    r.ok = true;
+    ret r;
+}
+
+fun map_str_u64_clear(m: &MapStrU64) {
+    m.*.num = 0;
+    
+    if m.*.block.span.len == 0 {
+        span_map_str_u64_slot_clear(m.*.slots);
+        ret;
+    }
+
+    clear(m.*.block.span);
+}
+
+fun map_str_u64_free(m: &MapStrU64) {
+    m.*.slots.ptr = nil;
+    m.*.slots.len = 0;
+    m.*.num = 0;
+
+    if m.*.block.span.len == 0 {
+        // map has no allocated memory
+        ret;
+    }
+
+    memory_free(m.*.al, m.*.block.&);
+}

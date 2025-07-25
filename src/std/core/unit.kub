@@ -17,6 +17,8 @@ include "terminal.linux.ku";
 include "libc.h";
 include "log.ku";
 
+include "map.ku";
+
 exe {
     include "c_main.ku";
 }
@@ -25,4 +27,5 @@ test {
     include "test.ku";
     include "hash.test.ku";
     include "fmt.test.ku";
+    include "map.test.ku";
 }

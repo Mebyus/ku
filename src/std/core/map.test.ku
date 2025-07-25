@@ -1,0 +1,156 @@
+test map_str_u64 {
+    var array_map_buf: [1 << 8]u8 = ?;
+    var map_buf: []u8 = make_span_u8(array_map_buf, #len(array_map_buf));
+
+    var m: MapStrU64;
+    init_map_str_u64_noalloc(m.&, map_buf);
+    test(m.num == 0);
+
+    var r: RetU64 = map_str_u64_get(m.&, "hello");
+    test(!r.ok);
+
+    // === 1 ===
+
+    var eid: error_id = map_str_u64_set(m.&, "hello", 1);
+    test(eid == 0);
+    test(m.num == 1);
+
+    r = map_str_u64_get(m.&, "hello");
+    test(r.ok);
+    test(r.val == 1);
+
+    r = map_str_u64_get(m.&, "");
+    test(!r.ok);
+
+    // === 2 ===
+
+    eid = map_str_u64_set(m.&, "hello", 2);
+    test(eid == 0);
+    test(m.num == 1);
+
+    r = map_str_u64_get(m.&, "hello");
+    test(r.ok);
+    test(r.val == 2);
+
+    // === 3 ===
+
+    eid = map_str_u64_set(m.&, "world", 0);
+    test(eid == 0);
+    test(m.num == 2);
+
+    r = map_str_u64_get(m.&, "world");
+    test(r.ok);
+    test(r.val == 0);
+
+    r = map_str_u64_get(m.&, "hello");
+    test(r.ok);
+    test(r.val == 2);
+ 
+    // === 4 ===
+
+    eid = map_str_u64_set(m.&, "abc", max_integer_u64);
+    test(eid == 0);
+    test(m.num == 3);
+
+    r = map_str_u64_get(m.&, "abc");
+    test(r.ok);
+    test(r.val == max_integer_u64);
+
+    // === 5 ===
+
+    var ok: bool = map_str_u64_del(m.&, "a");
+    test(!ok);
+    test(m.num == 3);
+
+    ok = map_str_u64_del(m.&, "hello");
+    test(ok);
+    test(m.num == 2);
+
+    r = map_str_u64_get(m.&, "hello");
+    test(!r.ok);
+
+    // === 6 ===
+
+    eid = map_str_u64_set(m.&, "hello", 3);
+    test(eid == 0);
+    test(m.num == 3);
+
+    r = map_str_u64_get(m.&, "hello");
+    test(r.ok);
+    test(r.val == 3);
+
+    r = map_str_u64_get(m.&, "world");
+    test(r.ok);
+    test(r.val == 0);
+
+    // === 7 ===
+
+    eid = map_str_u64_set(m.&, "Hello", 4);
+    test(eid == 0);
+    test(m.num == 4);
+
+    r = map_str_u64_get(m.&, "Hello");
+    test(r.ok);
+    test(r.val == 4);
+
+    // === 8 ===
+
+    eid = map_str_u64_set(m.&, "a", 1);
+    test(eid == 0);
+    test(m.num == 5);
+
+    r = map_str_u64_get(m.&, "a");
+    test(r.ok);
+    test(r.val == 1);
+
+    // === 9 ===
+
+    eid = map_str_u64_set(m.&, "b", 5);
+    test(eid == 0);
+    test(m.num == 6);
+
+    r = map_str_u64_get(m.&, "b");
+    test(r.ok);
+    test(r.val == 5);
+
+    // === 10 ===
+
+    ok = map_str_u64_del(m.&, "Hello");
+    test(ok);
+    test(m.num == 5);
+
+    r = map_str_u64_get(m.&, "Hello");
+    test(!r.ok);
+
+    ok = map_str_u64_del(m.&, "H");
+    test(!ok);
+    test(m.num == 5);
+
+    r = map_str_u64_get(m.&, "H");
+    test(!r.ok);
+
+    ok = map_str_u64_del(m.&, "hello");
+    test(ok);
+    test(m.num == 4);
+
+    r = map_str_u64_get(m.&, "hello");
+    test(!r.ok);
+
+    // === 11 ===
+
+    eid = map_str_u64_inc(m.&, "world", 10);
+    test(eid == 0);
+    test(m.num == 4);
+
+    r = map_str_u64_get(m.&, "world");
+    test(r.ok);
+    test(r.val == 10);
+
+    eid = map_str_u64_inc(m.&, "world", 5);
+    test(eid == 0);
+    test(m.num == 4);
+
+    r = map_str_u64_get(m.&, "world");
+    test(r.ok);
+    test(r.val == 15);
+}
