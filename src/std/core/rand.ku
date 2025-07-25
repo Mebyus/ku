@@ -1,0 +1,64 @@
+type Biski64State => struct {
+    fast_loop: u64,
+    mix: u64,
+    loop_mix: u64,
+}
+
+fun biski64_next(state: &Biski64State) => u64 {
+    const r: u64 = state.*.mix + state.*.loop_mix;
+    const old_loop_mix: u64 = state.*.loop_mix;
+
+    state.*.loop_mix = state.*.fast_loop ^ state.*.mix;
+    state.*.mix = rotate_left_u64(state.*.mix, 16) + rotate_left_u64(old_loop_mix, 40);
+    state.*.fast_loop += 0x9999999999999999; // Additive constant for the Weyl sequence.
+
+    ret r;
+}
+
+fun biski64_splitmix(ss_ptr: &u64) => u64 {
+    ss_ptr.* += 0x9e3779b97f4a7c15;
+    
+    var z: u64 = ss_ptr.*;
+    z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
+    z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
+    ret z ^ (z >> 31);
+}
+
+fun biski64_warmup(state: &Biski64State) {
+    for i = [:16] {
+        biski64_next(state);
+    }
+}
+
+fun biski64_seed(state: &Biski64State, seed: u64) {
+    var ss: u64 = seed;
+
+    state.*.mix       = biski64_splitmix(ss.&);
+    state.*.loop_mix  = biski64_splitmix(ss.&);
+    state.*.fast_loop = biski64_splitmix(ss.&);
+
+    biski64_warmup(state);
+}
+
+/*/doc
+Fills span of integers with randomly generated numbers.
+*/
+fun biski64_fill_s64(state: &Biski64State, s: []s64) {
+    for i = [:s.len] {
+        s.ptr[i] = cast(s64, biski64_next(state));
+    }
+}
+
+// const printable_characters_array: [_]u8 = "_0123456789 ABCD";
+
+/*/doc
+Fills given string with random ASCII printable characters:
+    '0' - '9'
+    'A' - 'Z'
+    'a' - 'z'
+    '_'
+    ' '
+*/
+fun biski64_fill_str(state: &Biski64State, s: str) {
+
+}

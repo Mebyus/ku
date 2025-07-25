@@ -17,6 +17,7 @@ include "terminal.linux.ku";
 include "libc.h";
 include "log.ku";
 
+include "rand.ku";
 include "map.ku";
 
 exe {

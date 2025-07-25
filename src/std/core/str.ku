@@ -44,3 +44,18 @@ fun str_index_back_byte(s: str, x: u8) => RetIndex {
     }
     ret r;
 }
+
+type RetStringCut => struct {
+    head: str,
+    tail: str,
+}
+
+fun str_cut_word(s: str) => RetStringCut {
+    var r: RetStringCut;
+
+    var i: uint = 0;
+    for i < s.len {
+        // TODO: implement this
+        ret r;
+    }
+}

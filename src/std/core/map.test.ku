@@ -1,4 +1,4 @@
-test map_str_u64 {
+test map_str_u64_noalloc {
     var array_map_buf: [1 << 8]u8 = ?;
     var map_buf: []u8 = make_span_u8(array_map_buf, #len(array_map_buf));
 
@@ -105,7 +105,7 @@ test map_str_u64 {
 
     // === 9 ===
 
-    eid = map_str_u64_set(m.&, "b", 5);
+    eid = map_str_u64_set(m.&, "b", 5);    
     test(eid == 0);
     test(m.num == 6);
 
@@ -153,4 +153,51 @@ test map_str_u64 {
     r = map_str_u64_get(m.&, "world");
     test(r.ok);
     test(r.val == 15);
+}
+
+test map_str_u64_alloc_rand {
+    var g: Biski64State;
+    biski64_seed(g.&, 0);
+
+    var array_memory_buffer: [1 << 16]u8 = ?;
+    var arena: MemoryArenaAllocator = ?;
+    init_memory_arena_allocator(arena.&, make_span_u8(array_memory_buffer, #len(array_memory_buffer)));
+    var al: MemoryAllocator = make_memory_allocator_from_arena(arena.&);
+
+    var m: MapStrU64;
+    init_map_str_u64(m.&, al, 9);
+    test(m.num == 0);
+
+    var r: RetU64 = map_str_u64_get(m.&, "hello");
+    test(!r.ok);
+
+    // === 1 ===
+
+    map_str_u64_set(m.&, "0_abc",   0);
+    map_str_u64_set(m.&, "1_ab",    1);
+    map_str_u64_set(m.&, "2_abca",  2);
+    map_str_u64_set(m.&, "3_abc ",  3);
+    map_str_u64_set(m.&, "4_zabc",  4);
+    map_str_u64_set(m.&, "5_kbc",   5);
+    map_str_u64_set(m.&, "6_aAc",   6);
+    map_str_u64_set(m.&, "7_abcm",  7);
+    map_str_u64_set(m.&, "8_abc0",  8);
+    map_str_u64_set(m.&, "9_ab12",  9);
+    map_str_u64_set(m.&, "10_aaa",  10);
+    map_str_u64_set(m.&, "11_abb",  11);
+    map_str_u64_set(m.&, "12_ab_",  12);
+    map_str_u64_set(m.&, "13_kb12", 13);
+    map_str_u64_set(m.&, "14_zaa",  14);
+    map_str_u64_set(m.&, "15_bbb",  15);
+    map_str_u64_set(m.&, "16_a__",  16);
+    map_str_u64_set(m.&, "17_cbk2", 17);
+    map_str_u64_set(m.&, "18_aaa",  18);
+    map_str_u64_set(m.&, "19_mkb",  19);
+    map_str_u64_set(m.&, "20__b_",  20);
+
+    test(m.num == 21);
+
+    // === 2 ===
+
+    map_str_u64_free(m.&);
 }

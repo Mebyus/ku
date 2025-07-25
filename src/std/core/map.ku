@@ -70,6 +70,7 @@ fun init_map_str_u64(m: &MapStrU64, al: MemoryAllocator, cap: uint) => error_id 
     m.*.al = al;
     m.*.slots = make_span_map_str_u64_slot(cast([*]MapStrU64Slot, m.*.block.span.ptr), m.*.block.span.len / #size(MapStrU64Slot));
     m.*.num = 0;
+    ret 0;
 }
 
 fun map_calc_grow_cap(len: uint) => uint {
@@ -88,26 +89,26 @@ fun unsafe_map_str_u64_calc_pos(m: &MapStrU64, hash: u64) => uint {
 }
 
 fun map_str_u64_get_load_factor(m: &MapStrU64) => uint {
-    if m.*.slots.len == 0 {
+    if m.*.num >= m.*.slots.len {
         ret 100;
     }
     ret 100 * m.*.num / m.*.slots.len;
 }
 
-fun fmt_cap_buffer_put_map_str_u64_slot(buf: &FormatCapBuffer, m: &MapStrU64, s: &MapStrU64Slot) {
-    fmt_cap_buffer_put_byte(buf, '[');
-    fmt_cap_buffer_put_hex_prefix_zeroes_u64(buf, s.*.hash);
-    fmt_cap_buffer_put_str(buf, " => ");
-    fmt_cap_buffer_put_dec_u64(buf, unsafe_map_str_u64_calc_pos(m, s.*.hash));
-    fmt_cap_buffer_put_byte(buf, ']');
-    fmt_cap_buffer_put_space(buf);
-    fmt_cap_buffer_put_dec_u64(buf, s.*.psl);
-    fmt_cap_buffer_put_space(buf);
-    
+fun fmt_cap_buffer_put_map_str_u64_slot(buf: &FormatCapBuffer, m: &MapStrU64, s: &MapStrU64Slot) {   
     if s.*.flags == 0 {
         fmt_cap_buffer_put_str(buf, "<nil>");
         ret;
     }
+    
+    fmt_cap_buffer_put_byte(buf, '[');
+    fmt_cap_buffer_put_hex_prefix_zeroes_u64(buf, s.*.hash);
+    fmt_cap_buffer_put_str(buf, " => ");
+    fmt_cap_buffer_put_dec_u64(buf, unsafe_map_str_u64_calc_pos(m, s.*.hash));
+    fmt_cap_buffer_put_str(buf, "+");
+    fmt_cap_buffer_put_dec_u64(buf, s.*.psl);
+    fmt_cap_buffer_put_byte(buf, ']');
+    fmt_cap_buffer_put_space(buf);
 
     fmt_cap_buffer_put_str(buf, "(\"");
     fmt_cap_buffer_put_str(buf, s.*.key);
@@ -121,13 +122,17 @@ fun map_str_u64_print_slots(m: &MapStrU64) {
     var buf: FormatCapBuffer = ?;
     init_fmt_cap_buffer(buf.&, make_span_u8(output_buffer, #len(output_buffer)));
 
-    fmt_cap_buffer_put_str(buf.&, "map(num, cap) = (");
+    fmt_cap_buffer_put_str(buf.&, "map(num, cap, load) = (");
     fmt_cap_buffer_put_dec_u64(buf.&, m.*.num);
     fmt_cap_buffer_put_str(buf.&, ", ");
     fmt_cap_buffer_put_dec_u64(buf.&, m.*.slots.len);
+    fmt_cap_buffer_put_str(buf.&, ", ");
+    fmt_cap_buffer_put_dec_u64(buf.&, map_str_u64_get_load_factor(m));
     fmt_cap_buffer_put_str(buf.&, ")");
     fmt_cap_buffer_put_newline(buf.&);
 
+    var sum_psl: u64 = 0;
+    var max_psl: u32 = 0;
     const slots: []MapStrU64Slot = m.*.slots;
     for i = [:slots.len] {
         var s: MapStrU64Slot = slots.ptr.[i];
@@ -135,7 +140,22 @@ fun map_str_u64_print_slots(m: &MapStrU64) {
         fmt_cap_buffer_put_str(buf.&, ": ");
         fmt_cap_buffer_put_map_str_u64_slot(buf.&, m, s.&);
         fmt_cap_buffer_put_newline(buf.&);
+
+        if s.flags != 0 {
+            sum_psl += s.psl;
+            if s.psl > max_psl {
+                max_psl = s.psl;
+            }
+        }
     }
+
+    fmt_cap_buffer_put_str(buf.&, "avg psl: ");
+    fmt_cap_buffer_put_dec_u64(buf.&, sum_psl);
+    fmt_cap_buffer_put_newline(buf.&);
+
+    fmt_cap_buffer_put_str(buf.&, "max psl: ");
+    fmt_cap_buffer_put_dec_u64(buf.&, max_psl);
+    fmt_cap_buffer_put_newline(buf.&);
 
     stdout_print(fmt_cap_buffer_take(buf.&));
 }
@@ -239,15 +259,22 @@ fun map_str_u64_grow(m: &MapStrU64) => error_id {
         ret eid;
     }
 
-    // insert occupied slots from old span into new one
     const slots: []MapStrU64Slot = m.*.slots;
     m.*.slots = make_span_map_str_u64_slot(cast([*]MapStrU64Slot, block.span.ptr), block.span.len / #size(MapStrU64Slot));
+    
+    // number of entries will be restored when we insert entries into new slots
+    const old_num: uint = m.*.num;
+    m.*.num = 0;
+
+    // insert occupied slots from old span into new one
     for i = [:slots.len] {
         const slot: MapStrU64Slot = slots.ptr.[i];
         if slot.flags != 0 {
             unsafe_map_str_u64_insert_entry(m, slot.key, slot.val, slot.hash);
         }
     }
+
+    must(m.*.num == old_num);
 
     if m.*.block.span.len != 0 {
         memory_free(m.*.al, m.*.block.&);
@@ -304,24 +331,6 @@ fun map_str_u64_inc(m: &MapStrU64, key: str, x: u64) => error_id {
     }
 
     ret map_str_u64_insert_entry(m, key, x, hash);
-}
-
-/*/doc
-Decrease value stored with {key} by {x}.
-If map does not contain {key} add it with value {0 - x}.
-*/
-fun map_str_u64_dec(m: &MapStrU64, key: str, x: u64) => error_id {
-    const hash: u64 = hash64_sdbm(key);
-    if m.*.num != 0 {
-        const i: RetIndex = map_str_u64_get_index(m, key, hash);
-        if i.ok {
-            // update existing entry
-            m.*.slots.ptr.[i.val].val -= x;
-            ret 0;
-        }
-    }
-
-    ret map_str_u64_insert_entry(m, key, 0 - x, hash);
 }
 
 /*/doc

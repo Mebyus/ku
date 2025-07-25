@@ -44,6 +44,16 @@ fun get_align_offset(ptr: *any, a: uint) => uint {
 	ret align_uint(p, a) - p;
 }
 
+fun rotate_left_u64(x: u64, k: uint) => u64 {
+	const mask: uint = 64 - 1;
+	k = k & mask;
+	if k == 0 {
+		ret x;
+	}
+
+    ret (x << k) | (x >> (64 - k));
+}
+
 fun make_span_u8(ptr: [*]u8, len: uint) => []u8 {
     var s: []u8;
 	if len == 0 {
