@@ -197,6 +197,41 @@ fun map_str_u64_get_index(m: &MapStrU64, key: str, hash: u64) => RetIndex {
 }
 
 /*/doc
+Replace key inside occupied slot with a given one.
+This operation provides a way to change {slot.key.ptr} in occupied slot with
+another pointer from provided {key} which holds the same data.
+
+If map does not have occupied slot with corresponding key this operation
+does nothing and returns {false}.
+
+Returns {true} if key was replaced by this operation.
+*/
+fun map_str_u64_replace_key(m: &MapStrU64, key: str) => bool {
+    if m.*.num == 0 {
+        ret false;
+    }
+
+    const hash: u64 = hash64_sdbm(key);
+    const i: RetIndex = map_str_u64_get_index(m, key, hash);
+    if !i.ok {
+        ret false;
+    }
+
+    m.*.slots.ptr.[i.val].key = key;
+    ret true;
+}
+
+fun map_str_u64_has(m: &MapStrU64, key: str) => bool {
+    if m.*.num == 0 {
+        ret false;
+    }
+
+    const hash: u64 = hash64_sdbm(key);
+    const i: RetIndex = map_str_u64_get_index(m, key, hash);    
+    ret i.ok;
+}
+
+/*/doc
 Always inserts new entry, thus can break the map if used with already
 existing entry.
 

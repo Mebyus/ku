@@ -1,0 +1,252 @@
+/*/doc
+Structure for bookkeeping allocated strings data inside the pool.
+*/
+type StringPoolBucket => struct {
+    block: MemoryBlock,
+
+    // Total number of bytes allocated by strings in this bucket.
+    num: u32,
+}
+
+type StringPoolSlot => struct {
+    val: str,
+    
+    // Link counter of the string
+    links: u32,
+
+    // Bucket id where string data is stored.
+    // Zero value means that this string data is not stored in pool.
+    //
+    // {bucket} = {bucket_index} + 1
+    bucket: u32,
+}
+
+let STRING_POOL_BUCKETS_NUMBER => 8;
+
+let STRING_POOL_REUSE_STACK_SIZE => 256;
+
+type StringPool => struct {
+    buckets: [STRING_POOL_BUCKETS_NUMBER]StringPoolBucket,
+
+    // Contains slot indices which can be reused when adding new strings to pool.
+    reuse_stack: [STRING_POOL_REUSE_STACK_SIZE]u32;
+
+    // Maps strings to their indices inside {slots} span.
+    map: MapStrU64,
+
+    // Allocated memory block which stores {slots} data.
+    block: MemoryBlock,
+
+    al: MemoryAllocator,
+
+    slots: [*]StringPoolSlot,
+
+    // Number of occupied slots.
+    num: u32,
+
+    // Slots capacity.
+    cap: u32,
+
+    // Reuse stack position (index) for inserting new element.
+    // Also equal to number of elements inside the stack.
+    pos: u32,
+
+    // Total number of bytes allocated by strings in all buckets.
+    total: u32,
+
+    // Total number of wasted bytes in all buckets.
+    //
+    // Equals to sum of all allocated string sizes with 0 links.
+    wasted: u32,
+}
+
+let STRING_POOL_BUCKET_SIZE = 1 << 24;
+
+fun init_str_pool(p: &StringPool, al: MemoryAllocator, cap: u32) => error_id {
+    p.*.block.span.len = cap * #size(StringPoolSlot);
+    var eid: error_id = memory_alloc_clear(al, p.*.block.&);
+    if eid != 0 {
+        ret eid;
+    }
+
+    p.*.slots = cast([*]StringPoolSlot, m.*.block.span.ptr);
+    p.*.cap = p.*.block.span.len / #size(StringPoolSlot);
+
+    eid = init_map_str_u64(p.*.map.&, al, p.*.cap);
+    if eid != 0 {
+        ret eid;
+    }
+
+    p.*.al = al;
+    p.*.num = 0;
+    p.*.pos = 0;
+
+    p.*.total = 0;
+    p.*.wasted = 0;
+
+    ret 0;
+}
+
+type RetPoolSlot => struct {
+    eid: error_id,
+
+    // Slot {id} = {slot_index} + 1.
+    //
+    // Zero id means empty string.
+    slot_id: u32,
+}
+
+fun str_pool_slots_grow(p: &StringPool) => error_id {
+    #stub;
+    ret 0;
+}
+
+/*/doc
+Perform garbage collection of allocated strings.
+*/
+fun str_pool_gc(p: &StringPool) {
+
+}
+
+/*/doc
+Adds (via possible copy) a given string to pool. There are two cases for this operation:
+1. Pool does not contain a string identical to a given one.
+2. Pool contains a string identical to a given one.
+
+In case 1 string is not copied. Function returns id of already stored string and
+increases its link count by 1.
+
+In case 2 string is copied and stored inside the pool. Function returns id
+of the new string with its link count set to 1.
+*/
+fun str_pool_add_copy(p: &StringPool, s: str) => RetPoolSlot {
+    var ps: RetPoolSlot;
+    if s.len == 0 {
+        ret ps;
+    }
+    if s.len > STRING_POOL_BUCKET_SIZE {
+        ps.eid = #error(LONG_STRING);
+        ret ps;
+    }
+
+    const r: RetU64 = map_str_u64_get(p.*.map.&, s);
+    if r.ok {
+        ps.slot_id = cast(u32, r.val + 1);
+        ret ps;
+    }
+
+    #stub;
+    ret ps;
+}
+
+/*/doc
+Adds a given string to pool. This operation never copies the string.
+It may only store its shallow reference. May return id of already stored string.
+*/
+fun str_pool_add(p: &StringPool, s: str) => RetPoolSlot {
+    var ps: RetPoolSlot;
+    if s.len == 0 {
+        ret ps;
+    }
+    const r: RetU64 = map_str_u64_get(p.*.map.&, s);
+    if r.ok {
+        const i: u32 = cast(u32, r.val);
+        // TODO: replace allocated string if possible
+        p.*.slots[i].links += 1;
+        ps.slot_id = i + 1;
+        ret ps;
+    }
+
+    var i: u32; // slot index where string header will be stored
+    if p.*.pos != 0 {
+        p.*.pos -= 1;
+        i = p.*.reuse_stack.[p.*.pos];
+    } else { 
+        if p.*.num >= p.*.cap {
+            const eid: error_id = str_pool_slots_grow(p);
+            if eid != 0 {
+                ps.eid = eid;
+                ret ps;
+            }
+        }
+        i = p.*.num;
+        p.*.num += 1;
+    }
+
+    const eid: error_id = map_str_u64_set(p.*.map.&, s, i);
+    if eid != 0 {
+        ps.eid = eid;
+        ret ps;
+    }
+
+    const slot: StringPoolSlot = {
+        val:    s,
+        links:  1,
+        bucket: 0,
+    };
+    p.*.slots.[i] = slot;
+    ps.slot_id = i + 1;
+    ret ps;
+}
+
+/*/doc
+Removes one link from stored string. Panics if string is not found or its link
+count is already 0.
+
+When link count of stored string reaches 0, it becomes subject to pool-internal
+garbage collection.
+*/
+fun str_pool_unlink(p: &StringPool, id: u32) {
+    if id == 0 {
+        ret;
+    }
+
+    // slot index
+    const i: u32 = id - 1; 
+    must(i < p.*.num);
+    
+    const slot: StringPoolSlot = p.*.slots.[i];
+    must(slot.links != 0);
+
+    if slot.bucket != 0 && slot.links == 1 {
+        p.*.wasted += slot.val.len;
+    }
+
+    p.*.slots.[i].links -= 1;
+}
+
+fun str_pool_get(p: &StringPool, id: u32) => str {
+    if id == 0 {
+        ret "";
+    }
+
+    // slot index
+    const i: u32 = id - 1; 
+    must(i < p.*.num);
+    
+    const slot: StringPoolSlot = p.*.slots.[i];
+    must(slot.links != 0);
+
+    ret slot.val;
+}
+
+fun str_pool_free(p: &StringPool) {
+    for i = [:STRING_POOL_BUCKETS_NUMBER] {
+        if p.*.buckets.[i].block.span.len != 0 {
+            memory_free(p.*.al, p.*.buckets.[i].block.&);    
+        }
+    }
+    if p.*.block.span.len != 0 {
+        memory_free(p.*.al, p.*.block.&);
+    }
+    map_str_u64_free(p.*.map.&);
+}
+
+
+type StringPoolView => struct {
+
+}
+
+fun str_pool_add_lines_from_text(p: &StringPool, view: &StringPoolView, text: str) {
+
+}
