@@ -29,7 +29,7 @@ type StringPool => struct {
     buckets: [STRING_POOL_BUCKETS_NUMBER]StringPoolBucket,
 
     // Contains slot indices which can be reused when adding new strings to pool.
-    reuse_stack: [STRING_POOL_REUSE_STACK_SIZE]u32;
+    reuse_stack: [STRING_POOL_REUSE_STACK_SIZE]u32,
 
     // Maps strings to their indices inside {slots} span.
     map: MapStrU64,
@@ -60,7 +60,7 @@ type StringPool => struct {
     wasted: u32,
 }
 
-let STRING_POOL_BUCKET_SIZE = 1 << 24;
+let STRING_POOL_BUCKET_SIZE => 1 << 24;
 
 fun init_str_pool(p: &StringPool, al: MemoryAllocator, cap: u32) => error_id {
     p.*.block.span.len = cap * #size(StringPoolSlot);
@@ -69,8 +69,8 @@ fun init_str_pool(p: &StringPool, al: MemoryAllocator, cap: u32) => error_id {
         ret eid;
     }
 
-    p.*.slots = cast([*]StringPoolSlot, m.*.block.span.ptr);
-    p.*.cap = p.*.block.span.len / #size(StringPoolSlot);
+    p.*.slots = cast([*]StringPoolSlot, p.*.block.span.ptr);
+    p.*.cap = cast(u32, p.*.block.span.len / #size(StringPoolSlot));
 
     eid = init_map_str_u64(p.*.map.&, al, p.*.cap);
     if eid != 0 {
@@ -209,7 +209,7 @@ fun str_pool_unlink(p: &StringPool, id: u32) {
     must(slot.links != 0);
 
     if slot.bucket != 0 && slot.links == 1 {
-        p.*.wasted += slot.val.len;
+        p.*.wasted += cast(u32, slot.val.len);
     }
 
     p.*.slots.[i].links -= 1;

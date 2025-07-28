@@ -29,6 +29,10 @@ fun panic_never(path: str, line: uint) => #never {
     panic_message_pos("executed code marked as unreachable", path, line, "never");
 }
 
+fun panic_stub(path: str, line: uint) => #never {
+    panic_message_pos("executed code marked as stubbed", path, line, "stub");
+}
+
 fun must_pos(c: bool, path: str, line: uint) {
     if c {
         ret;

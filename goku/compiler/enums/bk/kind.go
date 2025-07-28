@@ -1,6 +1,7 @@
 package bk
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -19,6 +20,8 @@ const (
 
 	// All optimizations enabled + disabled safety checks
 	Fast
+
+	num
 )
 
 var buildKindText = [...]string{
@@ -32,6 +35,16 @@ var buildKindText = [...]string{
 
 func (k Kind) String() string {
 	return buildKindText[k]
+}
+
+func (k Kind) Valid() error {
+	if k == 0 {
+		return errors.New("empty build kind")
+	}
+	if k >= num {
+		return fmt.Errorf("invalid build kind (=%d)", k)
+	}
+	return nil
 }
 
 func Parse(s string) (Kind, error) {

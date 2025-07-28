@@ -1,4 +1,4 @@
-package run
+package build
 
 import (
 	"fmt"
@@ -9,12 +9,19 @@ import (
 )
 
 var Butler = &butler.Butler{
-	Name: "run",
+	Name: "build",
 
-	Short: "Build (via C codegen) and run specified module from Kub package",
-	Usage: "[options] [name]",
+	Short: "Build (via C codegen) specified module from Kub package",
+	Usage: "[options] [path]",
 
 	Params: butler.NewParams(
+		butler.Param{
+			Name:    "out",
+			Alias:   "o",
+			Desc:    "Path to output file",
+			Default: "",
+			Kind:    butler.String,
+		},
 		butler.Param{
 			Name:    "build-kind",
 			Alias:   "k",
@@ -24,29 +31,30 @@ var Butler = &butler.Butler{
 		},
 	),
 
-	Exec: run,
+	Exec: exec,
 }
 
-func run(r *butler.Butler, names []string) error {
-	if len(names) == 0 {
+func exec(r *butler.Butler, modules []string) error {
+	if len(modules) == 0 {
 		return fmt.Errorf("at least one module must be specified")
 	}
 
-	name := names[0]
-	return runModule(name, r.Params.Get("build-kind").Str())
+	name := modules[0]
+	return build(name, r.Params.Get("out").Str(), r.Params.Get("build-kind").Str())
 }
 
-func runModule(name string, kind string) error {
+func build(name string, out string, kind string) error {
 	k, err := bk.Parse(kind)
 	if err != nil {
 		return err
 	}
 
-	return builder.BuildAndRunModule(&builder.BuildAndRunModuleConfig{
+	return builder.BuildModule(&builder.BuildModuleConfig{
 		Config: builder.Config{
 			ModuleName:      name,
 			BuildKind:       k,
 			PackageFilePath: "pkg.kub",
 		},
+		OutputPath: out,
 	})
 }

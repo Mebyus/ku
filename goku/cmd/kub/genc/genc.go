@@ -8,7 +8,6 @@ import (
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/parser"
 	"github.com/mebyus/ku/goku/compiler/srcmap"
-	"github.com/mebyus/ku/goku/kub/builder"
 	"github.com/mebyus/ku/goku/kub/genc"
 )
 
@@ -31,14 +30,6 @@ func exec(r *butler.Butler, files []string) error {
 }
 
 func gen(path string) error {
-	info, err := os.Stat(path)
-	if err != nil {
-		return err
-	}
-
-	if info.IsDir() {
-		return builder.GenUnit(os.Stdout, path)
-	}
 	return genFromFile(path)
 }
 

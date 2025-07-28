@@ -1,8 +1,13 @@
 package eval
 
+import (
+	"github.com/mebyus/ku/goku/compiler/enums/bk"
+	"github.com/mebyus/ku/goku/compiler/enums/bm"
+)
+
 type Env struct {
-	Exe     bool
-	TestExe bool
+	BuildKind bk.Kind
+	BuildMode bm.Mode
 
 	m map[string]string
 }

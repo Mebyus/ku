@@ -31,6 +31,10 @@ const (
 	//		// import entries
 	//	}
 	Loc
+
+	// Main denotes unit path of main unit. Main units cannot be imported by
+	// other units.
+	Main
 )
 
 func (o Origin) IsEmpty() bool {
@@ -40,9 +44,10 @@ func (o Origin) IsEmpty() bool {
 var text = [...]string{
 	empty: "<nil>",
 
-	Std: "std",
-	Pkg: "pkg",
-	Loc: "loc",
+	Std:  "std",
+	Pkg:  "pkg",
+	Loc:  "loc",
+	Main: "main",
 }
 
 func (o Origin) String() string {

@@ -2,8 +2,9 @@ set {
     root.dir = ".";
 }
 
-module "core" {
+module "std" {
     unit "std/core";
+    unit "std/strings";
 }
 
 module "vik" {

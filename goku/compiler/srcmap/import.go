@@ -1,9 +1,44 @@
-package builder
+package srcmap
 
 import (
-	"github.com/mebyus/ku/goku/compiler/srcmap"
 	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
 )
+
+type Import struct {
+	Path origin.Path
+	Pin  Pin
+}
+
+func CheckUniqueImports(ss []Import) bool {
+	if len(ss) < 2 {
+		return true
+	}
+	if len(ss) == 2 {
+		return ss[0] != ss[1]
+	}
+
+	set := make(map[origin.Path]struct{}, len(ss))
+	for _, s := range ss {
+		_, ok := set[s.Path]
+		if ok {
+			return false
+		}
+		set[s.Path] = struct{}{}
+	}
+	return true
+}
+
+type Unit struct {
+	// Order of elements directly corresponds to file include order
+	// in unit build file.
+	Texts []*Text
+
+	// List of unit imports.
+	Imports []Import
+
+	// Contains unit import path under which this unit is known to import graph.
+	Path origin.Path
+}
 
 type QueueItem struct {
 	// Path to unit inside the queue.
@@ -14,7 +49,7 @@ type QueueItem struct {
 	// There may be more than one import place for a specific unit inside the
 	// whole program. This field tracks the first one we encounter during unit
 	// walk phase.
-	Pin srcmap.Pin
+	Pin Pin
 }
 
 // UnitQueue keeps track which unit were already visited and
@@ -73,4 +108,8 @@ func (q *UnitQueue) AddUnit(unit *Unit) {
 			Pin:  p.Pin,
 		})
 	}
+}
+
+func (q *UnitQueue) Units() []*Unit {
+	return q.units
 }

@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/mebyus/ku/goku/butler"
-	"github.com/mebyus/ku/goku/cmd/kub/compile"
+	"github.com/mebyus/ku/goku/cmd/kub/build"
 	"github.com/mebyus/ku/goku/cmd/kub/eval"
 	"github.com/mebyus/ku/goku/cmd/kub/genc"
 	"github.com/mebyus/ku/goku/cmd/kub/lex"
@@ -38,7 +38,7 @@ var root = &butler.Butler{
 		parse.Butler,
 		eval.Butler,
 		genc.Butler,
-		compile.Butler,
+		build.Butler,
 		test.Butler,
 		run.Butler,
 	},

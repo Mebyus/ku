@@ -11,9 +11,9 @@ import (
 type Package struct {
 	Modules []Module
 
-	MainDir   string
-	SourceDir string
-	RootDir   string
+	MainDir string
+	UnitDir string
+	RootDir string
 }
 
 type Module struct {
@@ -32,7 +32,7 @@ func EvalPackage(pkg *ast.Package) (*Package, diag.Error) {
 	var p Package
 
 	p.MainDir = "src/mains"
-	p.SourceDir = "src"
+	p.UnitDir = "src"
 
 	err := evalSets(&p, pkg.Sets)
 	if err != nil {
@@ -88,7 +88,7 @@ func evalSet(pkg *Package, set ast.Set) diag.Error {
 	name := joinNameParts(set.Name.Parts)
 	switch name {
 	case "source.dir":
-		pkg.SourceDir = getStringFromExp(set.Exp)
+		pkg.UnitDir = getStringFromExp(set.Exp)
 	case "main.dir":
 		pkg.MainDir = getStringFromExp(set.Exp)
 	case "root.dir":

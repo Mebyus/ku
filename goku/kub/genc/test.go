@@ -3,7 +3,9 @@ package genc
 func (g *Gen) MainTestDriver(tests []string) {
 	g.nl()
 	if len(tests) == 0 {
-		g.puts("int main() {}")
+		g.puts("static uint")
+		g.nl()
+		g.puts("ku_main() {}")
 		g.nl()
 		return
 	}
@@ -16,7 +18,9 @@ func (g *Gen) MainTestDriver(tests []string) {
 	g.nl()
 	g.nl()
 
-	g.puts("int main() {")
+	g.puts("static uint")
+	g.nl()
+	g.puts("ku_main() {")
 	g.nl()
 	g.inc()
 	g.level += 1
@@ -91,6 +95,11 @@ func (g *Gen) MainTestDriver(tests []string) {
 	g.dec()
 	g.indent()
 	g.puts("}")
+	g.nl()
+
+	g.nl()
+	g.indent()
+	g.puts("return 0;")
 	g.nl()
 
 	g.level -= 1

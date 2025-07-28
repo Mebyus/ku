@@ -4,24 +4,20 @@ import (
 	"fmt"
 
 	"github.com/mebyus/ku/goku/compiler/diag"
+	"github.com/mebyus/ku/goku/compiler/enums/bm"
 	"github.com/mebyus/ku/goku/compiler/srcmap"
 	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
 	"github.com/mebyus/ku/goku/kub/ast"
 )
 
-type Import struct {
-	Path origin.Path
-	Pin  srcmap.Pin
-}
-
 // Unit represents result of evaluating unit build script.
 type Unit struct {
-	Imports  []Import
+	Imports  []srcmap.Import
 	Includes []string
 }
 
 func (u *Unit) valid() diag.Error {
-	if !checkUniqueImports(u.Imports) {
+	if !srcmap.CheckUniqueImports(u.Imports) {
 		return &diag.PinlessError{Text: fmt.Sprintf("non-unique imports %v", u.Imports)}
 	}
 	if !checkUnique(u.Includes) {
@@ -66,7 +62,7 @@ func (r *Interpreter) dir(dir ast.Dir) diag.Error {
 		if d.Val == "" {
 			panic("empty import path")
 		}
-		r.unit.Imports = append(r.unit.Imports, Import{
+		r.unit.Imports = append(r.unit.Imports, srcmap.Import{
 			Path: origin.Path{
 				Import: d.Val,
 				Origin: d.Origin,
@@ -75,7 +71,7 @@ func (r *Interpreter) dir(dir ast.Dir) diag.Error {
 		})
 	case ast.ImportBlock:
 		for _, m := range d.Imports {
-			r.unit.Imports = append(r.unit.Imports, Import{
+			r.unit.Imports = append(r.unit.Imports, srcmap.Import{
 				Path: origin.Path{
 					Import: m.Val,
 					Origin: d.Origin,
@@ -89,12 +85,12 @@ func (r *Interpreter) dir(dir ast.Dir) diag.Error {
 		}
 		r.unit.Includes = append(r.unit.Includes, d.Val)
 	case ast.Test:
-		if !r.env.TestExe {
+		if r.env.BuildMode != bm.TestExe {
 			return nil
 		}
 		return r.eval(d.Dirs)
 	case ast.Exe:
-		if !r.env.Exe {
+		if r.env.BuildMode == bm.Obj {
 			return nil
 		}
 		return r.eval(d.Dirs)
@@ -120,25 +116,6 @@ func checkUnique(ss []string) bool {
 			return false
 		}
 		set[s] = struct{}{}
-	}
-	return true
-}
-
-func checkUniqueImports(ss []Import) bool {
-	if len(ss) < 2 {
-		return true
-	}
-	if len(ss) == 2 {
-		return ss[0] != ss[1]
-	}
-
-	set := make(map[origin.Path]struct{}, len(ss))
-	for _, s := range ss {
-		_, ok := set[s.Path]
-		if ok {
-			return false
-		}
-		set[s.Path] = struct{}{}
 	}
 	return true
 }

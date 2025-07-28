@@ -1,6 +1,6 @@
-import std {
-    "core";
-    "strings";
+import {
+    "std/core";
+    "std/strings";
 }
 
 include "main.ku";
