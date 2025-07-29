@@ -1,3 +1,75 @@
 test str_pool {
-    
+    var array_memory_buffer: [1 << 16]u8 = ?;
+    var arena: MemoryArenaAllocator = ?;
+    init_memory_arena_allocator(arena.&, make_span_u8(array_memory_buffer, #len(array_memory_buffer)));
+    var al: MemoryAllocator = make_memory_allocator_from_arena(arena.&);
+
+    var p: StringPool;
+    var eid: error_id = init_str_pool(p.&, al, 4);
+    test(eid == 0);
+
+    var s: str = str_pool_get(p.&, 0);
+    test(s.len == 0);
+
+    // === 1 ===
+
+    var r: RetPoolSlot = str_pool_add(p.&, "hello");
+    test(r.eid == 0);
+    test(r.slot_id == 1);
+
+    s = str_pool_get(p.&, 1);
+    test(str_equal(s, "hello"));
+
+    r = str_pool_add(p.&, "hello");
+    test(r.eid == 0);
+    test(r.slot_id == 1);
+
+    str_pool_unlink(p.&, 1);
+    str_pool_unlink(p.&, 1);
+
+    r = str_pool_add(p.&, "hello");
+    test(r.eid == 0);
+    test(r.slot_id == 1);
+
+    s = str_pool_get(p.&, 1);
+    test(str_equal(s, "hello"));
+
+    // === 2 ===
+
+    r = str_pool_add(p.&, "abc");
+    test(r.eid == 0);
+    test(r.slot_id == 2);
+
+    r = str_pool_add(p.&, "aaa");
+    test(r.eid == 0);
+    test(r.slot_id == 3);
+
+    r = str_pool_add(p.&, "k3n");
+    test(r.eid == 0);
+    test(r.slot_id == 4);
+
+    r = str_pool_add(p.&, "world");
+    test(r.eid == 0);
+    test(r.slot_id == 5);
+
+    str_pool_unlink(p.&, 4);
+
+    str_pool_gc(p.&);
+
+    str_pool_print_slots(p.&);
+
+    s = str_pool_get(p.&, 3);
+    test(str_equal(s, "aaa"));
+
+    r = str_pool_add(p.&, "123");
+    test(r.eid == 0);
+    test(r.slot_id == 4);
+
+    r = str_pool_add(p.&, "aaa");
+    test(r.eid == 0);
+    test(r.slot_id == 3);
+
+    str_pool_print_slots(p.&);
+
+    str_pool_free(p.&);
 }

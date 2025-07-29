@@ -64,7 +64,7 @@ let STRING_POOL_BUCKET_SIZE => 1 << 24;
 
 fun init_str_pool(p: &StringPool, al: MemoryAllocator, cap: u32) => error_id {
     p.*.block.span.len = cap * #size(StringPoolSlot);
-    var eid: error_id = memory_alloc_clear(al, p.*.block.&);
+    var eid: error_id = memory_alloc(al, p.*.block.&);
     if eid != 0 {
         ret eid;
     }
@@ -96,8 +96,76 @@ type RetPoolSlot => struct {
     slot_id: u32,
 }
 
+fun fmt_cap_buffer_put_str_pool_slot(buf: &FormatCapBuffer, s: &StringPoolSlot) {
+    fmt_cap_buffer_put_str(buf, "\"");
+    fmt_cap_buffer_put_str(buf, s.*.val);
+    fmt_cap_buffer_put_str(buf, "\" (");
+    fmt_cap_buffer_put_dec_u64(buf, s.*.links);
+    fmt_cap_buffer_put_str(buf, ", ");
+    fmt_cap_buffer_put_dec_u64(buf, s.*.bucket);
+    fmt_cap_buffer_put_str(buf, ")");
+}
+
+fun str_pool_print_slots(p: &StringPool) {
+    var output_buffer: [1 << 16]u8 = ?;
+    var buf: FormatCapBuffer = ?;
+    init_fmt_cap_buffer(buf.&, make_span_u8(output_buffer, #len(output_buffer)));
+
+    fmt_cap_buffer_put_str(buf.&, "pool(num, cap) = (");
+    fmt_cap_buffer_put_dec_u64(buf.&, p.*.num);
+    fmt_cap_buffer_put_str(buf.&, ", ");
+    fmt_cap_buffer_put_dec_u64(buf.&, p.*.cap);
+    fmt_cap_buffer_put_str(buf.&, ")");
+    fmt_cap_buffer_put_newline(buf.&);
+
+    for i = [:p.*.num] {
+        var s: StringPoolSlot = p.*.slots.[i];
+        fmt_cap_buffer_put_dec_u64(buf.&, i);
+        fmt_cap_buffer_put_str(buf.&, ": ");
+        fmt_cap_buffer_put_str_pool_slot(buf.&, s.&);
+        fmt_cap_buffer_put_newline(buf.&);
+    }
+
+    stdout_print(fmt_cap_buffer_take(buf.&));
+}
+
+fun str_pool_calc_grow_cap(len: u32) => u32 {
+    if len < 8 {
+        ret 16;
+    }
+    if len < (1 << 16) {
+        ret len << 1;
+    }
+
+    ret len + (len >> 2);
+}
+
 fun str_pool_slots_grow(p: &StringPool) => error_id {
-    #stub;
+    if p.*.al.ptr == 0 {
+        ret #error(NIL_MEMORY_ALLOCATOR);
+    }
+
+    var cap: u32 = str_pool_calc_grow_cap(p.*.cap);
+    var block: MemoryBlock = ?;
+    block.span.len = cap * #size(StringPoolSlot);
+    const eid: error_id = memory_alloc(p.*.al, block.&); // TODO: use realloc?
+    if eid != 0 {
+        ret eid;
+    }
+
+    var slots: [*]StringPoolSlot = cast([*]StringPoolSlot, block.span.ptr);
+    cap = cast(u32, block.span.len / #size(StringPoolSlot));
+    if p.*.num != 0 {
+        unsafe_copy(cast([&]u8, slots), cast([&]u8, p.*.slots), p.*.num * #size(StringPoolSlot));
+    }
+
+    p.*.slots = slots;
+    p.*.cap = cap;
+    
+    if p.*.block.span.len != 0 {
+        memory_free(p.*.al, p.*.block.&);
+    }
+    p.*.block = block;
     ret 0;
 }
 
@@ -105,7 +173,21 @@ fun str_pool_slots_grow(p: &StringPool) => error_id {
 Perform garbage collection of allocated strings.
 */
 fun str_pool_gc(p: &StringPool) {
+    var i: u32 = p.*.num;
+    for i != 0 && p.*.pos < STRING_POOL_REUSE_STACK_SIZE {
+        i -= 1;
+        
+        const slot: StringPoolSlot = p.*.slots.[i];
+        if slot.links == 0 {
+            if slot.bucket != 0 {
+                // TODO: need to reorganize buckets
+            }
 
+            map_str_u64_del(p.*.map.&, slot.val);
+            p.*.reuse_stack[p.*.pos] = i;
+            p.*.pos += 1;
+        }
+    }
 }
 
 /*/doc
