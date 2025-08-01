@@ -120,6 +120,37 @@ fun read_key() => RetKey {
     ret rk;
 }
 
+fun test_render(width: u32, height: u32) {
+    var output_buffer_array: [1 << 16]u8 = ?;
+
+    var out: TerminalOutputBuffer = ?;
+    init_terminal_output_buffer(out.&, make_span_u8(output_buffer_array, #len(output_buffer_array)));
+
+    var cells: [100 * 100]TerminalScreenCell = ?;
+    var screen: TerminalScreenBuffer = {
+        cells:  cells,
+        width:  width,
+        height: height,
+        stride: width,
+        cap:    #len(cells),
+    };
+    init_terminal_screen_buffer(screen.&);
+
+    var cell: TerminalScreenCell = {
+        rune: 'A',
+    };
+    terminal_screen_buffer_set_cell(screen.&, 10, 2, cell.&);
+
+    cell.rune = 'П';
+    terminal_screen_buffer_set_cell(screen.&, 11, 3, cell.&);
+
+    cell.rune = '1';
+    terminal_screen_buffer_set_cell(screen.&, 9, 1, cell.&);
+
+    render_terminal_screen_buffer(out.&, screen.&);
+    stdout_print(terminal_output_buffer_take(out.&));
+}
+
 fun run_editor() => error_id {
     var properties: LinuxTerminalProperties = ?;
     var eid: error_id = os_linux_enter_terminal_raw_mode(properties.&);
@@ -132,6 +163,8 @@ fun run_editor() => error_id {
     if eid != 0 {
         ret eid;
     }
+
+    test_render(info.cols, info.rows);
 
     for {
         var rk: RetKey = read_key();

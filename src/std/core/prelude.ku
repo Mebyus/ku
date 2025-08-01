@@ -14,6 +14,8 @@
 type uint => u64
 type sint => s64
 
+type rune => u32
+
 #must(#size(uint) == #size(*any));
 #must(#size(sint) == #size(*any));
 

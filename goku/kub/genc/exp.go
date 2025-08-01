@@ -2,6 +2,7 @@ package genc
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/mebyus/ku/goku/compiler/ast"
 	"github.com/mebyus/ku/goku/compiler/char"
@@ -196,9 +197,15 @@ func (g *Gen) String(s ast.String) {
 }
 
 func (g *Gen) Rune(r ast.Rune) {
-	g.puts("'")
-	g.puts(char.EscapeRune(rune(r.Val)))
-	g.puts("'")
+	if r.Val < 0x7F {
+		g.puts("'")
+		g.puts(char.EscapeRune(rune(r.Val)))
+		g.puts("'")
+		return
+	}
+
+	g.puts("0x")
+	g.puts(strconv.FormatUint(r.Val, 16))
 }
 
 func (g *Gen) str(s string) {

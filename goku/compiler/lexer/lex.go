@@ -141,8 +141,15 @@ func (lx *Lexer) rune() token.Token {
 	}
 	lx.advance() // skip "'"
 
+	runes := []rune(data)
+	if len(runes) != 1 {
+		tok.SetIllegalError(token.MalformedRune)
+		tok.Data = data
+		return tok
+	}
+
 	tok.Kind = token.Rune
-	tok.Data = data // TODO: parse rune val
+	tok.Val = uint64(runes[0])
 	return tok
 }
 

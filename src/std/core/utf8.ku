@@ -1,0 +1,33 @@
+// Appends utf8 encoded rune into a given buffer {p}.
+// This operation is guaranteed to be safe if {p} contains at least 4 bytes.
+// Returns number of bytes written to buffer.
+//
+// Valid rune values: 0 <= {r} <= 0x10FFFF.
+//
+// Panics on invalid rune value.
+fun unsafe_utf8_encode_rune(p: [&]u8, r: rune) => uint {
+    if r <= 0x7F {
+        p.[0] = cast(u8, r);
+        ret 1;
+    }
+    if r <= 0x7FF {
+        p.[0] = cast(u8, 0xC0 | (r >> 6));
+        p.[1] = cast(u8, 0x80 | (r & 0x3F));
+        ret 2;
+    }
+    if r <= 0xFFFF {
+        p.[0] = cast(u8, 0xE0 | (r >> 12));
+        p.[1] = cast(u8, 0x80 | ((r >> 6) & 0x3F));
+        p.[2] = cast(u8, 0x80 | (r & 0x3F));
+        ret 3;
+    } 
+    if r <= 0x10FFFF {
+        p.[0] = cast(u8, 0xF0 | (r >> 18));
+        p.[1] = cast(u8, 0x80 | ((r >> 12) & 0x3F));
+        p.[2] = cast(u8, 0x80 | ((r >> 6) & 0x3F));
+        p.[3] = cast(u8, 0x80 | (r & 0x3F));
+        ret 4;
+    }
+
+    #never;
+}

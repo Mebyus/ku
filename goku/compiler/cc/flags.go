@@ -24,6 +24,7 @@ var warningFlags = []string{
 
 	// "-Wno-main",
 	"-Wno-shadow",
+	// "-Wno-multichar",
 	"-Wno-unused-parameter",
 	"-Wno-unused-function",
 	"-Wno-unused-const-variable",

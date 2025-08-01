@@ -418,6 +418,31 @@ fun fmt_cap_buffer_put_bin_bytes_u32(buf: &FormatCapBuffer, x: u32) {
     buf.*.len += fmt_bin_bytes_u32_length;
 }
 
+fun fmt_cap_buffer_put_hex_bytes(buf: &FormatCapBuffer, s: []u8) {
+    if s.len == 0 {
+        ret;
+    }
+
+    var tail: []u8 = fmt_cap_buffer_tail(buf);
+    if tail.len == 0 {
+        ret;
+    }
+
+    const len: uint = 3 * s.len - 1;
+    if tail.len < len {
+        buf.*.eof = true;
+        ret;
+    }
+
+    unsafe_fmt_hex_byte(tail.ptr, s.ptr.[0]);
+    for i = [1:s.len] {
+        const offset: uint = 3 * i - 1;
+        tail.ptr.[offset] = ' ';
+        unsafe_fmt_hex_byte(tail.ptr + offset + 1, s.ptr.[i]);
+    }
+    buf.*.len += len;
+}
+
 type FormatBuffer => struct {
     // Memory allocated by this buffer from {al}.
     block: MemoryBlock,

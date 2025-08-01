@@ -1,6 +1,7 @@
 include "prelude.c";
 include "prelude.ku";
 include "bytes.ku";
+include "utf8.ku";
 include "hash.ku";
 include "time.ku";
 include "io.ku";

@@ -94,6 +94,149 @@ fun os_linux_enter_terminal_raw_mode(old: *LinuxTerminalProperties) => error_id 
     ret eid;
 }
 
+type TerminalColor => struct {
+    red:   u8,
+    green: u8,
+    blue:  u8,
+    flags: u8,
+}
+
+type TerminalScreenCell => struct {
+    text_color: TerminalColor,
+    bg_color:   TerminalColor,
+
+    rune: rune,
+}
+
+type TerminalScreenBuffer => struct {
+    cells: [*]TerminalScreenCell,
+
+    stride: u32,
+    width:  u32,
+    height: u32,
+
+    cap: u32,
+}
+
+fun init_terminal_screen_buffer(screen: &TerminalScreenBuffer) {
+    clear(make_span_u8(cast([*]u8, screen.*.cells), screen.*.cap * #size(TerminalScreenCell)));
+}
+
+fun terminal_screen_buffer_set_cell(screen: &TerminalScreenBuffer, x: u32, y: u32, cell: &TerminalScreenCell) {
+    const i: uint = y * screen.*.stride + x;
+    screen.*.cells.[i] = cell.*;
+}
+
+type TerminalOutputBuffer => struct {
+    ptr: [*]u8,
+    len: uint,
+    cap: uint,
+}
+
+fun init_terminal_output_buffer(out: &TerminalOutputBuffer, buf: []u8) {
+    out.*.ptr = buf.ptr;
+    out.*.len = 0;
+    out.*.cap = buf.len;
+}
+
+/*/doc
+Reserve memory inside buffer for at least {n} consecutive bytes to be written.
+Does nothing if buffer already has enough memory.
+*/
+fun terminal_output_buffer_reserve(out: &TerminalOutputBuffer, n: uint) => error_id {
+    const left: uint = out.*.cap - out.*.len;
+    if n <= left {
+        ret 0;
+    }
+
+    // TODO: allocate new memory
+    ret 0;
+}
+
+fun terminal_output_buffer_take(out: &TerminalOutputBuffer) => []u8 {
+    const s: []u8 = make_span_u8(out.*.ptr, out.*.len);
+    out.*.len = 0;
+    ret s;
+}
+
+fun terminal_output_buffer_put_byte(out: &TerminalOutputBuffer, x: u8) {
+    terminal_output_buffer_reserve(out, 1);
+    out.*.ptr.[out.*.len] = x;
+    out.*.len += 1;
+}
+
+fun terminal_output_buffer_put_newline(out: &TerminalOutputBuffer) {
+    terminal_output_buffer_reserve(out, 2);
+    out.*.ptr.[out.*.len] = '\r';
+    out.*.ptr.[out.*.len + 1] = '\n';
+    out.*.len += 2;
+}
+
+fun terminal_output_buffer_put_rune(out: &TerminalOutputBuffer, r: rune) {
+    terminal_output_buffer_reserve(out, 4);
+    const n: uint = unsafe_utf8_encode_rune(out.*.ptr + out.*.len, r);
+    out.*.len += n;
+}
+
+fun terminal_output_buffer_put_str(out: &TerminalOutputBuffer, s: str) {
+    if s.len == 0 {
+        ret;
+    }
+
+    terminal_output_buffer_reserve(out, s.len);
+    unsafe_copy(out.*.ptr + out.*.len, s.ptr, s.len);
+    out.*.len += s.len;
+}
+
+fun terminal_output_buffer_put_escape(out: &TerminalOutputBuffer) {
+    terminal_output_buffer_reserve(out, 2);
+    out.*.ptr.[out.*.len] = 0x1B;
+    out.*.ptr.[out.*.len + 1] = '[';
+    out.*.len += 2;
+}
+
+fun terminal_output_buffer_add_command_clear_screen(out: &TerminalOutputBuffer) {
+    terminal_output_buffer_put_escape(out);
+    terminal_output_buffer_put_str(out, "2J");
+}
+
+fun terminal_output_buffer_add_command_clear_styles(out: &TerminalOutputBuffer) {
+    terminal_output_buffer_put_escape(out);
+    terminal_output_buffer_put_str(out, "0m");
+}
+
+fun render_terminal_screen_buffer(out: &TerminalOutputBuffer, screen: &TerminalScreenBuffer) {
+    terminal_output_buffer_add_command_clear_screen(out);
+
+    var y: u32 = 0; // line index
+    var offset: u32 = 0; 
+    for y < screen.*.height {
+        var x: u32 = 0; // column index
+        for x < screen.*.width {
+            const i: u32 = offset + x;
+            const cell: TerminalScreenCell = screen.*.cells.[i];
+
+            if cell.rune != 0 {
+                terminal_output_buffer_put_rune(out, cell.rune);
+            } else {
+                terminal_output_buffer_put_byte(out, ' ');
+            }
+
+            x += 1;
+        }
+
+        y += 1;
+        if y >= screen.*.height {
+            jump @.out;
+        }
+
+        offset += screen.*.stride;
+        terminal_output_buffer_put_newline(out);
+    }
+
+    terminal_output_buffer_add_command_clear_styles(out);
+}
+
 type TerminalViewportInfo => struct {
     rows: u16,
     cols: u16,
