@@ -5,6 +5,7 @@ import (
 	"slices"
 
 	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/kub/eval"
 )
 
 type State struct {
@@ -18,6 +19,8 @@ type State struct {
 
 	// Maps enum name to its values.
 	enums map[string]*NameBook
+
+	Env *eval.Env
 
 	// If true then generate code for statements marked as debug.
 	Debug bool

@@ -349,3 +349,8 @@ func (g *Printer) BuildQuery(q BuildQuery) {
 	g.puts("#build.")
 	g.puts(q.Name)
 }
+
+func (g *Printer) EnvQuery(q EnvQuery) {
+	g.puts("#:")
+	g.puts(q.Name)
+}

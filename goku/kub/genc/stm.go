@@ -53,8 +53,18 @@ func (g *Gen) Statement(s ast.Statement) {
 		g.StaticMust(s)
 	case ast.Test:
 		g.Test(s)
+	case ast.StaticIf:
+		g.StaticIf(s)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) statement (%T)", s.Kind(), s.Kind(), s))
+	}
+}
+
+func (g *Gen) Statements(ss []ast.Statement) {
+	for _, s := range ss {
+		g.indent()
+		g.Statement(s)
+		g.nl()
 	}
 }
 
@@ -69,11 +79,7 @@ func (g *Gen) Block(b ast.Block) {
 	g.inc()
 	g.level += 1
 
-	for _, n := range b.Nodes {
-		g.indent()
-		g.Statement(n)
-		g.nl()
-	}
+	g.Statements(b.Nodes)
 
 	g.level -= 1
 	g.dec()

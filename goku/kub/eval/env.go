@@ -9,9 +9,9 @@ type Env struct {
 	BuildKind bk.Kind
 	BuildMode bm.Mode
 
-	m map[string]string
+	m map[string]Value
 }
 
 func NewEnv() *Env {
-	return &Env{m: make(map[string]string)}
+	return &Env{m: make(map[string]Value)}
 }

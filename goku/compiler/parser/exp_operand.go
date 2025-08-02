@@ -83,6 +83,8 @@ func (p *Parser) Operand() (ast.Operand, diag.Error) {
 		return p.EnumMacro()
 	case token.Build:
 		return p.BuildQuery()
+	case token.Env:
+		return p.EnvQuery()
 	case token.Size:
 		return p.Size()
 	case token.Cast:
@@ -510,6 +512,16 @@ func (p *Parser) BuildQuery() (ast.BuildQuery, diag.Error) {
 		}
 		parts = append(parts, p.word().Str)
 	}
+}
+
+func (p *Parser) EnvQuery() (ast.EnvQuery, diag.Error) {
+	name := p.c.Data
+	pin := p.c.Pin
+	p.advance() // skip env name
+	return ast.EnvQuery{
+		Name: name,
+		Pin:  pin,
+	}, nil
 }
 
 func (p *Parser) Cast() (ast.Cast, diag.Error) {

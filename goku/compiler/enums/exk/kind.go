@@ -368,6 +368,9 @@ const (
 	// Operand
 	BuildQuery
 
+	// Operand
+	EnvQuery
+
 	maxKind
 )
 
@@ -382,6 +385,7 @@ var text = [...]string{
 	ErrorId:    "#error",
 	EnumMacro:  "#enum",
 	BuildQuery: "#build",
+	EnvQuery:   "env",
 
 	CheckFlag: "#check",
 	ArrayLen:  "#len",
