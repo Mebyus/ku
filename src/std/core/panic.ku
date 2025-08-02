@@ -1,4 +1,39 @@
-let PANIC_FORMAT_BUFFER_SIZE => 1 << 12;
+fun fmt_cap_buffer_put_stack_trace(buf: &FormatCapBuffer) {
+    var address_buffer_array: [64]*any = ?;
+
+    const size: uint = save_stack_trace(address_buffer_array, #len(address_buffer_array));
+    if size == 0 {
+        ret;
+    }
+
+    for i = [:size] {
+        fmt_cap_buffer_put_str(buf, "Ox");
+        fmt_cap_buffer_put_hex_prefix_zeroes_u64(buf, cast(u64, address_buffer_array.[i]));
+        fmt_cap_buffer_put_newline(buf);
+    }
+
+/*
+    var symbols: [*][*]u8 = backtrace_symbols(address_buffer_array, size);
+    if symbols == nil {
+        ret;
+    }
+
+    for i = [:size] {
+        if symbols.[i] == nil {
+            jump @.next;
+        }
+
+        var s: c_string = unsafe_make_c_string_from_pointer(symbols.[i]);
+        
+        fmt_cap_buffer_put_str(buf, s);
+        fmt_cap_buffer_put_newline(buf);
+    }
+
+    free(symbols);
+*/
+}
+
+let PANIC_FORMAT_BUFFER_SIZE => 1 << 14;
 
 fun panic_message_pos(msg: str, path: str, line: uint, typ: str) => #never {
     var output_buffer: [PANIC_FORMAT_BUFFER_SIZE]u8 = ?;
@@ -16,6 +51,9 @@ fun panic_message_pos(msg: str, path: str, line: uint, typ: str) => #never {
     fmt_cap_buffer_put_byte(buf.&, ':');
     fmt_cap_buffer_put_dec_u64(buf.&, line);
     fmt_cap_buffer_put_newline(buf.&);
+
+    fmt_cap_buffer_put_newline(buf.&);
+    fmt_cap_buffer_put_stack_trace(buf.&);
 
     stderr_print(fmt_cap_buffer_take(buf.&));
     panic_trap();

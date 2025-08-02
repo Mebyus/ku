@@ -58,4 +58,6 @@ fun str_cut_word(s: str) => RetStringCut {
         // TODO: implement this
         ret r;
     }
+
+    ret r;
 }

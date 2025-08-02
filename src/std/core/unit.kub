@@ -1,12 +1,18 @@
 include "prelude.c";
 include "prelude.ku";
+
+include "trace.amd64.c";
+
 include "bytes.ku";
 include "utf8.ku";
 include "hash.ku";
 include "time.ku";
 include "io.ku";
 include "fmt.ku";
+
+include "libc.h";
 include "panic.ku";
+
 include "str.ku";
 include "memory.ku";
 include "os_proc.ku";
@@ -15,7 +21,6 @@ include "os_linux_amd64.c";
 include "os.linux.amd64.ku";
 include "terminal.linux.ku";
 
-include "libc.h";
 include "log.ku";
 
 include "rand.ku";

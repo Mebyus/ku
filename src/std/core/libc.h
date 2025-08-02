@@ -12,3 +12,9 @@ clock_mono() {
     clock_gettime(LIBC_CLOCK_MONOTONIC, &dur);
     return dur;
 }
+
+uint // linkname
+backtrace(void* buf, uint size);
+
+u8** // linkname
+backtrace_symbols(void* buf, uint size);

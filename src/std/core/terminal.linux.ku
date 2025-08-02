@@ -101,15 +101,35 @@ type TerminalColor => struct {
     flags: u8,
 }
 
+let TERMINAL_COLOR_RGB => 1;
+
+fun terminal_color_pack_rgb(r: u8, g: u8, b: u8) => u32 {
+    ret cast(u32, r) | (cast(u32, g) << 8) | (cast(u32, b) << 16) | (cast(u32, TERMINAL_COLOR_RGB) << 24);
+}
+
 type TerminalScreenCell => struct {
-    text_color: TerminalColor,
-    bg_color:   TerminalColor,
+    text_color: u32,
+    bg_color:   u32,
 
     rune: rune,
 }
 
+let TERMINAL_SCREEN_BUFFER_MAX_LINES => 256;
+
 type TerminalScreenBuffer => struct {
+    // For each line with index {i} contains {line_change_cutoff[i]} cutoff value
+    // since last reset.
+    //
+    // Line change cutoff equals to number of cells in a line
+    // from first cell to a changed cell with maximum index.
+    //
+    // Zero cutoff value means line was not changed since last reset.
+    line_change_cutoff: [TERMINAL_SCREEN_BUFFER_MAX_LINES]u32,
+
     cells: [*]TerminalScreenCell,
+
+    // Number of lines which contents were changed since last reset.
+    line_change_num: u32,
 
     stride: u32,
     width:  u32,
@@ -119,6 +139,11 @@ type TerminalScreenBuffer => struct {
 }
 
 fun init_terminal_screen_buffer(screen: &TerminalScreenBuffer) {
+    must(screen.*.height <= TERMINAL_SCREEN_BUFFER_MAX_LINES);
+
+    screen.*.line_change_num = 0;
+
+    clear(make_span_u8(cast([*]u8, screen.*.line_change_cutoff), TERMINAL_SCREEN_BUFFER_MAX_LINES * #size(u32)));
     clear(make_span_u8(cast([*]u8, screen.*.cells), screen.*.cap * #size(TerminalScreenCell)));
 }
 
@@ -131,6 +156,12 @@ type TerminalOutputBuffer => struct {
     ptr: [*]u8,
     len: uint,
     cap: uint,
+
+    // Current text color in use.
+    text_color: u32,
+
+    // Current background color in use.
+    bg_color: u32,
 }
 
 fun init_terminal_output_buffer(out: &TerminalOutputBuffer, buf: []u8) {
@@ -205,6 +236,54 @@ fun terminal_output_buffer_add_command_clear_styles(out: &TerminalOutputBuffer) 
     terminal_output_buffer_put_str(out, "0m");
 }
 
+fun terminal_output_buffer_put_dec_u8(out: &TerminalOutputBuffer, x: u8) {
+    terminal_output_buffer_reserve(out, 3);
+    const n: uint = unsafe_fmt_dec_u64(out.*.ptr + out.*.len, x);
+    out.*.len += n;
+}
+
+fun terminal_output_buffer_put_rgb(out: &TerminalOutputBuffer, r: u8, g: u8, b: u8) {
+    terminal_output_buffer_reserve(out, 3 + 1 + 3 + 1 + 3);
+
+    terminal_output_buffer_put_dec_u8(out, r);
+    terminal_output_buffer_put_byte(out, ';');
+    terminal_output_buffer_put_dec_u8(out, g);
+    terminal_output_buffer_put_byte(out, ';');
+    terminal_output_buffer_put_dec_u8(out, b);
+}
+
+fun terminal_output_buffer_add_command_switch_text_color(out: &TerminalOutputBuffer, c: u32) {
+    const kind: u32 = c >> 24;
+
+    if kind
+    => 0 {
+        terminal_output_buffer_put_escape(out);
+        terminal_output_buffer_put_str(out, "39m");
+    }
+    => TERMINAL_COLOR_RGB {
+        const red: u8 = cast(u8, c & 0xFF);
+        const green: u8 = cast(u8, (c >> 8) & 0xFF);
+        const blue: u8 = cast(u8, (c >> 16) & 0xFF);
+
+        terminal_output_buffer_put_escape(out);
+        terminal_output_buffer_put_str(out, "38;2;");
+        terminal_output_buffer_put_rgb(out, red, green, blue);
+        terminal_output_buffer_put_byte(out, 'm');
+    }
+    else { #never; }
+}
+
+fun terminal_output_buffer_switch_color(out: &TerminalOutputBuffer, text: u32, bg: u32) {
+    if text != out.*.text_color {
+        terminal_output_buffer_add_command_switch_text_color(out, text);
+        out.*.text_color = text;
+    }
+    if bg != out.*.bg_color {
+        // TODO: add command for switching background color
+        out.*.bg_color = bg;
+    }
+}
+
 fun render_terminal_screen_buffer(out: &TerminalOutputBuffer, screen: &TerminalScreenBuffer) {
     terminal_output_buffer_add_command_clear_screen(out);
 
@@ -216,6 +295,8 @@ fun render_terminal_screen_buffer(out: &TerminalOutputBuffer, screen: &TerminalS
             const i: u32 = offset + x;
             const cell: TerminalScreenCell = screen.*.cells.[i];
 
+            terminal_output_buffer_switch_color(out, cell.text_color, cell.bg_color);
+            
             if cell.rune != 0 {
                 terminal_output_buffer_put_rune(out, cell.rune);
             } else {

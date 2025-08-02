@@ -142,9 +142,11 @@ fun test_render(width: u32, height: u32) {
     terminal_screen_buffer_set_cell(screen.&, 10, 2, cell.&);
 
     cell.rune = 'П';
+    cell.text_color = terminal_color_pack_rgb(255, 0, 0);
     terminal_screen_buffer_set_cell(screen.&, 11, 3, cell.&);
 
     cell.rune = '1';
+    cell.text_color = terminal_color_pack_rgb(0, 255, 0);
     terminal_screen_buffer_set_cell(screen.&, 9, 1, cell.&);
 
     render_terminal_screen_buffer(out.&, screen.&);

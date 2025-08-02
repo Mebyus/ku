@@ -63,9 +63,11 @@ func (g *ArgsBuilder) optimizationsAndDebugInfo(k bk.Kind) {
 		panic("unspecified build kind")
 	case bk.Debug:
 		g.optimizations(debugCompilerOptimizations)
+		g.add(debugNoOmitFramePointerFlag)
 		g.add(debugInfoFlag)
 	case bk.Test:
 		g.optimizations(testCompilerOptimizations)
+		g.add(debugNoOmitFramePointerFlag)
 		g.add(debugInfoFlag)
 	case bk.Safe:
 		g.optimizations(safeCompilerOptimizations)

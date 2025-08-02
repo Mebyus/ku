@@ -40,7 +40,7 @@ var codegenFlags = []string{
 	"-fwrapv",
 	"-funsigned-char",
 	"-fno-asynchronous-unwind-tables",
-	"-fomit-frame-pointer",
+	// "-fomit-frame-pointer",
 	"-fno-stack-protector",
 }
 
@@ -49,6 +49,7 @@ const testCompilerOptimizations = "1"
 const safeCompilerOptimizations = "2"
 const fastCompilerOptimizations = "fast"
 
-const debugInfoFlag = "-ggdb"
+const debugInfoFlag = "-g"
+const debugNoOmitFramePointerFlag = "-fno-omit-frame-pointer"
 
 const maxErrorsFlag = "-fmax-errors=1"
