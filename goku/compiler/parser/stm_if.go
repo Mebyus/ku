@@ -7,11 +7,6 @@ import (
 )
 
 func (p *Parser) If() (ast.Statement, diag.Error) {
-	// switch p.n.Kind {
-	// case token.RightArrow, token.Else:
-	// 	return p.matchBool()
-	// }
-
 	p.advance() // skip "if"
 
 	exp, err := p.Exp()
@@ -88,5 +83,45 @@ func (p *Parser) ifClause() (ast.IfClause, diag.Error) {
 	return ast.IfClause{
 		Exp:  exp,
 		Body: body,
+	}, nil
+}
+
+func (p *Parser) StaticIf() (ast.StaticIf, diag.Error) {
+	ifClause, err := p.ifClause()
+	if err != nil {
+		return ast.StaticIf{}, err
+	}
+
+	var elseIfs []ast.IfClause
+	for {
+		if p.c.Kind == token.Else && p.n.Kind == token.If {
+			p.advance() // skip "else"
+		} else {
+			break
+		}
+
+		clause, err := p.ifClause()
+		if err != nil {
+			return ast.StaticIf{}, err
+		}
+		elseIfs = append(elseIfs, clause)
+	}
+
+	var elseBody *ast.Block
+	if p.c.Kind == token.Else {
+		p.advance() // skip "else"
+
+		var body ast.Block
+		body, err = p.Block()
+		if err != nil {
+			return ast.StaticIf{}, err
+		}
+		elseBody = &body
+	}
+
+	return ast.StaticIf{
+		If:      ifClause,
+		ElseIfs: elseIfs,
+		Else:    elseBody,
 	}, nil
 }

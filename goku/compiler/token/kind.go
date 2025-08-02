@@ -133,6 +133,7 @@ const (
 	Any // designator to use as *any (void* analog)
 
 	StaticMust // #must
+	StaticIf   // #if
 
 	Debug  // #debug
 	Build  // #build
@@ -155,7 +156,6 @@ const (
 	DirInclude // #include
 	DirDefine  // #define
 	DirLink    // #link
-	DirIf      // #if
 
 	staticLiteralEnd
 

@@ -52,8 +52,10 @@ fun panic_message_pos(msg: str, path: str, line: uint, typ: str) => #never {
     fmt_cap_buffer_put_dec_u64(buf.&, line);
     fmt_cap_buffer_put_newline(buf.&);
 
-    fmt_cap_buffer_put_newline(buf.&);
-    fmt_cap_buffer_put_stack_trace(buf.&);
+    #if #build.kind <= #:KU.BUILD.KIND.TEST {
+        fmt_cap_buffer_put_newline(buf.&);
+        fmt_cap_buffer_put_stack_trace(buf.&);
+    }
 
     stderr_print(fmt_cap_buffer_take(buf.&));
     panic_trap();

@@ -41,6 +41,8 @@ func (lx *Lexer) lex() token.Token {
 			return lx.twoBytesToken(token.HashCurly)
 		case '[':
 			return lx.twoBytesToken(token.HashSquare)
+		case ':':
+			return lx.env()
 		default:
 			if char.IsLatinLetter(lx.n()) {
 				return lx.static()
@@ -385,6 +387,46 @@ func (lx *Lexer) number() (tok token.Token) {
 	return
 }
 
+func (lx *Lexer) env() token.Token {
+	var tok token.Token
+	tok.Pin = lx.pin()
+
+	lx.advance() // skip '#'
+	lx.advance() // skip ':'
+
+	if !char.IsLatinLetter(lx.c()) {
+		tok.SetIllegalError(token.MalformedEnv)
+		tok.Data = "#:"
+		return tok
+	}
+
+	lx.start()
+	for !lx.eof() && (char.IsAlphanum(lx.c()) || lx.c() == '.') {
+		if lx.c() == '.' && lx.n() == '.' {
+			data, ok := lx.take()
+			if !ok {
+				tok.SetIllegalError(token.LengthOverflow)
+				return tok
+			}
+			tok.SetIllegalError(token.MalformedEnv)
+			tok.Data = data
+			return tok
+		}
+		lx.advance()
+	}
+
+	data, ok := lx.take()
+	if !ok {
+		tok.SetIllegalError(token.LengthOverflow)
+		return tok
+	}
+
+	tok.Kind = token.Env
+	tok.Data = data
+
+	return tok
+}
+
 func (lx *Lexer) static() token.Token {
 	var tok token.Token
 	tok.Pin = lx.pin()
@@ -402,6 +444,8 @@ func (lx *Lexer) static() token.Token {
 	switch data {
 	case "must":
 		tok.Kind = token.StaticMust
+	case "if":
+		tok.Kind = token.StaticIf
 	case "typeid":
 		tok.Kind = token.TypeId
 	case "error":
@@ -426,6 +470,7 @@ func (lx *Lexer) static() token.Token {
 		tok.Kind = token.Lookup
 	default:
 		tok.SetIllegalError(token.UnknownDirective)
+		tok.Data = "#" + data
 	}
 
 	return tok

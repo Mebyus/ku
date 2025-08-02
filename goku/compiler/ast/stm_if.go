@@ -45,3 +45,28 @@ func (i If) String() string {
 	var g Printer
 	return g.Output()
 }
+
+type StaticIf struct {
+	If IfClause
+
+	// Equals nil if there are no "else if" clauses in statement
+	ElseIfs []IfClause
+
+	// Equals nil if there is no "else" clause in statement
+	Else *Block
+}
+
+var _ Statement = StaticIf{}
+
+func (StaticIf) Kind() stk.Kind {
+	return stk.StaticIf
+}
+
+func (i StaticIf) Span() srcmap.Span {
+	return i.If.Exp.Span()
+}
+
+func (i StaticIf) String() string {
+	var g Printer
+	return g.Output()
+}

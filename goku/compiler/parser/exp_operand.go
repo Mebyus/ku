@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"strings"
+
 	"github.com/mebyus/ku/goku/compiler/ast"
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/token"
@@ -79,6 +81,8 @@ func (p *Parser) Operand() (ast.Operand, diag.Error) {
 		return p.ErrorId()
 	case token.Enum:
 		return p.EnumMacro()
+	case token.Build:
+		return p.BuildQuery()
 	case token.Size:
 		return p.Size()
 	case token.Cast:
@@ -475,6 +479,37 @@ func (p *Parser) EnumMacro() (ast.EnumMacro, diag.Error) {
 		Name:  name,
 		Entry: entry,
 	}, nil
+}
+
+func (p *Parser) BuildQuery() (ast.BuildQuery, diag.Error) {
+	p.advance() // skip "#build"
+
+	if p.c.Kind != token.Period {
+		return ast.BuildQuery{}, p.unexpected()
+	}
+	p.advance() // skip "."
+
+	if p.c.Kind != token.Word {
+		return ast.BuildQuery{}, p.unexpected()
+	}
+	start := p.word()
+
+	var parts []string
+	parts = append(parts, start.Str)
+	for {
+		if p.c.Kind != token.Period {
+			return ast.BuildQuery{
+				Name: strings.Join(parts, "."),
+				Pin:  start.Pin,
+			}, nil
+		}
+		p.advance() // skip "."
+
+		if p.c.Kind != token.Word {
+			return ast.BuildQuery{}, p.unexpected()
+		}
+		parts = append(parts, p.word().Str)
+	}
 }
 
 func (p *Parser) Cast() (ast.Cast, diag.Error) {

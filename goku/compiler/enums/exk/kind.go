@@ -312,8 +312,8 @@ const (
 	// Function-like construct which corresponds to compiler intrinsic.
 	//
 	// Examples:
-	//	#cast(*any, a)
-	//	#cast(Foo, bar)
+	//	cast(*any, a)
+	//	cast(Foo, bar)
 	Cast
 
 	// Operand
@@ -365,6 +365,9 @@ const (
 
 	EnumMacro
 
+	// Operand
+	BuildQuery
+
 	maxKind
 )
 
@@ -375,9 +378,10 @@ var text = [...]string{
 	Tint: "tint",
 	Size: "#size",
 
-	TypeId:    "#typeid",
-	ErrorId:   "#error",
-	EnumMacro: "#enum",
+	TypeId:     "#typeid",
+	ErrorId:    "#error",
+	EnumMacro:  "#enum",
+	BuildQuery: "#build",
 
 	CheckFlag: "#check",
 	ArrayLen:  "#len",

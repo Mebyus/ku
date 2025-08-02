@@ -35,6 +35,7 @@ const (
 	Must
 	Test
 	StaticMust
+	StaticIf
 
 	// Defer function or method call.
 	Defer
@@ -72,6 +73,7 @@ var text = [...]string{
 	Test:       "test",
 	Panic:      "panic",
 	StaticMust: "must.static",
+	StaticIf:   "if.static",
 }
 
 func (k Kind) String() string {

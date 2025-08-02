@@ -1,5 +1,7 @@
 package token
 
+import "strconv"
+
 const (
 	LengthOverflow = iota + 1
 	NonPrintableByte
@@ -13,6 +15,7 @@ const (
 	MalformedHexadecimalInteger
 	MalformedBlockComment
 	MalformedMacro
+	MalformedEnv
 
 	DecimalIntegerOverflow
 
@@ -20,6 +23,11 @@ const (
 
 	UnknownDirective
 )
+
+func formatErrorValue(v uint64) string {
+	// TODO: human-readable text for errors
+	return strconv.FormatUint(v, 10)
+}
 
 func (t *Token) SetIllegalError(code uint64) {
 	t.Kind = Illegal

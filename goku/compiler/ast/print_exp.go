@@ -344,3 +344,8 @@ func (g *Printer) EnumMacro(e EnumMacro) {
 	g.puts(e.Entry.Str)
 	g.puts(")")
 }
+
+func (g *Printer) BuildQuery(q BuildQuery) {
+	g.puts("#build.")
+	g.puts(q.Name)
+}

@@ -117,6 +117,7 @@ var literal = [...]string{
 	Any:   "any",
 
 	StaticMust: "#must",
+	StaticIf:   "#if",
 
 	Debug:  "#debug",
 	Build:  "#build",
@@ -139,7 +140,6 @@ var literal = [...]string{
 	DirInclude: "#include",
 	DirDefine:  "#define",
 	DirLink:    "#link",
-	DirIf:      "#if",
 
 	// Non static literals
 
@@ -180,10 +180,13 @@ func (t Token) String() string {
 	case Word:
 		return t.Data
 	case Illegal:
+		var data string
 		if t.Val == LengthOverflow {
-			return "Illegal(token length overflow)"
+			data = "(length overflow)"
+		} else {
+			data = t.Data
 		}
-		return "[[" + t.Data + "]]"
+		return fmt.Sprintf("[%s(%s)] %s", Illegal, formatErrorValue(t.Val), data)
 	case BinInteger:
 		return "0b" + strconv.FormatUint(t.Val, 2)
 	case OctInteger:
@@ -213,6 +216,8 @@ func (t Token) String() string {
 		return "'" + string([]rune{rune(t.Val)}) + "'"
 	case String:
 		return "\"" + char.Escape(t.Data) + "\""
+	case Env:
+		return "#:" + t.Data
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" token kind (=%d)", t.Kind, t.Kind))
 	}
