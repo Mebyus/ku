@@ -1,0 +1,27 @@
+type Pos => struct {
+    x: u32,
+    y: u32,
+}
+
+type Extent => struct {
+    width:  u32,
+    height: u32,
+}
+
+type TextViewport => struct {
+    // Viewport width and height.
+    extent: Extent,
+
+    // Viewport position relative to text start.
+    pos: Pos,
+
+    // Cursor position inside viewport.
+    cursor: Pos,
+}
+
+type Editor => struct {
+    viewport: TextViewport,
+
+    // Number of lines in jump on "page up/down" action.
+    page_stride: u32,
+}

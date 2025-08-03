@@ -3,4 +3,5 @@ import {
     "std/strings";
 }
 
+include "editor.ku";
 include "main.ku";

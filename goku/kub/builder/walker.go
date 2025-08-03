@@ -24,8 +24,6 @@ type ResolveConfig struct {
 
 type Walker struct {
 	*BuildConfig
-
-	Env *eval.Env
 }
 
 func (w *Walker) WalkFrom(items ...srcmap.QueueItem) ([]*srcmap.Unit, error) {

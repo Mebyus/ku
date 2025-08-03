@@ -242,6 +242,12 @@ fun terminal_output_buffer_put_dec_u8(out: &TerminalOutputBuffer, x: u8) {
     out.*.len += n;
 }
 
+fun terminal_output_buffer_put_dec_u32(out: &TerminalOutputBuffer, x: u32) {
+    terminal_output_buffer_reserve(out, 10);
+    const n: uint = unsafe_fmt_dec_u64(out.*.ptr + out.*.len, x);
+    out.*.len += n;
+}
+
 fun terminal_output_buffer_put_rgb(out: &TerminalOutputBuffer, r: u8, g: u8, b: u8) {
     terminal_output_buffer_reserve(out, 3 + 1 + 3 + 1 + 3);
 
@@ -252,7 +258,7 @@ fun terminal_output_buffer_put_rgb(out: &TerminalOutputBuffer, r: u8, g: u8, b: 
     terminal_output_buffer_put_dec_u8(out, b);
 }
 
-fun terminal_output_buffer_add_command_switch_text_color(out: &TerminalOutputBuffer, c: u32) {
+fun terminal_output_buffer_add_command_set_text_color(out: &TerminalOutputBuffer, c: u32) {
     const kind: u32 = c >> 24;
 
     if kind
@@ -275,13 +281,44 @@ fun terminal_output_buffer_add_command_switch_text_color(out: &TerminalOutputBuf
 
 fun terminal_output_buffer_switch_color(out: &TerminalOutputBuffer, text: u32, bg: u32) {
     if text != out.*.text_color {
-        terminal_output_buffer_add_command_switch_text_color(out, text);
+        terminal_output_buffer_add_command_set_text_color(out, text);
         out.*.text_color = text;
     }
     if bg != out.*.bg_color {
         // TODO: add command for switching background color
         out.*.bg_color = bg;
     }
+}
+
+fun terminal_output_buffer_enable_alt_screen(out: &TerminalOutputBuffer) {
+    terminal_output_buffer_put_escape(out);
+    terminal_output_buffer_put_str(out, "?1049h");
+}
+
+fun terminal_output_buffer_disable_alt_screen(out: &TerminalOutputBuffer) {
+    terminal_output_buffer_put_escape(out);
+    terminal_output_buffer_put_str(out, "?1049l");
+}
+
+fun terminal_output_buffer_show_cursor(out: &TerminalOutputBuffer) {
+    terminal_output_buffer_put_escape(out);
+    terminal_output_buffer_put_str(out, "?25h");
+}
+
+fun terminal_output_buffer_hide_cursor(out: &TerminalOutputBuffer) {
+    terminal_output_buffer_put_escape(out);
+    terminal_output_buffer_put_str(out, "?25l");
+}
+
+/*/doc
+Move cursor to position (x, y) on the screen. Coordinates are zero-based.
+*/
+fun terminal_output_buffer_move_cursor(out: &TerminalOutputBuffer, x: u32, y: u32) {
+    terminal_output_buffer_put_escape(out);
+    terminal_output_buffer_put_dec_u32(out, x + 1);
+    terminal_output_buffer_put_byte(out, ';');
+    terminal_output_buffer_put_dec_u32(out, y + 1);
+    terminal_output_buffer_put_byte(out, 'H');
 }
 
 fun render_terminal_screen_buffer(out: &TerminalOutputBuffer, screen: &TerminalScreenBuffer) {

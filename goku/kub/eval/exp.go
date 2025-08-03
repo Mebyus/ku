@@ -240,7 +240,21 @@ func evalBinary(env *Env, bin ast.Binary) (Value, diag.Error) {
 					Pin: a.Pin,
 				}, nil
 			case bok.LessOrEqual:
+				var val bool
+				switch {
+				case !a.Neg && !b.Neg:
+					val = a.Val <= b.Val
+				case a.Neg && b.Neg:
+					val = a.Val >= b.Val
+				case a.Neg && !b.Neg:
+					val = true
+				case !a.Neg && b.Neg:
+					val = false
+				default:
+					panic("unreachable")
+				}
 				return Boolean{
+					Val: val,
 					Pin: a.Pin,
 				}, nil
 			case bok.Greater:

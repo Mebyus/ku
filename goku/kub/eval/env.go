@@ -15,3 +15,7 @@ type Env struct {
 func NewEnv() *Env {
 	return &Env{m: make(map[string]Value)}
 }
+
+func (e *Env) Set(name string, value Value) {
+	e.m[name] = value
+}

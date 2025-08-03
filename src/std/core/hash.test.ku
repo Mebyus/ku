@@ -10,6 +10,4 @@ test hash64_sdbm {
     test(hash64_sdbm("hello") == 0x66EB1BB328D19932);
     test(hash64_sdbm("   hello   123") == 0xF15D829B0CFE3224);
     test(hash64_sdbm("00000000 \n \t  AZ3 113") == 0x48E4E5AF36EF6FDA);
-    
-    panic("something went wrong");
 }

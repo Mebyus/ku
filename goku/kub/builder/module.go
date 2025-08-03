@@ -21,6 +21,7 @@ import (
 
 const defaultOutputRootDir = ".kubout"
 
+// Config contains settings common for various module building tasks.
 type Config struct {
 	// Required.
 	//

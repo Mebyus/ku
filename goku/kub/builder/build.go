@@ -21,6 +21,8 @@ type BuildConfig struct {
 
 	Pool *srcmap.Pool
 
+	Env *eval.Env
+
 	BuildKind bk.Kind
 
 	BuildMode bm.Mode
@@ -36,15 +38,22 @@ func genUnitsToFile(config *BuildConfig, out string, items []srcmap.QueueItem) e
 	return genUnits(config, genOut, items)
 }
 
-// Generate C code for specified units (by their paths in items).
-func genUnits(config *BuildConfig, out io.Writer, items []srcmap.QueueItem) error {
+func populateEnv(config *BuildConfig) {
 	env := eval.NewEnv()
+	config.Env = env
+
 	env.BuildKind = config.BuildKind
 	env.BuildMode = config.BuildMode
 
+	env.Set("KU.BUILD.KIND.TEST", eval.Integer{Val: uint64(bk.Test)})
+}
+
+// Generate C code for specified units (by their paths in items).
+func genUnits(config *BuildConfig, out io.Writer, items []srcmap.QueueItem) error {
+	populateEnv(config)
+
 	walker := Walker{
 		BuildConfig: config,
-		Env:         env,
 	}
 	units, err := walker.WalkFrom(items...)
 	if err != nil {
@@ -105,6 +114,7 @@ func genTexts(c *BuildConfig, out io.Writer, texts []*srcmap.Text) error {
 		Map:   c.Pool,
 		Debug: c.BuildKind == bk.Debug,
 		Test:  c.BuildMode == bm.TestExe,
+		Env:   c.Env,
 	}}
 	g.State.Init()
 
