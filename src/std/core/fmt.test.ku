@@ -15,3 +15,28 @@ test fmt_dec_u64 {
 test fmt_dec_s64 {
     test(true);
 }
+
+test fmt_bits_f32 {
+    var output_buffer: [TEST_FORMAT_BUFFER_SIZE]u8 = ?;
+    var buf: FormatCapBuffer = ?;
+    init_fmt_cap_buffer(buf.&, make_span_u8(output_buffer, TEST_FORMAT_BUFFER_SIZE));
+
+    fmt_cap_buffer_put_bits_f32(buf.&, 1.0);
+    fmt_cap_buffer_put_newline(buf.&);
+
+    fmt_cap_buffer_put_bits_f32(buf.&, -1.0);
+    fmt_cap_buffer_put_newline(buf.&);
+
+    fmt_cap_buffer_put_bits_f32(buf.&, 2.0);
+    fmt_cap_buffer_put_newline(buf.&);
+
+    fmt_cap_buffer_put_bits_f32(buf.&, 1.5);
+    fmt_cap_buffer_put_newline(buf.&);
+
+    fmt_cap_buffer_put_bits_f32(buf.&, cast(f32, 0.3));
+    fmt_cap_buffer_put_newline(buf.&);
+
+    var s: str = fmt_cap_buffer_take(buf.&);
+    stdout_print(s);
+    //test(str_equal(s, "0"));
+}

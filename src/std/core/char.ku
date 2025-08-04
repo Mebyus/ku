@@ -1,0 +1,7 @@
+fun char_is_whitespace(c: u8) => bool {
+    ret false;
+}
+
+fun char_is_alphanum(c: u8) => bool {
+    ret false;
+}

@@ -1,0 +1,43 @@
+fun unsafe_fmt_dec_exp_f32(p: [&]u8, f: 32) => uint {
+    const bits: u32 = get_bits_f32(f);
+
+    // true if sign bit is set
+    const neg: bool = (bits >> 31) != 0;
+    
+    var exp:  s32 = cast(s32, (bits >> 23) & 0xFF);
+    var mant: u32 = bits & ((1 << 23) - 1);
+
+    if exp
+    => 0xFF {
+        if mant != 0 {
+            // NaN
+            ret 3;
+        }
+        if neg {
+            // -Inf
+            ret 4;
+        }
+        // +Inf
+        ret 4;
+    }
+    => 0 {
+        if mant == 0 {
+            if neg {
+                // -0.0
+                ret ;
+            }
+            // +0.0
+            ret ;
+        }
+
+        // denormalized
+        exp += 1;
+    }
+    else {
+        // add implicit top bit
+        mant |= 1 << 23;
+    }
+
+    // apply bias
+    exp -= 127;
+}

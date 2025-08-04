@@ -193,6 +193,30 @@ fun fmt_dec_u64(buf: []u8, x: u64) => uint {
 	ret n;
 }
 
+const fmt_bits_f32_length: uint = 32 + 2;
+
+/*/doc
+IEEE 754 32-bit float
+*/
+fun unsafe_fmt_bits_f32(p: [&]u8, f: f32) {
+    const bits: u32 = get_bits_f32(f);
+
+    // format fraction digits
+    for i = [:23] {
+        p.[33 - i] = fmt_dec_digit(cast(u8, (bits >> i) & 1));
+    }
+
+    // format exponent digits
+    p.[10] = ' ';
+    for i = [23:31] {
+        p.[32 - i] = fmt_dec_digit(cast(u8, (bits >> i) & 1));
+    }
+
+    // format sign bit
+    p.[1] = ' ';
+    p.[0] = fmt_dec_digit(cast(u8, (bits >> 31) & 1));
+}
+
 /*/doc
 Maximum number of bytes (digits) needed to format any u64 integer as decimal number.
 */
@@ -416,6 +440,20 @@ fun fmt_cap_buffer_put_bin_bytes_u32(buf: &FormatCapBuffer, x: u32) {
 
     unsafe_fmt_bin_bytes_u32(tail.ptr, x);
     buf.*.len += fmt_bin_bytes_u32_length;
+}
+
+fun fmt_cap_buffer_put_bits_f32(buf: &FormatCapBuffer, f: f32) {
+    var tail: []u8 = fmt_cap_buffer_tail(buf);
+    if tail.len == 0 {
+        ret;
+    }
+    if tail.len < fmt_bits_f32_length {
+        buf.*.eof = true;
+        ret;
+    }
+
+    unsafe_fmt_bits_f32(tail.ptr, f);
+    buf.*.len += fmt_bits_f32_length;
 }
 
 fun fmt_cap_buffer_put_hex_bytes(buf: &FormatCapBuffer, s: []u8) {

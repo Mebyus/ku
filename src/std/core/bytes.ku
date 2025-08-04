@@ -272,3 +272,25 @@ Get least significant half-byte of u64 integer.
 fun get_u64_lshb(x: u64) => u8 {
     ret tint(u8, x & 0xF);
 }
+
+type PunBox32 => union {
+	u32: u32,
+	f32: f32,
+}
+
+fun get_bits_f32(f: f32) => u32 {
+	var box: PunBox32;
+	box.f32 = f;
+	ret box.u32;
+}
+
+type PunBox64 => union {
+	u64: u64,
+	f64: f64,
+}
+
+fun get_bits_f64(f: f64) => u64 {
+	var box: PunBox64;
+	box.f64 = f;
+	ret box.u64;	
+}

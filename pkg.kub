@@ -10,3 +10,7 @@ module "std" {
 module "vik" {
     main "vik";
 }
+
+module "ku" {
+    unit "ku/assembler/lexer";
+}

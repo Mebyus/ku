@@ -1,6 +1,8 @@
 package genc
 
-import "github.com/mebyus/ku/goku/compiler/ast"
+import (
+	"github.com/mebyus/ku/goku/compiler/ast"
+)
 
 func (g *Gen) Alias(a ast.TopAlias) {
 	g.puts("#define ")

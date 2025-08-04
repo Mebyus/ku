@@ -1,0 +1,153 @@
+type Lexer => struct {
+    text: []u8,
+
+    // Byte offset into {text} for current {peek} byte.
+    pos: u32,
+
+	// Marks byte offset into {text}.
+	//
+	// Mark is used to slice input text for token literals.
+    mark: u32,
+}
+
+/*/doc
+Returns true if lexer reached EOF.
+*/
+fun lexer_eof(lx: &Lexer) => bool {
+    ret cast(uint, lx.*.pos) >= lx.*.text.len;
+}
+
+/*/doc
+Returns byte at current lexer position.
+*/
+fun lexer_peek(lx: &Lexer) => u8 {
+    ret lx.*.text.ptr.[lx.*.pos];
+}
+
+/*/doc
+Returns next byte after current lexer position.
+Returns 0 if next lexer position is outside of text.
+*/
+fun lexer_next(lx: &Lexer) => u8 {
+	const p: uint = cast(uint, lx.*.pos) + 1;
+	if p >= lx.*.text.len {
+		ret 0;
+	}
+	ret lx.*.text.ptr.[p];
+}
+
+/*/doc
+Advance lexer scan position one byte forward.
+*/
+fun lexer_advance(lx: &Lexer) {
+	lx.*.pos += 1;
+}
+
+/*/doc
+Start recording new token data.
+*/
+fun lexer_start(lx: &Lexer) {
+	lx.*.mark = lx.*.pos;
+}
+
+/*/doc
+Returns a span (view into scanned text) of recorded token data.
+*/
+fun lexer_view(lx: &Lexer) => []u8 {
+	ret span_u8_slice(lx.*.text, lx.*.mark, lx.*.pos);
+}
+
+/*/doc
+Returns byte length of recorded token data.
+*/
+fun lexer_length(lx: &Lexer) => u32 {
+	ret lx.*.pos - lx.*.mark;
+}
+
+const maxTokenByteLength: u32 = 1 << 12;
+
+fun lexer_overflow(lx: &Lexer) => bool {
+	ret lexer_length(lx) > maxTokenByteLength;
+}
+
+type RetTokenData => struct {
+    data: str,
+    ok:   bool,
+}
+
+/*/doc
+Returns recorded token data string (lit, true).
+
+Returns ("", false) in case token length overflowed max length.
+*/
+fun lexer_take(lx: &Lexer) => RetTokenData {
+    var r: RetTokenData;
+	if lexer_overflow(lx) {
+		ret r;
+	}
+    r.data = lexer_view(lx);
+    r.ok = true;
+	ret r;
+}
+
+fun lexer_skip_word(lx: &Lexer) {
+	for !lexer_eof(lx) && char_is_alphanum(lexer_peek(lx)) {
+		lexer_advance(lx);
+	}
+}
+
+fun lexer_skip_whitespace(lx: &Lexer) {
+	for !lexer_eof(lx) && char_is_whitespace(lexer_peek(lx)) {
+		lexer_advance(lx);
+	}
+}
+
+fun lexer_skip_line(lx: &Lexer) {
+	for !lexer_eof(lx) && lexer_peek(lx) != '\n' {
+		lexer_advance(lx);
+	}
+	if lexer_eof(lx) {
+		ret;
+	}
+
+	lexer_advance(lx); // skip newline byte
+}
+
+fun lexer_skip_line_comment(lx: &Lexer) {
+	lexer_advance(lx); // skip '/'
+	lexer_advance(lx); // skip '/'
+	lexer_skip_line(lx);
+}
+
+fun lexer_skip_block_comment(lx: &Lexer) {
+	lexer_advance(lx); // skip '/'
+	lexer_advance(lx); // skip '*'
+
+	for !lexer_eof(lx) && !(lexer_peek(lx) == '*' && lexer_next(lx) == '/') {
+		lexer_advance(lx);
+	}
+
+	if lexer_eof(lx) {
+		ret;
+	}
+
+	lexer_advance(lx); // skip '*'
+	lexer_advance(lx); // skip '/'
+}
+
+fun lexer_skip_whitespace_and_comments(lx: &Lexer) {
+	for {
+		lexer_skip_whitespace(lx);
+		if lexer_eof(lx) {
+			ret;
+		}
+
+		if lexer_peek(lx) == '/' && lexer_next(lx) == '/' {
+			lexer_skip_line_comment(lx);
+		} else if lexer_peek(lx) == '/' && lexer_next(lx) == '*' {
+			lexer_skip_block_comment(lx);
+		} else {
+			ret;
+		}
+	}
+}

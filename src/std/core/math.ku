@@ -1,0 +1,8 @@
+/*/doc
+Returns math_floor(x * log(2)/log(10)) for an integer {x} in
+range -1600 <= x && x <= +1600.
+*/
+fun math_fast_multiply_by_log_2_10(x: sint) => sint {
+	// log(2)/log(10) approximately equals 0.30102999566 => 78913 / (2 ** 18)
+	ret (x * 78913) >> 18;
+}

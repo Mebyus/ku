@@ -3,12 +3,15 @@ include "prelude.ku";
 
 include "trace.amd64.c";
 
+include "bits.ku";
 include "bytes.ku";
+include "char.ku";
 include "utf8.ku";
 include "hash.ku";
 include "time.ku";
 include "io.ku";
 include "fmt.ku";
+// include "fmt_float.ku";
 
 include "libc.h";
 include "panic.ku";

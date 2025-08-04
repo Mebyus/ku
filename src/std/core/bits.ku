@@ -1,0 +1,11 @@
+fun popcount_u32(x: u32) => uint {
+    ret cast(uint, __builtin_popcount(x));
+}
+
+fun count_trailing_zeroes_u32(x: u32) => uint {
+    if x == 0 {
+        ret 32;
+    }
+
+    ret popcount_u32(^x & (x - 1));
+}
