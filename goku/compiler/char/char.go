@@ -137,7 +137,7 @@ const maxUint64DecLength = len(maxUint64DecString)
 // character for decimal digit of an integer number and returns the resulting integer.
 //
 // If integer does not fit into 64-bit unsigned integer, then (0, false) is returned.
-// Otherwise returhttps://redmine.omnicube.ru/issues/2375ns (n, true).
+// Otherwise returns (n, true).
 //
 // Examples:
 //

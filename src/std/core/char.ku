@@ -1,7 +1,78 @@
 fun char_is_whitespace(c: u8) => bool {
-    ret false;
+	ret c == ' ' || c == '\n' || c == '\t' || c == '\r';
+}
+
+const capital_latin_letter_mask: u8 = 0xDF;
+
+/*/doc
+Transforms ASCII latin letter character to its upper (capital) form.
+*/
+fun char_capital_latin_letter(c: u8) => u8 {
+	ret c & capital_latin_letter_mask;
+}
+
+const lower_latin_letter_mask: u8 = 0x20;
+
+fun char_lower_latin_letter(c: u8) => u8 {
+	ret c | lower_latin_letter_mask;
+}
+
+fun char_is_latin_letter(c: u8) => bool {
+	c = char_capital_latin_letter(c);
+	ret 'A' <= c && c <= 'Z';
+}
+
+fun char_is_latin_letter_or_underscore(c: u8) => bool {
+	ret char_is_latin_letter(c) || c == '_';
+}
+
+fun char_is_dec_digit(c: u8) => bool {
+	ret '0' <= c && c <= '9';
+}
+
+fun char_is_oct_digit(c: u8) => bool {
+	ret '0' <= c && c <= '7';
+}
+
+fun char_is_bin_digit(c: u8) => bool {
+	ret c == '0' || c == '1';
+}
+
+fun char_is_hex_digit(c: u8) => bool {
+	if char_is_dec_digit(c) {
+		ret true;
+	}
+	c = char_capital_latin_letter(c);
+	ret 'A' <= c && c <= 'F';
+}
+
+fun char_is_dec_digit_or_period(c: u8) => bool {
+	ret char_is_dec_digit(c) || c == '.';
 }
 
 fun char_is_alphanum(c: u8) => bool {
-    ret false;
+    ret char_is_latin_letter_or_underscore(c) || char_is_dec_digit(c);
+}
+
+/*/doc
+Transforms ASCII decimal digit character (0 - 9) to its number value.
+
+Does no input validation.
+*/
+fun char_dec_digit_num(c: u8) => u8 {
+	ret c - '0';
+}
+
+/*/doc
+Transforms ASCII hexadecimal digit character (0 - 9, A - F, a - f)
+to its number value. Small (a - f) and capital (A - F) letters produce
+identical results.
+
+Does no input validation.
+*/
+fun char_hex_digit_num(c: u8) => u8 {
+	if c <= '9' {
+		ret char_dec_digit_num(c);
+	}
+	ret char_capital_latin_letter(c) - 'A' + 10;
 }
