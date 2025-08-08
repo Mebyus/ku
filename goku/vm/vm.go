@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 	"time"
 
+	"github.com/mebyus/ku/goku/vm/kvx"
 	"github.com/mebyus/ku/goku/vm/opc"
 )
 
@@ -84,26 +86,38 @@ type Machine struct {
 	halt bool
 }
 
-type Prog struct {
-	Text   []byte
-	Data   []byte
-	Global []byte
-}
+func (m *Machine) Exec(prog *kvx.Program) *Exit {
+	if len(prog.Text) == 0 {
+		// TODO: fill this errors
+		return &Exit{Error: &RuntimeError{}}
+	}
+	if int(prog.EntryPoint) >= len(prog.Text) {
+		return &Exit{Error: &RuntimeError{}}
+	}
 
-func (m *Machine) Exec(prog *Prog) *Exit {
+	m.ip = uint64(prog.EntryPoint)
 	m.text = prog.Text
 	m.data = prog.Data
-	m.global = prog.Global
+
+	if int(prog.GlobalSize) > cap(m.global) {
+		m.global = slices.Grow(m.global, int(prog.GlobalSize)-cap(m.global))
+	}
+	m.global = m.global[:prog.GlobalSize]
+	clear(m.global)
 
 	// reset vm state
+	m.err = nil
 	m.halt = false
-	m.ip = 0
+	m.jump = false
 	m.sp = 0
 	m.fp = 0
+	m.sc = 0
+	m.cf = 0
 	m.clock = 0
 	m.stack = m.stack[:0]
 	m.frames = m.frames[:0]
 	m.heap = m.heap[:0]
+	clear(m.r[:])
 
 	start := time.Now()
 
@@ -202,7 +216,7 @@ func (m *Machine) stopBadLayout(layout uint8) {
 func (m *Machine) idata(n uint64) ([]byte, error) {
 	ip := m.ip
 	if ip+2+n > uint64(len(m.text)) {
-		return nil, fmt.Errorf("instruction data %d byte(s) out of text range")
+		return nil, fmt.Errorf("instruction data %d byte(s) out of text range", n)
 	}
 	return m.text[ip+2 : ip+2+n], nil
 }

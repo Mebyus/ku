@@ -53,3 +53,16 @@ func DecodeJumpLayout(x uint8) (Flag, Layout) {
 	layout := Layout(x & 0xF)
 	return flag, layout
 }
+
+var flagText = [...]string{
+	FlagZ:  "z (== 0)",
+	FlagNZ: "nz (!= 0)",
+	FlagL:  "l (< x)",
+	FlagLE: "le (<= x)",
+	FlagG:  "g (> x)",
+	FlagGE: "ge (>= x)",
+}
+
+func (f Flag) String() string {
+	return flagText[f]
+}

@@ -17,5 +17,15 @@ encode it.
 Each segment with raw binary is aligned by 8-byte boundary.
 
 All integers are stored in little endian.
+
+Byte layout:
+
+	0: [XX XX XX XX] 4 // Magic
+	4: [XX XX XX XX] 4 // Version
+	8: [XX XX XX XX] 4 // Entry point offset
+
+	12: [XX XX XX XX XX XX XX XX] 8 // File offset of Text segment
+	20: [XX XX XX XX]             4 // Text segment size in bytes
+	24: [XX XX XX XX]             4 // Text segment flags
 */
 package kvx

@@ -6,6 +6,9 @@ type Program struct {
 	Text []byte
 	Data []byte
 
+	// Offset into program text.
+	EntryPoint uint32
+
 	GlobalSize uint32
 }
 
