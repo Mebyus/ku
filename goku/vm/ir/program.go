@@ -9,8 +9,11 @@ type Program struct {
 	// List of all data entries defined inside the program.
 	Data []DataEntry
 
-	// Index of entrypoint function.
-	EntryFun uint32
+	// Integer name (index) of entrypoint function.
+	EntryFun FunName
+
+	// Total number of distinct labels inside the program.
+	LabelsCount uint32
 }
 
 // Fun represents a function inside a program.
@@ -19,21 +22,7 @@ type Fun struct {
 	// Atoms constitute function body (code).
 	Atoms []Atom
 
-	// List of all labels used inside function body.
-	Labels []LabelEntry
-}
-
-// Label contains label name in integer form.
-//
-// Directly corresponds to label entry index inside list of
-// all function labels.
-type Label uint32
-
-type LabelEntry struct {
-	Name Label
-
-	// Atom index which this label points to.
-	Atom uint32
+	Name FunName
 }
 
 // Data contains data name in integer form.
