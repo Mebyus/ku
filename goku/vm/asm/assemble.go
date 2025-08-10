@@ -6,6 +6,7 @@ import (
 
 	"github.com/mebyus/ku/goku/vm/ir"
 	"github.com/mebyus/ku/goku/vm/kvx"
+	"github.com/mebyus/ku/goku/vm/opc"
 )
 
 func Assemble(prog *ir.Program) *kvx.Program {
@@ -82,15 +83,39 @@ func (a *Assembler) encodeFun(f ir.Fun) {
 
 func (a *Assembler) encodeAtom(atom ir.Atom) {
 	switch t := atom.(type) {
+	case ir.Trap:
+		a.trap(t)
 	case ir.Halt:
+		a.halt(t)
+	case ir.Nop:
+		a.nop(t)
+	case ir.SysCall:
+		a.syscall(t)
+	case ir.Ret:
+		a.ret(t)
 	case ir.Place:
+		if a.tab.Labels[t.Label] != 0 {
+			panic(fmt.Sprintf("label %d was already placed at 0x%08X", t.Label, a.tab.Labels[t.Label]))
+		}
 		a.tab.Labels[t.Label] = a.textOffset()
 	case ir.CallFun:
 		a.callFun(t)
 	case ir.JumpLabel:
+		a.jumpLabel(t)
+	case ir.ClearReg:
+		a.clearReg(t)
+	case ir.IncReg:
+		a.incReg(t)
+	case ir.IncVal:
+		a.incVal(t)
 	default:
 		panic(fmt.Sprintf("unexpected atom (%T)", t))
 	}
+}
+
+// Encode 64-bit integer into text segment and advance encoder offset.
+func (a *Assembler) val64(v uint64) {
+	a.prog.Text = binary.LittleEndian.AppendUint64(a.prog.Text, v)
 }
 
 // Encode 32-bit integer into text segment and advance encoder offset.
@@ -101,6 +126,18 @@ func (a *Assembler) val32(v uint32) {
 // Encode 8-bit integer into text segment and advance encoder offset.
 func (a *Assembler) val8(v uint8) {
 	a.prog.Text = append(a.prog.Text, v)
+}
+
+func (a *Assembler) opcode(op opc.Opcode) {
+	a.val8(uint8(op))
+}
+
+func (a *Assembler) layout(lt opc.Layout) {
+	a.val8(uint8(lt))
+}
+
+func (a *Assembler) register(r opc.Register) {
+	a.val8(uint8(r))
 }
 
 // aligns encoder offset to start function encoding.

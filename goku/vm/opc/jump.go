@@ -48,6 +48,10 @@ func GetJumpDataSize(layout Layout) (uint64, error) {
 	}
 }
 
+func EncodeJumpLayout(flag Flag, lt Layout) Layout {
+	return lt | Layout(flag<<4)
+}
+
 func DecodeJumpLayout(x uint8) (Flag, Layout) {
 	flag := Flag(x >> 4)
 	layout := Layout(x & 0xF)
