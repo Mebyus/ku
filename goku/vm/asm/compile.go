@@ -4,6 +4,8 @@ import (
 	"io"
 
 	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/vm/asm/compiler"
+	"github.com/mebyus/ku/goku/vm/asm/parser"
 	"github.com/mebyus/ku/goku/vm/kvx"
 )
 
@@ -12,5 +14,14 @@ func Compile(code io.Reader) (*kvx.Program, error) {
 }
 
 func CompileText(text *srcmap.Text) (*kvx.Program, error) {
-	return &kvx.Program{}, nil
+	t, err := parser.Parse(text)
+	if err != nil {
+		return nil, err
+	}
+	p, err := compiler.Compile(t)
+	if err != nil {
+		return nil, err
+	}
+	prog := Assemble(p)
+	return prog, nil
 }
