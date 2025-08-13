@@ -176,7 +176,7 @@ const (
 	Rune       // 'a', '\t', 'p'
 	String     // "abc", "", "\t\n  42Hello\n"
 
-	// Custom tokens.
+	// Custom tokens
 
 	RawString  // #"raw string literal"
 	FillString // "string with ${10 + 1} interpolated ${a - b} expressions"

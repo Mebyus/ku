@@ -654,7 +654,7 @@ func (lx *Lexer) twoBytesToken(k token.Kind) token.Token {
 
 func (lx *Lexer) illegalByteToken() token.Token {
 	tok := lx.emit(token.Illegal)
-	tok.Data = char.ToString(byte(lx.Peek()))
+	tok.Data = char.ToString(lx.Peek())
 	lx.Advance()
 	return tok
 }
