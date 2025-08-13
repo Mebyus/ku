@@ -1,9 +1,6 @@
-package token
+package baselex
 
-import (
-	"github.com/mebyus/ku/goku/compiler/baselex"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
-)
+import "github.com/mebyus/ku/goku/compiler/srcmap"
 
 type Token struct {
 	// Not empty only for tokens which do not have static literal.
@@ -24,25 +21,7 @@ type Token struct {
 
 	Pin srcmap.Pin
 
-	Kind Kind
+	Kind uint32
 
 	Flags uint32
-}
-
-const (
-	FlagKeyword = 1 << iota
-)
-
-func (t *Token) IsKeyword() bool {
-	return t.Flags&FlagKeyword != 0
-}
-
-func FromBaseToken(tok baselex.Token) Token {
-	return Token{
-		Data:  tok.Data,
-		Val:   tok.Val,
-		Pin:   tok.Pin,
-		Kind:  FromBaseKind(tok.Kind),
-		Flags: tok.Flags,
-	}
 }

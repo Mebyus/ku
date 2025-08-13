@@ -158,8 +158,13 @@ const (
 	DirLink    // #link
 
 	staticLiteralEnd
+)
 
-	Illegal // any byte sequence unknown to lexer
+const (
+	// Common tokens with baselex package.
+	// Order of common tokens must the same as in baselex.
+
+	Illegal Kind = staticLiteralEnd + iota // any byte sequence unknown to lexer
 
 	// Identifiers and basic type literals
 	Word       // myvar, main, Line, print
@@ -170,6 +175,9 @@ const (
 	DecFloat   // 123.45
 	Rune       // 'a', '\t', 'p'
 	String     // "abc", "", "\t\n  42Hello\n"
+
+	// Custom tokens.
+
 	RawString  // #"raw string literal"
 	FillString // "string with ${10 + 1} interpolated ${a - b} expressions"
 	Macro      // #.MACRO_NAME
@@ -181,3 +189,8 @@ const (
 
 	maxKind
 )
+
+// FromBaseKind transforms baselex token kind into Kind.
+func FromBaseKind(k uint32) Kind {
+	return Kind(k) + staticLiteralEnd
+}
