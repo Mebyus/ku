@@ -38,6 +38,14 @@ func NewText(path string, data []byte) *Text {
 	}
 }
 
+func NewTextFromReader(r io.Reader) (*Text, error) {
+	data, err := io.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+	return &Text{Data: data}, nil
+}
+
 func (t *Text) WriteTo(w io.Writer) (int64, error) {
 	n, err := w.Write(t.Data)
 	return int64(n), err

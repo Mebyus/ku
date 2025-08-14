@@ -10,7 +10,11 @@ import (
 )
 
 func Compile(code io.Reader) (*kvx.Program, error) {
-	return &kvx.Program{}, nil
+	t, err := srcmap.NewTextFromReader(code)
+	if err != nil {
+		return nil, err
+	}
+	return CompileText(t)
 }
 
 func CompileText(text *srcmap.Text) (*kvx.Program, error) {
