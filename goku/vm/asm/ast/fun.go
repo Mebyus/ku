@@ -34,6 +34,14 @@ type Symbol struct {
 	Pin  srcmap.Pin
 }
 
+// Integer represents integer usage operand (inside instruction).
+type Integer struct {
+	nodeOperand
+
+	Val uint64
+	Pin srcmap.Pin
+}
+
 // Instruction represents arbitrary instruction in function body.
 type Instruction struct {
 	nodeAtom

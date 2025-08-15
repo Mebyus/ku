@@ -20,6 +20,35 @@ func TestMachine_Exec(t *testing.T) {
 				Error: nil, // TODO: do something about errors comparison
 			},
 		},
+		{
+			name: "2 inc",
+			code: code2,
+			want: &Exit{
+				Error: nil, // TODO: do something about errors comparison
+			},
+		},
+		{
+			name: "3 halt",
+			code: code3,
+			want: &Exit{
+				Error: nil, // TODO: do something about errors comparison
+			},
+		},
+		{
+			name: "4 copy",
+			code: code4,
+			want: &Exit{
+				Error:  nil, // TODO: do something about errors comparison
+				Status: 19,
+			},
+		},
+		{
+			name: "5 label",
+			code: code5,
+			want: &Exit{
+				Error: nil, // TODO: do something about errors comparison
+			},
+		},
 	}
 
 	var m Machine
@@ -51,6 +80,23 @@ const code2 = `
 
 const code3 = `
 #fun start {
+	halt;
+}
+`
+
+const code4 = `
+#fun start {
+	copy	sc, 19;
+	halt;
+}
+`
+
+const code5 = `
+#fun start {
+	nop;
+
+@.label:
+	nop;
 	halt;
 }
 `
