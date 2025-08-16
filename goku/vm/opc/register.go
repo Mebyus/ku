@@ -38,3 +38,7 @@ const (
 	// Read-only. Managed by VM.
 	RegClock
 )
+
+func (r Register) Special() bool {
+	return r&0x80 != 0
+}

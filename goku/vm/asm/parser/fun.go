@@ -17,15 +17,16 @@ func (p *Parser) topFun() diag.Error {
 		return err
 	}
 
-	atoms, err := p.funBody()
+	atoms, labels, err := p.funBody()
 	if err != nil {
 		return err
 	}
 
 	p.text.Functions = append(p.text.Functions, ast.Fun{
-		Atoms: atoms,
-		Name:  name,
-		Pin:   pin,
+		Atoms:  atoms,
+		Labels: labels,
+		Name:   name,
+		Pin:    pin,
 	})
 	return nil
 }
@@ -52,23 +53,29 @@ func (p *Parser) funName() (string, diag.Error) {
 	}
 }
 
-func (p *Parser) funBody() ([]ast.Atom, diag.Error) {
+func (p *Parser) funBody() ([]ast.Atom, []string, diag.Error) {
 	if p.peek.Kind != tokens.LeftCurly {
-		return nil, p.unexpected()
+		return nil, nil, p.unexpected()
 	}
 	p.advance() // skip "{"
 
 	var atoms []ast.Atom
+	var labels []string
 	for {
 		if p.peek.Kind == tokens.RightCurly {
 			p.advance() // skip "}"
-			return atoms, nil
+			return atoms, labels, nil
 		}
 
 		atom, err := p.atom()
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		atoms = append(atoms, atom)
+
+		place, ok := atom.(ast.Place)
+		if ok {
+			labels = append(labels, place.Name)
+		}
 	}
 }

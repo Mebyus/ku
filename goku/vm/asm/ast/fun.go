@@ -1,9 +1,16 @@
 package ast
 
-import "github.com/mebyus/ku/goku/compiler/srcmap"
+import (
+	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/vm/opc"
+)
 
 type Fun struct {
 	Atoms []Atom
+
+	// List of labels placed inside function body.
+	// Stored in placement order.
+	Labels []string
 
 	Name string
 
@@ -40,6 +47,14 @@ type Integer struct {
 
 	Val uint64
 	Pin srcmap.Pin
+}
+
+// Register represents register usage operand (inside instruction).
+type Register struct {
+	nodeOperand
+
+	Name opc.Register
+	Pin  srcmap.Pin
 }
 
 // Instruction represents arbitrary instruction in function body.

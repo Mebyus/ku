@@ -29,6 +29,9 @@ func (lx *Lexer) lex() tokens.Token {
 	}
 
 	if lx.Peek() == '#' {
+		if lx.Next() == ':' {
+			return lx.reg()
+		}
 		return lx.keyword()
 	}
 
@@ -56,6 +59,30 @@ func (lx *Lexer) word() (tok tokens.Token) {
 
 	tok.Kind = tokens.Word
 	tok.Data = word
+	return tok
+}
+
+func (lx *Lexer) reg() (tok tokens.Token) {
+	tok.Pin = lx.Pin()
+
+	lx.Advance() // skip '#'
+	lx.Advance() // skip ':'
+
+	lx.Start()
+	lx.SkipWord()
+	data, ok := lx.Take()
+	if !ok {
+		tok.SetIllegalError(baselex.LengthOverflow)
+		return tok
+	}
+	if data == "" {
+		tok.SetIllegalError(baselex.UnknownDirective)
+		tok.Data = "#:"
+		return tok
+	}
+
+	tok.Kind = tokens.Reg
+	tok.Data = data
 	return tok
 }
 

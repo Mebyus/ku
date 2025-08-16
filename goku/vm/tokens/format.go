@@ -40,6 +40,11 @@ var literal = [...]string{
 	HexInteger: "INT.HEX",
 	DecFloat:   "FLT.DEC",
 
+	// Custom tokens
+
+	Label: "LABEL",
+	Reg:   "REG",
+
 	// Comments
 
 	LineComment:  "COM.LINE",

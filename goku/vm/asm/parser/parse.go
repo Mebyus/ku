@@ -32,8 +32,37 @@ func (p *Parser) top() diag.Error {
 	case tokens.Data:
 		panic("not implemented")
 	case tokens.Entry:
-		panic("not implemented")
+		return p.topEntry()
 	default:
 		return p.unexpected()
 	}
+}
+
+func (p *Parser) topEntry() diag.Error {
+	if p.text.Entry.Name != "" {
+		return &diag.SimpleMessageError{
+			Pin:  p.peek.Pin,
+			Text: "entrypoint was already declared in program",
+		}
+	}
+
+	p.advance() // skip "#entry"
+
+	if p.peek.Kind != tokens.Word {
+		return p.unexpected()
+	}
+	name := p.peek.Data
+	pin := p.peek.Pin
+	p.advance() // skip entrypoint name
+
+	if p.peek.Kind != tokens.Semicolon {
+		return p.unexpected()
+	}
+	p.advance() // skip ";"
+
+	p.text.Entry = ast.Entry{
+		Name: name,
+		Pin:  pin,
+	}
+	return nil
 }

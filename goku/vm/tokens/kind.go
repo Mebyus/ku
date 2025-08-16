@@ -49,6 +49,7 @@ const (
 	// Custom tokens
 
 	Label // @.my_label
+	Reg   // #:r9 - register name
 
 	// Comments
 	LineComment  // Line comment starts with //

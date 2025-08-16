@@ -69,29 +69,39 @@ func TestMachine_Exec(t *testing.T) {
 }
 
 const code1 = `
+#entry start;
+
 #fun start {}
 `
 
 const code2 = `
+#entry start;
+
 #fun start {
-	inc		r0;
+	inc		#:r0;
 }
 `
 
 const code3 = `
+#entry start;
+
 #fun start {
 	halt;
 }
 `
 
 const code4 = `
+#entry start;
+
 #fun start {
-	copy	sc, 19;
+	copy	#:sc, 19;
 	halt;
 }
 `
 
 const code5 = `
+#entry start;
+
 #fun start {
 	nop;
 
