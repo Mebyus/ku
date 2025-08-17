@@ -14,11 +14,11 @@ func (a *Assembler) incReg(t ir.IncReg) {
 
 func (a *Assembler) incVal(t ir.IncVal) {
 	v := t.Val
-	if t.Val < 16 {
-		a.incValTiny(t.Dest, uint8(v))
+	if v < 16 {
+		a.incVal4(t.Dest, uint8(v))
 		return
 	}
-	if t.Val < 0xFFFFFFFF {
+	if v <= 0xFFFFFFFF {
 		a.incVal32(t.Dest, uint32(v))
 		return
 	}
@@ -26,7 +26,7 @@ func (a *Assembler) incVal(t ir.IncVal) {
 	a.incVal64(t.Dest, v)
 }
 
-func (a *Assembler) incValTiny(dest opc.Register, v uint8) {
+func (a *Assembler) incVal4(dest opc.Register, v uint8) {
 	a.opcode(opc.Inc)
 	a.layout(opc.EncodeIncTinyLayout(v))
 	a.register(dest)

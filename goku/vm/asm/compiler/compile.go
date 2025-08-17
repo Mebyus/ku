@@ -82,6 +82,13 @@ func (c *Compiler) translateFunctions(funs []ast.Fun) diag.Error {
 }
 
 func (c *Compiler) translateFunction(name ir.FunName, f *ast.Fun) diag.Error {
+	if len(f.Atoms) == 0 {
+		return &diag.SimpleMessageError{
+			Pin:  f.Pin,
+			Text: "empty function body",
+		}
+	}
+
 	clear(c.labels)
 	count := c.prog.LabelsCount
 	for _, label := range f.Labels {
@@ -124,6 +131,8 @@ func (c *Compiler) translateAtom(atom ast.Atom) (ir.Atom, diag.Error) {
 			return ir.Nop{}, nil
 		case "inc":
 			return c.translateInc(a)
+		case "set":
+			return c.translateSet(a)
 		default:
 			return nil, &diag.SimpleMessageError{
 				Pin:  a.Pin,

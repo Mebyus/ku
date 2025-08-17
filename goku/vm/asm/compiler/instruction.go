@@ -7,6 +7,7 @@ import (
 	"github.com/mebyus/ku/goku/compiler/srcmap"
 	"github.com/mebyus/ku/goku/vm/asm/ast"
 	"github.com/mebyus/ku/goku/vm/ir"
+	"github.com/mebyus/ku/goku/vm/opc"
 )
 
 func wrongOperandsNumber(pin srcmap.Pin, got int, want string) diag.Error {
@@ -43,4 +44,45 @@ func (c *Compiler) translateInc(s ast.Instruction) (ir.Atom, diag.Error) {
 	}
 
 	panic("stub")
+}
+
+func (c *Compiler) translateSet(s ast.Instruction) (ir.Atom, diag.Error) {
+	switch len(s.Operands) {
+	case 2:
+		dest := s.Operands[0]
+		d, ok := dest.(ast.Register)
+		if !ok {
+			return nil, &diag.SimpleMessageError{
+				Pin:  s.Pin,
+				Text: fmt.Sprintf("bad operand: destination must be register, got (%T)", dest),
+			}
+		}
+		if d.Name.Special() && d.Name != opc.RegSC {
+			return nil, &diag.SimpleMessageError{
+				Pin:  s.Pin,
+				Text: fmt.Sprintf("bad operand: set instruction cannot have \"%s\" register as destination", d.Name),
+			}
+		}
+
+		source := s.Operands[1]
+		switch c := source.(type) {
+		case ast.Register:
+			return ir.SetReg{
+				Dest:   d.Name,
+				Source: c.Name,
+			}, nil
+		case ast.Integer:
+			return ir.SetVal{
+				Dest: d.Name,
+				Val:  c.Val,
+			}, nil
+		default:
+			return nil, &diag.SimpleMessageError{
+				Pin:  s.Pin,
+				Text: fmt.Sprintf("bad operand: source must be register or immediate, got (%T)", c),
+			}
+		}
+	default:
+		return nil, wrongOperandsNumber(s.Pin, len(s.Operands), "2")
+	}
 }

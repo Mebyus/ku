@@ -42,7 +42,7 @@ const (
 	Clear Opcode = 0x09
 
 	// Copy register value or immediate value to another register.
-	Copy Opcode = 0x0A
+	Set Opcode = 0x0A
 
 	// Load value to register from memory location.
 	Load Opcode = 0x0B
@@ -77,7 +77,7 @@ var opcodeText = [...]string{
 	Push:    "push",
 	Pop:     "pop",
 	Clear:   "clear",
-	Copy:    "copy",
+	Set:     "set",
 	Load:    "load",
 	Store:   "store",
 	Test:    "test",

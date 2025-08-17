@@ -168,7 +168,7 @@ func (m *Machine) step() {
 		size, err = m.execJump(lt)
 	case opc.Clear:
 		// m.clear()
-	case opc.Copy:
+	case opc.Set:
 	case opc.Load:
 	case opc.Store:
 		// err = m.loadValReg()
@@ -186,7 +186,12 @@ func (m *Machine) step() {
 	// case JumpFlagAddr:
 	// 	err = m.jumpFlagAddr()
 	default:
-		m.stop(fmt.Errorf("unknown opcode (=0x%02X)", op))
+		// Cast opcode to uint8 to avoid strange panic inside fmt.Errorf.
+		//
+		// It seems that fmt package gives priority to String() method before
+		// applying format verb %X. This behaviour is cumbersome and unexpected,
+		// but standard library documents it, and it is not difficult to avoid.
+		m.stop(fmt.Errorf("unknown opcode (=0x%02X)", uint8(op)))
 		return
 	}
 	if err != nil {

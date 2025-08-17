@@ -35,7 +35,7 @@ func TestMachine_Exec(t *testing.T) {
 			},
 		},
 		{
-			name: "4 copy",
+			name: "4 set",
 			code: code4,
 			want: &Exit{
 				Error:  nil, // TODO: do something about errors comparison
@@ -61,6 +61,10 @@ func TestMachine_Exec(t *testing.T) {
 			}
 			exit := m.Exec(prog)
 
+			if tt.want.Error == nil && exit.Error != nil {
+				t.Errorf("exit.Error = %v", exit.Error)
+				return
+			}
 			if exit.Status != tt.want.Status {
 				t.Errorf("exit.Status = %d, want %d", exit.Status, tt.want.Status)
 			}
@@ -71,7 +75,9 @@ func TestMachine_Exec(t *testing.T) {
 const code1 = `
 #entry start;
 
-#fun start {}
+#fun start {
+	nop;
+}
 `
 
 const code2 = `
@@ -94,7 +100,7 @@ const code4 = `
 #entry start;
 
 #fun start {
-	copy	#:sc, 19;
+	set		#:sc, 19;
 	halt;
 }
 `

@@ -1,5 +1,10 @@
 package opc
 
+import (
+	"fmt"
+	"strconv"
+)
+
 // Register represents register name in used in
 // instruction encoding.
 //
@@ -41,4 +46,27 @@ const (
 
 func (r Register) Special() bool {
 	return r&0x80 != 0
+}
+
+func (r Register) String() string {
+	if !r.Special() {
+		return "r" + strconv.FormatUint(uint64(r), 10)
+	}
+
+	switch r {
+	case RegIP:
+		return "ip"
+	case RegSP:
+		return "sp"
+	case RegFP:
+		return "fp"
+	case RegSC:
+		return "sc"
+	case RegCF:
+		return "cf"
+	case RegClock:
+		return "clock"
+	default:
+		panic(fmt.Sprintf("unexpected special register (=%d)", r))
+	}
 }

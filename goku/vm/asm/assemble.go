@@ -108,6 +108,10 @@ func (a *Assembler) encodeAtom(atom ir.Atom) {
 		a.incReg(t)
 	case ir.IncVal:
 		a.incVal(t)
+	case ir.SetReg:
+		a.setReg(t)
+	case ir.SetVal:
+		a.setVal(t)
 	default:
 		panic(fmt.Sprintf("unexpected atom (%T)", t))
 	}
@@ -121,6 +125,11 @@ func (a *Assembler) val64(v uint64) {
 // Encode 32-bit integer into text segment and advance encoder offset.
 func (a *Assembler) val32(v uint32) {
 	a.prog.Text = binary.LittleEndian.AppendUint32(a.prog.Text, v)
+}
+
+// Encode 16-bit integer into text segment and advance encoder offset.
+func (a *Assembler) val16(v uint16) {
+	a.prog.Text = binary.LittleEndian.AppendUint16(a.prog.Text, v)
 }
 
 // Encode 8-bit integer into text segment and advance encoder offset.
