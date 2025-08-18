@@ -265,13 +265,32 @@ func (m *Machine) memslice(ptr uint64, n uint32) ([]byte, error) {
 	return b[offset:end], nil
 }
 
-// get general-purpose register value
-func (m *Machine) get(r uint8) (uint64, error) {
-	if r >= 64 {
-		return 0, fmt.Errorf("register index %d out of range", r)
+// get register value
+func (m *Machine) get(r opc.Register) (uint64, error) {
+	if !r.Special() {
+		if r >= 64 {
+			return 0, fmt.Errorf("register index %d out of range", r)
+		}
+		v := m.r[r]
+		return v, nil
 	}
-	v := m.r[r]
-	return v, nil
+
+	switch r {
+	case opc.RegIP:
+		return m.ip, nil
+	case opc.RegSP:
+		return m.sp, nil
+	case opc.RegFP:
+		return m.fp, nil
+	case opc.RegSC:
+		return m.sc, nil
+	case opc.RegCF:
+		return m.cf, nil
+	case opc.RegClock:
+		return m.clock, nil
+	default:
+		return 0, fmt.Errorf("unknown special register (=%d)", r)
+	}
 }
 
 // set general-purpose register value

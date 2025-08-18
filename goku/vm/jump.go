@@ -43,7 +43,7 @@ func (m *Machine) getJumpAddress(layout opc.Layout, size uint64) (uint32, error)
 
 	switch layout {
 	case opc.JumpReg:
-		r := data[0]
+		r := opc.Register(data[0])
 		val, err := m.get(r)
 		if err != nil {
 			return 0, err
