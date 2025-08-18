@@ -80,6 +80,8 @@ func (p *Parser) operand() (ast.Operand, diag.Error) {
 		return p.symbol()
 	case tokens.DecInteger:
 		return p.decInteger()
+	case tokens.Label:
+		return p.label()
 	default:
 		return nil, p.unexpected()
 	}
@@ -97,6 +99,17 @@ func (p *Parser) register() (ast.Register, diag.Error) {
 
 	return ast.Register{
 		Name: reg,
+		Pin:  pin,
+	}, nil
+}
+
+func (p *Parser) label() (ast.Label, diag.Error) {
+	name := p.peek.Data
+	pin := p.peek.Pin
+	p.advance() // skip label name
+
+	return ast.Label{
+		Name: name,
 		Pin:  pin,
 	}, nil
 }

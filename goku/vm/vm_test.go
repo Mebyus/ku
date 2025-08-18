@@ -14,7 +14,7 @@ func TestMachine_Exec(t *testing.T) {
 		want *Exit
 	}{
 		{
-			name: "1 empty program",
+			name: "1 nop",
 			code: code1,
 			want: &Exit{
 				Error: nil, // TODO: do something about errors comparison
@@ -45,6 +45,13 @@ func TestMachine_Exec(t *testing.T) {
 		{
 			name: "5 label",
 			code: code5,
+			want: &Exit{
+				Error: nil, // TODO: do something about errors comparison
+			},
+		},
+		{
+			name: "6 jump",
+			code: code6,
 			want: &Exit{
 				Error: nil, // TODO: do something about errors comparison
 			},
@@ -110,6 +117,18 @@ const code5 = `
 
 #fun start {
 	nop;
+
+@.label:
+	nop;
+	halt;
+}
+`
+
+const code6 = `
+#entry start;
+
+#fun start {
+	jump	@.label;
 
 @.label:
 	nop;

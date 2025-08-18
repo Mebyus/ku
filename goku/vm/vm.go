@@ -169,6 +169,7 @@ func (m *Machine) step() {
 	case opc.Clear:
 		// m.clear()
 	case opc.Set:
+		size, err = m.execSet(lt)
 	case opc.Load:
 	case opc.Store:
 		// err = m.loadValReg()
@@ -293,13 +294,25 @@ func (m *Machine) get(r opc.Register) (uint64, error) {
 	}
 }
 
-// set general-purpose register value
-func (m *Machine) set(r uint8, v uint64) error {
-	if r >= 64 {
-		return fmt.Errorf("register index %d out of range", r)
+// set register value
+func (m *Machine) set(r opc.Register, v uint64) error {
+	if !r.Special() {
+		if r >= 64 {
+			return fmt.Errorf("register index %d out of range", r)
+		}
+		m.r[r] = v
+		return nil
 	}
-	m.r[r] = v
-	return nil
+
+	switch r {
+	case opc.RegIP, opc.RegSP, opc.RegFP, opc.RegCF, opc.RegClock:
+		return fmt.Errorf("register %s (=%d) cannot be changed by instruction directly", r, r)
+	case opc.RegSC:
+		m.sc = v
+		return nil
+	default:
+		return fmt.Errorf("unknown special register (=%d)", r)
+	}
 }
 
 // Exit describes vm exit state after program execution.
@@ -376,4 +389,8 @@ func val64(buf []byte) uint64 {
 
 func val32(buf []byte) uint32 {
 	return binary.LittleEndian.Uint32(buf)
+}
+
+func val16(buf []byte) uint16 {
+	return binary.LittleEndian.Uint16(buf)
 }
