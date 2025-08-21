@@ -56,6 +56,14 @@ func TestMachine_Exec(t *testing.T) {
 				Error: nil, // TODO: do something about errors comparison
 			},
 		},
+		{
+			name: "7 call",
+			code: code7,
+			want: &Exit{
+				Error:  nil, // TODO: do something about errors comparison
+				Status: 0x23,
+			},
+		},
 	}
 
 	var m Machine
@@ -133,5 +141,20 @@ const code6 = `
 @.label:
 	nop;
 	halt;
+}
+`
+
+const code7 = `
+#entry start;
+
+#fun start {
+	set		#:r0, 0x23;
+	call	main;
+	halt;
+}
+
+#fun main {
+	set		#:sc, #:r0;
+	ret;
 }
 `

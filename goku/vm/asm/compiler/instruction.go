@@ -86,3 +86,59 @@ func (c *Compiler) translateSet(s ast.Instruction) (ir.Atom, diag.Error) {
 		return nil, wrongOperandsNumber(s.Pin, len(s.Operands), "2")
 	}
 }
+
+func (c *Compiler) translateJump(s ast.Instruction) (ir.Atom, diag.Error) {
+	if s.Variant != "" {
+		panic("stub")
+	}
+
+	switch len(s.Operands) {
+	case 1:
+		d := s.Operands[0]
+		label, ok := d.(ast.Label)
+		if !ok {
+			return nil, &diag.SimpleMessageError{
+				Pin:  s.Pin,
+				Text: fmt.Sprintf("bad operand: destination must be label, got (%T)", d),
+			}
+		}
+		l, ok := c.labels[label.Name]
+		if !ok {
+			return nil, &diag.SimpleMessageError{
+				Pin:  s.Pin,
+				Text: fmt.Sprintf("label \"%s\" not placed in this function", label.Name),
+			}
+		}
+		return ir.JumpLabel{Label: l}, nil
+	default:
+		return nil, wrongOperandsNumber(s.Pin, len(s.Operands), "1")
+	}
+}
+
+func (c *Compiler) translateCall(s ast.Instruction) (ir.Atom, diag.Error) {
+	if s.Variant != "" {
+		// TODO: return error
+	}
+
+	switch len(s.Operands) {
+	case 1:
+		d := s.Operands[0]
+		symbol, ok := d.(ast.Symbol)
+		if !ok {
+			return nil, &diag.SimpleMessageError{
+				Pin:  s.Pin,
+				Text: fmt.Sprintf("bad operand: destination must be symbol, got (%T)", d),
+			}
+		}
+		fun, ok := c.funs[symbol.Name]
+		if !ok {
+			return nil, &diag.SimpleMessageError{
+				Pin:  s.Pin,
+				Text: fmt.Sprintf("function \"%s\" not declared", symbol.Name),
+			}
+		}
+		return ir.CallFun{Fun: fun}, nil
+	default:
+		return nil, wrongOperandsNumber(s.Pin, len(s.Operands), "1")
+	}
+}

@@ -79,11 +79,18 @@ type Machine struct {
 	// Runtime error occured while executing current instruction.
 	err error
 
+	stats Stats
+
 	// Indicates if jump occured while executing current instruction.
 	jump bool
 
 	// Indicates if vm was halted by instruction or runtime error.
 	halt bool
+}
+
+type Stats struct {
+	MaxStackSize uint64
+	MaxFrames    uint64
 }
 
 func (m *Machine) Exec(prog *kvx.Program) *Exit {
@@ -166,6 +173,10 @@ func (m *Machine) step() {
 		// m.syscall()
 	case opc.Jump:
 		size, err = m.execJump(lt)
+	case opc.Call:
+		size, err = m.execCall(lt)
+	case opc.Ret:
+		size, err = m.execRet(lt)
 	case opc.Clear:
 		// m.clear()
 	case opc.Set:
@@ -333,6 +344,12 @@ type Exit struct {
 
 	// Number of executed instructions.
 	Clock uint64
+
+	// Maximum stack size during execution.
+	MaxStackSize uint64
+
+	// Maximum number of frames (call depth) during execution.
+	MaxFrames uint64
 }
 
 func (e *Exit) Render(w io.Writer) error {

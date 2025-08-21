@@ -80,6 +80,8 @@ func (p *Parser) operand() (ast.Operand, diag.Error) {
 		return p.symbol()
 	case tokens.DecInteger:
 		return p.decInteger()
+	case tokens.HexInteger:
+		return p.hexInteger()
 	case tokens.Label:
 		return p.label()
 	default:
@@ -126,6 +128,17 @@ func (p *Parser) symbol() (ast.Symbol, diag.Error) {
 }
 
 func (p *Parser) decInteger() (ast.Integer, diag.Error) {
+	val := p.peek.Val
+	pin := p.peek.Pin
+	p.advance() // skip integer
+
+	return ast.Integer{
+		Val: val,
+		Pin: pin,
+	}, nil
+}
+
+func (p *Parser) hexInteger() (ast.Integer, diag.Error) {
 	val := p.peek.Val
 	pin := p.peek.Pin
 	p.advance() // skip integer

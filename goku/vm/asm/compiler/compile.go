@@ -129,6 +129,10 @@ func (c *Compiler) translateAtom(atom ast.Atom) (ir.Atom, diag.Error) {
 			return ir.Ret{}, nil
 		case "nop":
 			return ir.Nop{}, nil
+		case "jump":
+			return c.translateJump(a)
+		case "call":
+			return c.translateCall(a)
 		case "inc":
 			return c.translateInc(a)
 		case "set":
