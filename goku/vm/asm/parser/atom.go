@@ -44,6 +44,18 @@ func (p *Parser) instruction() (ast.Instruction, diag.Error) {
 	pin := p.peek.Pin
 	p.advance() // skip instruction mnemonic
 
+	var variant string
+	if p.peek.Kind == tokens.Period {
+		p.advance() // skip "."
+
+		if p.peek.Kind != tokens.Word {
+			return ast.Instruction{}, p.unexpected()
+		}
+
+		variant = p.peek.Data
+		p.advance() // skip variant name
+	}
+
 	var operands []ast.Operand
 	for {
 		if p.peek.Kind == tokens.Semicolon {
@@ -51,6 +63,7 @@ func (p *Parser) instruction() (ast.Instruction, diag.Error) {
 			return ast.Instruction{
 				Operands: operands,
 				Mnemonic: mnemonic,
+				Variant:  variant,
 				Pin:      pin,
 			}, nil
 		}

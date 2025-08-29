@@ -64,6 +64,14 @@ func TestMachine_Exec(t *testing.T) {
 				Status: 0x23,
 			},
 		},
+		{
+			name: "8 fib",
+			code: code8,
+			want: &Exit{
+				Error:  nil,
+				Status: 8,
+			},
+		},
 	}
 
 	var m Machine
@@ -159,6 +167,43 @@ const code7 = `
 
 #fun main {
 	set		#:sc, #:r0;
+	ret;
+}
+`
+
+const code8 = `
+#entry start;
+
+#fun start {
+	set		#:r0, 6;
+	call 	fib;
+	set 	#:sc, #:r0;
+	halt;
+}
+
+// Takes integer argument in #:r0.
+// Calculates fibonacci number of that integer.
+// Result is returned in #:r0.
+// Does not preserve registers.
+#fun fib {
+	test 		#:r0, 1;
+	jump.le		@.exit;
+
+	dec		#:r0;
+	push	#:r0;
+	call	fib;
+	
+	pop		#:r1;
+	push	#:r0;
+	
+	set		#:r0, #:r1;
+	dec		#:r0;
+	call	fib;
+
+	pop		#:r1;
+	inc		#:r0, #:r1;
+
+@.exit:
 	ret;
 }
 `
