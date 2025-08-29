@@ -28,13 +28,6 @@ Some instructions (usually arithmetic, such as Add or Sub) use generic
 Layout which is common for many instructions. Other instructions such as
 Jump use specialized Layout values.
 
-List of instructions with empty layout (must always be 00):
-
-	Halt
-	Nop
-	SysCall
-	Ret
-
 List of instructions with generic layouts:
 
 	Add

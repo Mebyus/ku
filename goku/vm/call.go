@@ -1,16 +1,14 @@
 package vm
 
 import (
-	"fmt"
-
 	"github.com/mebyus/ku/goku/vm/opc"
 )
 
-func (m *Machine) execCall(lt uint8) (uint64, error) {
+func (m *Machine) execCall(lt uint8) (uint64, *RuntimeError) {
 	var data []byte // instruction data
 	var size uint64
 	var addr uint32 // call address
-	var err error
+	var err *RuntimeError
 
 	switch opc.Layout(lt) {
 	case opc.CallReg:
@@ -23,14 +21,20 @@ func (m *Machine) execCall(lt uint8) (uint64, error) {
 		}
 		addr = val32(data)
 	default:
-		return 0, fmt.Errorf("unknown layout 0x%02X", lt)
+		return 0, &RuntimeError{
+			Code: ErrorBadVariant,
+			Aux:  uint64(lt),
+		}
 	}
 	if err != nil {
 		return 0, err
 	}
 
 	if addr >= uint32(len(m.text)) {
-		return 0, fmt.Errorf("address 0x%08X outside of text segment", addr)
+		return 0, &RuntimeError{
+			Code: ErrorBadCallAddress,
+			Aux:  uint64(addr),
+		}
 	}
 	m.doCall(size, addr)
 	return size, nil
@@ -52,9 +56,9 @@ func (m *Machine) doCall(size uint64, addr uint32) {
 	}
 }
 
-func (m *Machine) execRet(lt uint8) (uint64, error) {
+func (m *Machine) execRet() *RuntimeError {
 	if len(m.frames) == 0 {
-		return 0, fmt.Errorf("empty frame stack")
+		return &RuntimeError{Code: ErrorEmptyFrameStack}
 	}
 	frame := m.frames[len(m.frames)-1]
 	m.frames = m.frames[:len(m.frames)-1]
@@ -63,5 +67,5 @@ func (m *Machine) execRet(lt uint8) (uint64, error) {
 	m.fp = uint64(frame.Base)
 	m.ip = uint64(frame.Ret)
 	m.jump = true
-	return 0, nil
+	return nil
 }

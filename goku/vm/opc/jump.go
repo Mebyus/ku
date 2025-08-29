@@ -1,17 +1,15 @@
 package opc
 
-import "fmt"
-
-// Flag specifies jump condition.
-type Flag uint8
+// JumpFlag specifies jump condition.
+type JumpFlag uint8
 
 const (
-	FlagZ  Flag = 0x1
-	FlagNZ Flag = 0x2
-	FlagL  Flag = 0x3
-	FlagLE Flag = 0x4
-	FlagG  Flag = 0x5
-	FlagGE Flag = 0x6
+	FlagZ  JumpFlag = 0x1
+	FlagNZ JumpFlag = 0x2
+	FlagL  JumpFlag = 0x3
+	FlagLE JumpFlag = 0x4
+	FlagG  JumpFlag = 0x5
+	FlagGE JumpFlag = 0x6
 )
 
 // Jump instruction layouts.
@@ -36,24 +34,12 @@ const (
 	JumpVal32 Layout = 0x1
 )
 
-// GetJumpSize returns size of jump instruction Data part.
-func GetJumpDataSize(layout Layout) (uint64, error) {
-	switch layout {
-	case JumpReg:
-		return 1, nil
-	case JumpVal32:
-		return 4, nil
-	default:
-		return 0, fmt.Errorf("unexpected layout (=0x%02X)", layout)
-	}
-}
-
-func EncodeJumpLayout(flag Flag, lt Layout) Layout {
+func EncodeJumpLayout(flag JumpFlag, lt Layout) Layout {
 	return lt | Layout(flag<<4)
 }
 
-func DecodeJumpLayout(x uint8) (Flag, Layout) {
-	flag := Flag(x >> 4)
+func DecodeJumpLayout(x uint8) (JumpFlag, Layout) {
+	flag := JumpFlag(x >> 4)
 	layout := Layout(x & 0xF)
 	return flag, layout
 }
@@ -67,6 +53,6 @@ var flagText = [...]string{
 	FlagGE: "ge (>= x)",
 }
 
-func (f Flag) String() string {
+func (f JumpFlag) String() string {
 	return flagText[f]
 }

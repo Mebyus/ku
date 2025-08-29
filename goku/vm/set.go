@@ -1,19 +1,17 @@
 package vm
 
 import (
-	"fmt"
-
 	"github.com/mebyus/ku/goku/vm/opc"
 )
 
-func (m *Machine) execSet(lt uint8) (uint64, error) {
-	layout, v := opc.DecodeSetLayout(lt)
+func (m *Machine) execSet(lt uint8) (uint64, *RuntimeError) {
+	variant, v := opc.DecodeSetLayout(lt)
 
 	var data []byte // instruction data
 	var size uint64
 	var val uint64 // set value
-	var err error
-	switch layout {
+	var err *RuntimeError
+	switch variant {
 	case opc.SetReg:
 		size = 2
 		data, err = m.idata(size)
@@ -55,7 +53,10 @@ func (m *Machine) execSet(lt uint8) (uint64, error) {
 		}
 		val = val64(data[1:])
 	default:
-		return 0, fmt.Errorf("unknown layout 0x%02X", uint8(layout))
+		return 0, &RuntimeError{
+			Code: ErrorBadVariant,
+			Aux:  uint64(variant),
+		}
 	}
 	if err != nil {
 		return 0, err

@@ -5,85 +5,65 @@ package opc
 type Opcode uint8
 
 const (
-	// Trap causes immediate abnormal program exit.
-	// This instruction is much like halt, but intented
-	// to be placed as a trap for code which must not be executed
-	// thus causing runtime error.
-	//
-	// Most notable usecase for this is to detect illegal
-	// control flow execution of unreachable code.
-	Trap Opcode = 0x00
-
-	// Halts program execution.
-	Halt Opcode = 0x01
-
-	// Reserved empty instruction. Does nop (no operation).
-	Nop Opcode = 0x02
-
-	// Call builtin procedure.
-	SysCall Opcode = 0x03
+	// This instruction family serves as collection for various
+	// VM control operations. All instructions in this family have no
+	// data part.
+	Sys Opcode = iota
 
 	// Change instruction pointer via jump in text.
-	Jump Opcode = 0x04
+	Jump
 
 	// Call procedure stored in text.
-	Call Opcode = 0x05
-
-	// Return from procedure.
-	Ret Opcode = 0x06
+	Call
 
 	// Push value to stack memory.
-	Push Opcode = 0x07
+	Push
 
 	// Pop value from stack memory.
-	Pop Opcode = 0x08
+	Pop
 
 	// Set register or memory location to zero.
-	Clear Opcode = 0x09
+	Clear
 
 	// Copy register value or immediate value to another register.
-	Set Opcode = 0x0A
+	Set
 
 	// Load value to register from memory location.
-	Load Opcode = 0x0B
+	Load
 
 	// Store value from register or immediate value to memory location.
-	Store Opcode = 0x0C
+	Store
 
 	// Compare two values.
-	Test Opcode = 0x0D
+	Test
 
 	// Increase value in register.
-	Inc Opcode = 0x0E
+	Inc
 
 	// Decrease value in register.
-	Dec Opcode = 0x0F
+	Dec
 
 	// Add two values.
-	Add Opcode = 0x10
+	Add
 
 	// Subtract two values.
-	Sub Opcode = 0x11
+	Sub
 )
 
 var opcodeText = [...]string{
-	Trap:    "trap",
-	Halt:    "halt",
-	Nop:     "nop",
-	SysCall: "syscall",
-	Jump:    "jump",
-	Call:    "call",
-	Ret:     "ret",
-	Push:    "push",
-	Pop:     "pop",
-	Clear:   "clear",
-	Set:     "set",
-	Load:    "load",
-	Store:   "store",
-	Test:    "test",
-	Inc:     "inc",
-	Add:     "add",
-	Sub:     "sub",
+	Sys:   "sys",
+	Jump:  "jump",
+	Call:  "call",
+	Push:  "push",
+	Pop:   "pop",
+	Clear: "clear",
+	Set:   "set",
+	Load:  "load",
+	Store: "store",
+	Test:  "test",
+	Inc:   "inc",
+	Add:   "add",
+	Sub:   "sub",
 }
 
 func (c Opcode) String() string {

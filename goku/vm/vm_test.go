@@ -17,28 +17,28 @@ func TestMachine_Exec(t *testing.T) {
 			name: "1 nop",
 			code: code1,
 			want: &Exit{
-				Error: nil, // TODO: do something about errors comparison
+				Error: &RuntimeError{Code: ErrorTextEnd},
 			},
 		},
 		{
 			name: "2 inc",
 			code: code2,
 			want: &Exit{
-				Error: nil, // TODO: do something about errors comparison
+				Error: &RuntimeError{Code: ErrorTextEnd},
 			},
 		},
 		{
 			name: "3 halt",
 			code: code3,
 			want: &Exit{
-				Error: nil, // TODO: do something about errors comparison
+				Error: nil,
 			},
 		},
 		{
 			name: "4 set",
 			code: code4,
 			want: &Exit{
-				Error:  nil, // TODO: do something about errors comparison
+				Error:  nil,
 				Status: 19,
 			},
 		},
@@ -46,21 +46,21 @@ func TestMachine_Exec(t *testing.T) {
 			name: "5 label",
 			code: code5,
 			want: &Exit{
-				Error: nil, // TODO: do something about errors comparison
+				Error: nil,
 			},
 		},
 		{
 			name: "6 jump",
 			code: code6,
 			want: &Exit{
-				Error: nil, // TODO: do something about errors comparison
+				Error: nil,
 			},
 		},
 		{
 			name: "7 call",
 			code: code7,
 			want: &Exit{
-				Error:  nil, // TODO: do something about errors comparison
+				Error:  nil,
 				Status: 0x23,
 			},
 		},
@@ -77,7 +77,11 @@ func TestMachine_Exec(t *testing.T) {
 			exit := m.Exec(prog)
 
 			if tt.want.Error == nil && exit.Error != nil {
-				t.Errorf("exit.Error = %v", exit.Error)
+				t.Errorf("exit.Error = (%d) %s", exit.Error.Code, exit.Error)
+				return
+			}
+			if tt.want.Error != nil && exit.Error == nil {
+				t.Errorf("exit.Error = <nil>, want (%d) %s", tt.want.Error.Code, tt.want.Error)
 				return
 			}
 			if exit.Status != tt.want.Status {

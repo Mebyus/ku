@@ -2,7 +2,6 @@ package vm
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"io"
 	"slices"
@@ -77,7 +76,7 @@ type Machine struct {
 	frames []Frame
 
 	// Runtime error occured while executing current instruction.
-	err error
+	err *RuntimeError
 
 	stats Stats
 
@@ -142,7 +141,7 @@ func (m *Machine) step() {
 	ip := m.ip
 	if ip+2 > uint64(len(m.text)) {
 		// every instruction needs at least 2 bytes for Opcode + Layout
-		m.stop(fmt.Errorf("end of program text reached"))
+		m.stop(&RuntimeError{Code: ErrorTextEnd})
 		return
 	}
 
@@ -151,32 +150,14 @@ func (m *Machine) step() {
 
 	// Each m.exec*** method returns instruction data size
 	var size uint64 // instruction data size
-	var err error
+	var err *RuntimeError
 	switch op {
-	case opc.Nop:
-		if lt != 0 {
-			m.stopBadLayout(lt)
-			return
-		}
-		// no operation
-	case opc.Halt:
-		if lt != 0 {
-			m.stopBadLayout(lt)
-			return
-		}
-		m.halt = true
-		return
-	case opc.Trap:
-		m.stop(errors.New("execution reached trap"))
-		return
-	case opc.SysCall:
-		// m.syscall()
+	case opc.Sys:
+		err = m.execSys(lt)
 	case opc.Jump:
 		size, err = m.execJump(lt)
 	case opc.Call:
 		size, err = m.execCall(lt)
-	case opc.Ret:
-		size, err = m.execRet(lt)
 	case opc.Clear:
 		// m.clear()
 	case opc.Set:
@@ -198,12 +179,10 @@ func (m *Machine) step() {
 	// case JumpFlagAddr:
 	// 	err = m.jumpFlagAddr()
 	default:
-		// Cast opcode to uint8 to avoid strange panic inside fmt.Errorf.
-		//
-		// It seems that fmt package gives priority to String() method before
-		// applying format verb %X. This behaviour is cumbersome and unexpected,
-		// but standard library documents it, and it is not difficult to avoid.
-		m.stop(fmt.Errorf("unknown opcode (=0x%02X)", uint8(op)))
+		m.stop(&RuntimeError{
+			Code: ErrorBadOpcode,
+			Aux:  uint64(op),
+		})
 		return
 	}
 	if err != nil {
@@ -220,20 +199,19 @@ func (m *Machine) step() {
 }
 
 // switch to halt state with runtime error
-func (m *Machine) stop(err error) {
+func (m *Machine) stop(err *RuntimeError) {
 	m.err = err
 	m.halt = true
 }
 
-func (m *Machine) stopBadLayout(layout uint8) {
-	m.stop(fmt.Errorf("bad layout (=0x%02X)", layout))
-}
-
 // get n bytes of current instruction data (opcode and layout not included)
-func (m *Machine) idata(n uint64) ([]byte, error) {
+func (m *Machine) idata(n uint64) ([]byte, *RuntimeError) {
 	ip := m.ip
 	if ip+2+n > uint64(len(m.text)) {
-		return nil, fmt.Errorf("instruction data %d byte(s) out of text range", n)
+		return nil, &RuntimeError{
+			Code: ErrorBadInstructionDataLength,
+			Aux:  n,
+		}
 	}
 	return m.text[ip+2 : ip+2+n], nil
 }
@@ -278,10 +256,13 @@ func (m *Machine) memslice(ptr uint64, n uint32) ([]byte, error) {
 }
 
 // get register value
-func (m *Machine) get(r opc.Register) (uint64, error) {
+func (m *Machine) get(r opc.Register) (uint64, *RuntimeError) {
 	if !r.Special() {
 		if r >= 64 {
-			return 0, fmt.Errorf("register index %d out of range", r)
+			return 0, &RuntimeError{
+				Code: ErrorBadRegister,
+				Aux:  uint64(r),
+			}
 		}
 		v := m.r[r]
 		return v, nil
@@ -301,15 +282,21 @@ func (m *Machine) get(r opc.Register) (uint64, error) {
 	case opc.RegClock:
 		return m.clock, nil
 	default:
-		return 0, fmt.Errorf("unknown special register (=%d)", r)
+		return 0, &RuntimeError{
+			Code: ErrorBadSpecialRegister,
+			Aux:  uint64(r),
+		}
 	}
 }
 
 // set register value
-func (m *Machine) set(r opc.Register, v uint64) error {
+func (m *Machine) set(r opc.Register, v uint64) *RuntimeError {
 	if !r.Special() {
 		if r >= 64 {
-			return fmt.Errorf("register index %d out of range", r)
+			return &RuntimeError{
+				Code: ErrorBadRegister,
+				Aux:  uint64(r),
+			}
 		}
 		m.r[r] = v
 		return nil
@@ -317,20 +304,26 @@ func (m *Machine) set(r opc.Register, v uint64) error {
 
 	switch r {
 	case opc.RegIP, opc.RegSP, opc.RegFP, opc.RegCF, opc.RegClock:
-		return fmt.Errorf("register %s (=%d) cannot be changed by instruction directly", r, r)
+		return &RuntimeError{
+			Code: ErrorReadOnlyRegister,
+			Aux:  uint64(r),
+		}
 	case opc.RegSC:
 		m.sc = v
 		return nil
 	default:
-		return fmt.Errorf("unknown special register (=%d)", r)
+		return &RuntimeError{
+			Code: ErrorBadSpecialRegister,
+			Aux:  uint64(r),
+		}
 	}
 }
 
 // Exit describes vm exit state after program execution.
 // Includes both normal and abnormal exits.
 type Exit struct {
-	// Runtime error for abnormal exit.
-	Error error
+	// Runtime error for abnormal exit. Equals nil for normal exit.
+	Error *RuntimeError
 
 	// Real execution time.
 	Time time.Duration
@@ -338,7 +331,7 @@ type Exit struct {
 	// Value of instruction pointer register.
 	IP uint64
 
-	// Exit status of the program. Obtained from first general-purpose register
+	// Exit status of the program. Obtained from syscall register
 	// upon program exit. Valid only for normal exit.
 	Status uint64
 
@@ -350,6 +343,13 @@ type Exit struct {
 
 	// Maximum number of frames (call depth) during execution.
 	MaxFrames uint64
+
+	// Last executed instruction opcode.
+	Opcode opc.Opcode
+
+	// Last executed instruction layout. Equals 0 if execution
+	// stopped because layout would be outside of text segment,
+	Layout uint8
 }
 
 func (e *Exit) Render(w io.Writer) error {
@@ -389,6 +389,16 @@ func (m *Machine) exit(dur time.Duration) *Exit {
 		Time:  dur,
 		IP:    m.ip,
 		Clock: m.clock,
+
+		MaxStackSize: m.stats.MaxStackSize,
+		MaxFrames:    m.stats.MaxFrames,
+	}
+
+	if m.ip < uint64(len(m.text)) {
+		e.Opcode = opc.Opcode(m.text[m.ip])
+		if m.ip+1 < uint64(len(m.text)) {
+			e.Layout = m.text[m.ip+1]
+		}
 	}
 
 	if m.err != nil {

@@ -10,7 +10,7 @@ type JumpLabel struct {
 	Label Label
 
 	// Equals 0 for unconditional jump.
-	Flag opc.Flag
+	Flag opc.JumpFlag
 }
 
 // JumpReg represents instruction jump to address stored in register.
@@ -20,5 +20,5 @@ type JumpReg struct {
 	Reg opc.Register
 
 	// Equals 0 for unconditional jump.
-	Flag opc.Flag
+	Flag opc.JumpFlag
 }
