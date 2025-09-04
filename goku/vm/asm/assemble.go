@@ -112,6 +112,8 @@ func (a *Assembler) encodeAtom(atom ir.Atom) {
 		a.setReg(t)
 	case ir.SetVal:
 		a.setVal(t)
+	case ir.TestVal:
+		a.testVal(t)
 	default:
 		panic(fmt.Sprintf("unexpected atom (%T)", t))
 	}

@@ -129,14 +129,24 @@ func (c *Compiler) translateAtom(atom ast.Atom) (ir.Atom, diag.Error) {
 			return ir.Ret{}, nil
 		case "nop":
 			return ir.Nop{}, nil
+		case "trap":
+			return ir.Trap{}, nil
 		case "jump":
 			return c.translateJump(a)
 		case "call":
 			return c.translateCall(a)
+		case "push":
+			return c.translatePush(a)
+		case "pop":
+			return c.translatePop(a)
 		case "inc":
 			return c.translateInc(a)
+		case "dec":
+			return c.translateDec(a)
 		case "set":
 			return c.translateSet(a)
+		case "test":
+			return c.translateTest(a)
 		default:
 			return nil, &diag.SimpleMessageError{
 				Pin:  a.Pin,

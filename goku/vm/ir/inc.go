@@ -15,3 +15,17 @@ type IncVal struct {
 	Val  uint64
 	Dest opc.Register
 }
+
+type DecReg struct {
+	nodeAtom
+
+	Dest   opc.Register
+	Source opc.Register
+}
+
+type DecVal struct {
+	nodeAtom
+
+	Val  uint64
+	Dest opc.Register
+}

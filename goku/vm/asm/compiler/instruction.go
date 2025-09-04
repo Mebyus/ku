@@ -17,9 +17,11 @@ func wrongOperandsNumber(pin srcmap.Pin, got int, want string) diag.Error {
 	}
 }
 
-func (c *Compiler) translateInc(s ast.Instruction) (ir.Atom, diag.Error) {
+func (c *Compiler) translateTest(s ast.Instruction) (ir.Atom, diag.Error) {
 	switch len(s.Operands) {
 	case 1:
+		panic("stub")
+	case 2:
 		op := s.Operands[0]
 		reg, ok := op.(ast.Register)
 		if !ok {
@@ -28,22 +30,25 @@ func (c *Compiler) translateInc(s ast.Instruction) (ir.Atom, diag.Error) {
 				Text: fmt.Sprintf("bad operand: want register, got (%T)", op),
 			}
 		}
-		if reg.Name.Special() {
+
+		source := s.Operands[1]
+		switch c := source.(type) {
+		case ast.Register:
+			panic("stub")
+		case ast.Integer:
+			return ir.TestVal{
+				Dest: reg.Name,
+				Val:  c.Val,
+			}, nil
+		default:
 			return nil, &diag.SimpleMessageError{
 				Pin:  s.Pin,
-				Text: "inc instruction cannot have special register as destination operand",
+				Text: fmt.Sprintf("bad operand: source must be register or immediate, got (%T)", c),
 			}
 		}
-		return ir.IncVal{
-			Dest: reg.Name,
-			Val:  1,
-		}, nil
-	case 2:
 	default:
-		return nil, wrongOperandsNumber(s.Pin, len(s.Operands), "1-2")
+		return nil, wrongOperandsNumber(s.Pin, len(s.Operands), "2")
 	}
-
-	panic("stub")
 }
 
 func (c *Compiler) translateSet(s ast.Instruction) (ir.Atom, diag.Error) {
@@ -88,8 +93,21 @@ func (c *Compiler) translateSet(s ast.Instruction) (ir.Atom, diag.Error) {
 }
 
 func (c *Compiler) translateJump(s ast.Instruction) (ir.Atom, diag.Error) {
-	if s.Variant != "" {
-		panic("stub")
+	var flag opc.JumpFlag
+	switch s.Variant {
+	case "":
+		// no flag
+	case "z":
+		flag = opc.FlagZ
+	case "nz":
+		flag = opc.FlagNZ
+	case "le":
+		flag = opc.FlagLE
+	default:
+		return nil, &diag.SimpleMessageError{
+			Pin:  s.Pin,
+			Text: fmt.Sprintf("bad jump flag \"%s\"", s.Variant),
+		}
 	}
 
 	switch len(s.Operands) {
@@ -109,7 +127,10 @@ func (c *Compiler) translateJump(s ast.Instruction) (ir.Atom, diag.Error) {
 				Text: fmt.Sprintf("label \"%s\" not placed in this function", label.Name),
 			}
 		}
-		return ir.JumpLabel{Label: l}, nil
+		return ir.JumpLabel{
+			Label: l,
+			Flag:  flag,
+		}, nil
 	default:
 		return nil, wrongOperandsNumber(s.Pin, len(s.Operands), "1")
 	}
