@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/mebyus/ku/goku/butler"
+	"github.com/mebyus/ku/goku/cmd/ku/compile"
 	"github.com/mebyus/ku/goku/cmd/ku/lex"
 )
 
@@ -29,5 +30,6 @@ var root = &butler.Butler{
 
 	Subs: []*butler.Butler{
 		lex.Butler,
+		compile.Butler,
 	},
 }

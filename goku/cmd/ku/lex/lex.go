@@ -12,7 +12,7 @@ import (
 var Butler = &butler.Butler{
 	Name: "lex",
 
-	Short: "list token stream produced by a given source file",
+	Short: "List token stream produced by a given source file",
 	Usage: "[options] [file]",
 
 	Exec: exec,
