@@ -213,7 +213,7 @@ func (g *Gen) typedefFunType(name string, f ast.FunType) {
 	g.puts(")")
 
 	if len(f.Params) == 0 {
-		g.puts("(void)")
+		g.puts("(void);")
 		return
 	}
 

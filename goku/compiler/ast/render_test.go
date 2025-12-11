@@ -133,7 +133,7 @@ func text6() *Text {
 	t.AddMethod(Method{
 		Receiver: Receiver{
 			Name: word("Foo"),
-			Ptr:  true,
+			Kind: ReceiverPtr,
 		},
 		Name: word("write"),
 		Signature: Signature{

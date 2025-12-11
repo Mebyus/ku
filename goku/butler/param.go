@@ -104,6 +104,7 @@ func (p *Param) Bind(v string) error {
 			return fmt.Errorf("bad integer value \"%s\"", v)
 		}
 		p.val = n
+	// TODO: look into omnicube/go-lib/butler for this code
 	default:
 		panic(fmt.Sprintf("unxpected kind (=%d)", p.Kind))
 	}

@@ -31,10 +31,10 @@ func (p Pointer) String() string {
 	return g.Output()
 }
 
-// Ref represents pointer type specifier.
-
+// Ref represents reference type specifier.
+//
 // Formal definition:
-
+//
 // Ref => "&" TypeSpec
 type Ref struct {
 	// Type to which pointer refers to.

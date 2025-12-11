@@ -48,11 +48,16 @@ func (p *Parser) Receiver() (ast.Receiver, diag.Error) {
 	}
 	p.advance() // skip "("
 
-	var ptr bool
-
-	if p.c.Kind == token.Asterisk {
+	var kind ast.ReceiverKind
+	switch p.c.Kind {
+	case token.Asterisk:
 		p.advance() // skip "*"
-		ptr = true
+		kind = ast.ReceiverPtr
+	case token.Ampersand:
+		p.advance() // skip "&"
+		kind = ast.ReceiverRef
+	default:
+		kind = ast.ReceiverVal
 	}
 
 	if p.c.Kind != token.Word {
@@ -67,6 +72,6 @@ func (p *Parser) Receiver() (ast.Receiver, diag.Error) {
 
 	return ast.Receiver{
 		Name: name,
-		Ptr:  ptr,
+		Kind: kind,
 	}, nil
 }

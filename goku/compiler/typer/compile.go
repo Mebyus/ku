@@ -33,6 +33,13 @@ type Typer struct {
 	unit *stg.Unit
 
 	ctx *stg.Context
+
+	// After index phase is complete, contains all methods defined inside unit.
+	methods []*stg.Symbol
+
+	// Maps custom type symbol to a list of its method symbols.
+	// Filled during method bind phase.
+	methodsByReceiver map[*stg.Symbol][]*stg.Symbol
 }
 
 func Compile(c *stg.Context, unit *stg.Unit, texts []*ast.Text) diag.Error {
@@ -50,6 +57,8 @@ func Compile(c *stg.Context, unit *stg.Unit, texts []*ast.Text) diag.Error {
 	t := Typer{
 		ctx:  c,
 		unit: unit,
+
+		methodsByReceiver: make(map[*stg.Symbol][]*stg.Symbol),
 	}
 	t.box.init(texts)
 	return t.compile(texts)
@@ -60,7 +69,7 @@ func (t *Typer) compile(texts []*ast.Text) diag.Error {
 	if err != nil {
 		return err
 	}
-	err = t.checkMethodReceivers()
+	err = t.bindMethodReceivers()
 	if err != nil {
 		return err
 	}
@@ -138,10 +147,23 @@ func (t *Typer) addText(text *ast.Text) diag.Error {
 	return nil
 }
 
-func (t *Typer) checkMethodReceivers() diag.Error {
-	for _, method := range t.box.Methods {
-		name := method.Receiver.Name.Str
-		pin := method.Receiver.Name.Pin
+func (t *Typer) bindMethod(receiver, method *stg.Symbol) {
+	t.methodsByReceiver[receiver] = append(t.methodsByReceiver[receiver], method)
+}
+
+func (t *Typer) bindMethodReceivers() diag.Error {
+	if len(t.methods) != len(t.box.Methods) {
+		panic(fmt.Sprintf("mismatched number of method symbols (=%d) and AST nodes (=%d)", len(t.methods), len(t.box.Methods)))
+	}
+
+	for i, s := range t.methods {
+		m := t.box.Method(s.Aux)
+		if s.Aux != uint32(i) {
+			panic(fmt.Sprintf("invalid symbol (name=%s) aux index (=%d)", s.Name, s.Aux))
+		}
+
+		name := m.Receiver.Name.Str
+		pin := m.Receiver.Name.Pin
 
 		receiver := t.unit.Scope.Get(name)
 		if receiver == nil {
@@ -156,6 +178,8 @@ func (t *Typer) checkMethodReceivers() diag.Error {
 				Text: fmt.Sprintf("method receiver \"%s\" refers to %s symbol (instead of custom type)", name, receiver.Kind),
 			}
 		}
+
+		t.bindMethod(receiver, s)
 	}
 	return nil
 }
@@ -304,7 +328,8 @@ func (t *Typer) addImport(s stg.ImportSite) diag.Error {
 		return errMultDef(name, pin)
 	}
 
-	_ = t.unit.Scope.Alloc(smk.Import, name, pin)
+	symbol := t.unit.Scope.Alloc(smk.Import, name, pin)
+	symbol.Def = unit
 	return nil
 }
 
@@ -318,6 +343,9 @@ func (t *Typer) addFun(fun ast.Fun) diag.Error {
 
 	symbol := t.unit.Scope.Alloc(smk.Fun, name, pin)
 	symbol.Aux = t.box.addFun(fun)
+	if fun.Pub {
+		symbol.Flags |= stg.SymbolPublic
+	}
 	return nil
 }
 
@@ -345,6 +373,9 @@ func (t *Typer) addType(typ ast.Type) diag.Error {
 
 	symbol := t.unit.Scope.Alloc(smk.Type, name, pin)
 	symbol.Aux = t.box.addType(typ)
+	if typ.Pub {
+		symbol.Flags |= stg.SymbolPublic
+	}
 	return nil
 }
 
@@ -358,6 +389,9 @@ func (t *Typer) addConst(c ast.TopConst) diag.Error {
 
 	symbol := t.unit.Scope.Alloc(smk.Const, name, pin)
 	symbol.Aux = t.box.addConst(c)
+	if c.Pub {
+		symbol.Flags |= stg.SymbolPublic
+	}
 	return nil
 }
 
@@ -378,6 +412,13 @@ func (t *Typer) addVar(v ast.TopVar) diag.Error {
 	name := v.Name.Str
 	pin := v.Name.Pin
 
+	if v.Pub {
+		return &diag.SimpleMessageError{
+			Pin:  pin,
+			Text: fmt.Sprintf("variable \"%s\" declared as public", name),
+		}
+	}
+
 	if t.unit.Scope.Has(name) {
 		return errMultDef(name, pin)
 	}
@@ -397,6 +438,7 @@ func (t *Typer) addMethod(m ast.Method) diag.Error {
 
 	symbol := t.unit.Scope.Alloc(smk.Method, name, pin)
 	symbol.Aux = t.box.addMethod(m)
+	t.methods = append(t.methods, symbol)
 	return nil
 }
 
@@ -555,12 +597,23 @@ func (t *Typer) addGenericMethod(g *stg.Generic, m ast.Method) diag.Error {
 }
 
 func (t *Typer) inspectSymbols() diag.Error {
+	const debug = true
+
 	t.ins.Init()
 	for _, s := range t.unit.Scope.Symbols {
 		t.ins.Reset()
 		err := t.inspectSymbol(s)
 		if err != nil {
 			return err
+		}
+
+		links := t.ins.Links()
+		if debug {
+			names := make([]string, 0, len(links))
+			for _, l := range links {
+				names = append(names, l.Symbol.Name)
+			}
+			fmt.Printf("%s -> %v\n", s.Name, names)
 		}
 	}
 	return nil

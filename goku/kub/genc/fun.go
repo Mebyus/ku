@@ -8,8 +8,15 @@ import (
 
 func (g *Gen) Fun(f ast.Fun) {
 	linkType, ok := getPropValue(f.Traits, "link.type")
-	if ok && linkType == "c.main" {
-		g.cmainFunHead()
+	if ok {
+		switch linkType {
+		case "c.main":
+			g.cmainFunHead()
+		case "external":
+			g.externalFunHead(f.Name.Str, f.Signature)
+		default:
+			panic(fmt.Sprintf("unexpected value \"%s\" of link.type property", linkType))
+		}
 	} else {
 		g.FunHead(f.Name.Str, f.Signature)
 	}
@@ -104,6 +111,10 @@ func (g *Gen) TestFun(t ast.TestFun) {
 
 func (g *Gen) FunHead(name string, s ast.Signature) {
 	g.puts("static ")
+	g.funDeclaration(name, s)
+}
+
+func (g *Gen) externalFunHead(name string, s ast.Signature) {
 	g.funDeclaration(name, s)
 }
 

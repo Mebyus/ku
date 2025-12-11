@@ -1,6 +1,8 @@
 package typer
 
-import "github.com/mebyus/ku/goku/compiler/ast"
+import (
+	"github.com/mebyus/ku/goku/compiler/ast"
+)
 
 // Box is a container for collecting AST nodes from all unit texts.
 type Box struct {
@@ -33,10 +35,6 @@ type Box struct {
 
 	// List of generic bind nodes.
 	GenBinds []ast.GenBind
-
-	// Maps custom type receiver name to a list of its method indices inside
-	// Methods slice.
-	MethodsByReceiver map[ /* receiver type name */ string][]uint32
 
 	// Maps generic name to a list of its generic bind indices inside GenBinds slice.
 	GenBindsByName map[ /* generic name */ string][]uint32
@@ -85,7 +83,6 @@ func (b *Box) init(texts []*ast.Text) {
 	}
 	if methods != 0 {
 		b.Methods = make([]ast.Method, 0, methods)
-		b.MethodsByReceiver = make(map[string][]uint32)
 	}
 	if funstubs != 0 {
 		b.FunStubs = make([]ast.FunStub, 0, funstubs)
@@ -142,9 +139,6 @@ func (b *Box) addFunStub(node ast.FunStub) uint32 {
 func (b *Box) addMethod(node ast.Method) uint32 {
 	i := uint32(len(b.Methods))
 	b.Methods = append(b.Methods, node)
-
-	receiver := node.Receiver.Name.Str
-	b.bindMethod(receiver, i)
 	return i
 }
 
@@ -167,10 +161,6 @@ func (b *Box) addGenBind(node ast.GenBind) uint32 {
 	generic := node.Name.Str
 	b.bindGeneric(generic, i)
 	return i
-}
-
-func (b *Box) bindMethod(receiver string, i uint32) {
-	b.MethodsByReceiver[receiver] = append(b.MethodsByReceiver[receiver], i)
 }
 
 func (b *Box) bindGeneric(generic string, i uint32) {

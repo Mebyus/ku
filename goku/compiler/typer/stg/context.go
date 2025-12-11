@@ -17,4 +17,6 @@ func (c *Context) Init() {
 	if c.Map == nil {
 		c.Map = make(map[origin.Path]*Unit)
 	}
+
+	addBuiltinTypes(c)
 }

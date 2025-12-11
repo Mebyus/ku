@@ -33,75 +33,75 @@ type span_u8 => struct {
 	len: uint,
 }
 
-type str => []u8
-type c_string => []u8
+type str []u8
+type c_string []u8
 
 const empty_str: str = "";
 
-#stub
-fun make_str(ptr: [*]u8, len: uint) => str
+// #stub
+// fun make_str(ptr: [*]u8, len: uint) => str
 
-#stub
-fun stdout_print(msg: str)
+// #stub
+// fun stdout_print(msg: str)
 
-#stub
-fun stderr_print(msg: str)
+// #stub
+// fun stderr_print(msg: str)
 
-#stub
-fun panic_pos(msg: str, path: str, line: uint) => #never
+// #stub
+// fun panic_pos(msg: str, path: str, line: uint) => #never
 
-#stub
-fun panic_never(path: str, line: uint) => #never
+// #stub
+// fun panic_never(path: str, line: uint) => #never
 
-#stub
-fun panic_stub(path: str, line: uint) => #never
+// #stub
+// fun panic_stub(path: str, line: uint) => #never
 
-#stub
-fun must_pos(c: bool, path: str, line: uint)
+// #stub
+// fun must_pos(c: bool, path: str, line: uint)
 
-fun panic_trap() => #never {
+fun panic_trap() -> #never {
 	__builtin_trap();
 	__builtin_unreachable();
 }
 
-#stub
-fun os_exit(code: uint) => #never
+// #stub
+// fun os_exit(code: uint) => #never
 
-type error_id => uint
+type error_id uint
 
-type MemoryAllocator => struct {
-    ptr:  *any,
-    kind: uint,    
+type MemoryAllocator struct {
+    ptr:  *any
+    kind: uint    
 }
 
-type MemoryBlock => struct {
-	span: []u8,
+type MemoryBlock struct {
+	span: []u8
 
 	// Keeps track of block origin and generation.
 	// Used for runtime checks and debug purposes.
-	id: u64,
+	id: u64
 }
 
-fun memory_block_clear_fields(block: *MemoryBlock) {
+fun memory_block_clear_fields(block: &MemoryBlock) {
 	block.*.span.ptr = nil;
 	block.*.span.len = 0;
 	block.*.id = 0;
 }
 
-#stub
-fun memory_alloc(al: MemoryAllocator, block: *MemoryBlock) => error_id
+// #stub
+// fun memory_alloc(al: MemoryAllocator, block: *MemoryBlock) => error_id
 
-#stub
-fun memory_realloc(al: MemoryAllocator, block: *MemoryBlock) => error_id
+// #stub
+// fun memory_realloc(al: MemoryAllocator, block: *MemoryBlock) => error_id
 
-#stub
-fun memory_alloc_clear(al: MemoryAllocator, block: *MemoryBlock) => error_id
+// #stub
+// fun memory_alloc_clear(al: MemoryAllocator, block: *MemoryBlock) => error_id
 
-#stub
-fun memory_alloc_copy(al: MemoryAllocator, block: *MemoryBlock, s: []u8) => error_id
+// #stub
+// fun memory_alloc_copy(al: MemoryAllocator, block: *MemoryBlock, s: []u8) => error_id
 
-#stub
-fun memory_free(al: MemoryAllocator, block: *MemoryBlock)
+// #stub
+// fun memory_free(al: MemoryAllocator, block: *MemoryBlock)
 
-#stub
-fun proc_memory_alloc(block: *MemoryBlock) => error_id
+// #stub
+// fun proc_memory_alloc(block: *MemoryBlock) => error_id

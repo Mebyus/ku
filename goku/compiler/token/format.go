@@ -216,6 +216,8 @@ func (t Token) String() string {
 		return "'" + string([]rune{rune(t.Val)}) + "'"
 	case String:
 		return "\"" + char.Escape(t.Data) + "\""
+	case CString:
+		return "c\"" + char.Escape(t.Data) + "\""
 	case Env:
 		return "#:" + t.Data
 	default:

@@ -41,7 +41,7 @@ type Machine struct {
 	// Stack pointer. Index in stack memory.
 	sp uint64
 
-	// Frame pointer. Index in stack memory.
+	// Frame pointer. Index in frame stack memory.
 	fp uint64
 
 	// Syscall register.

@@ -1,0 +1,53 @@
+package typer
+
+import (
+	"fmt"
+
+	"github.com/mebyus/ku/goku/compiler/ast"
+	"github.com/mebyus/ku/goku/compiler/diag"
+	"github.com/mebyus/ku/goku/compiler/enums/smk"
+)
+
+// Expression should evaluate to constant, report error otherwise.
+//
+// Report error upon encountering variable symbol.
+func (t *Typer) inspectConstExp(exp ast.Exp) diag.Error {
+	switch e := exp.(type) {
+	case ast.Integer, ast.String, ast.Rune:
+		return nil
+	case ast.Symbol:
+		return t.linkConstSymbol(e)
+	case ast.Binary:
+		return t.inspectConstBinaryExp(e)
+	default:
+		panic(fmt.Sprintf("unexpected \"%s\" (=%d) expression (%T)", e.Kind(), e.Kind(), e))
+	}
+}
+
+func (t *Typer) inspectConstBinaryExp(exp ast.Binary) diag.Error {
+	err := t.inspectConstExp(exp.A)
+	if err != nil {
+		return err
+	}
+	return t.inspectConstExp(exp.B)
+}
+
+func (t *Typer) linkConstSymbol(sym ast.Symbol) diag.Error {
+	name := sym.Name
+	s := t.unit.Scope.Lookup(name)
+	if s == nil {
+		return &diag.SimpleMessageError{
+			Pin:  sym.Pin,
+			Text: fmt.Sprintf("name \"%s\" refers to undefined symbol", name),
+		}
+	}
+	if s.Kind != smk.Const {
+		return &diag.SimpleMessageError{
+			Pin:  sym.Pin,
+			Text: fmt.Sprintf("name \"%s\" refers to %s, not a constant", name, s.Kind),
+		}
+	}
+
+	t.ins.link(s)
+	return nil
+}

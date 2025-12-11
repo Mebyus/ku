@@ -1,0 +1,40 @@
+import {
+    abc -> "buildtest/abc"
+}
+
+type SomeType struct {
+    name: abc.String
+    data: [*]u8
+
+    more_data: []u8
+
+    buf: [8]u32
+    ptr: *any
+
+    aa: AnotherType
+}
+
+type Sized s32
+
+// TODO: fix inspect on enums
+// type Kind u32 {
+//     Empty  = 1,
+//     Abs    = 2,
+//     Second = 3,
+// }
+
+// TODO: fix inspect on chain expressions
+// const Size: Sized = 10 + abc.k;
+
+const Size: Sized = 10;
+
+const hello := "hello";
+
+const newline := '\n';
+
+type AnotherType struct {
+    buf2: [2 + Size]u8
+}
+
+// pub
+var x: u64 = 0;

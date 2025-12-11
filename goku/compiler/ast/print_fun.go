@@ -1,5 +1,7 @@
 package ast
 
+import "fmt"
+
 func (g *Printer) Fun(f Fun) {
 	if f.Pub {
 		g.puts("pub")
@@ -81,8 +83,17 @@ func (g *Printer) Method(m Method) {
 
 	g.puts("fun ")
 	g.puts("(")
-	if m.Receiver.Ptr {
+	switch m.Receiver.Kind {
+	case 0:
+		panic("empty receiver kind")
+	case ReceiverVal:
+		// do nothing
+	case ReceiverRef:
+		g.puts("&")
+	case ReceiverPtr:
 		g.puts("*")
+	default:
+		panic(fmt.Sprintf("unexpected receiver kind (=%d)", m.Receiver.Kind))
 	}
 	g.puts(m.Receiver.Name.Str)
 	g.puts(") ")

@@ -175,6 +175,7 @@ const (
 	DecFloat   // 123.45
 	Rune       // 'a', '\t', 'p'
 	String     // "abc", "", "\t\n  42Hello\n"
+	CString    // c"Hello" - C string literal (that is translated to naked .rodata pointer during compilation), terminated with zero byte.
 
 	// Custom tokens
 

@@ -32,9 +32,7 @@ type Symbol struct {
 	// This field can be nil for dried symbol. Typical case for this is separate units compilation.
 	//
 	// During indexing and type checking this field may contain
-	// temporary intermidiate values. For example for most symbols
-	// during text gathering it is set to symbol index inside the box
-	// of corresponding kind.
+	// temporary intermidiate values.
 	Def SymDef
 
 	// Always not empty.
@@ -78,7 +76,14 @@ const (
 
 	// Symbol is function stub.
 	SymbolStub
+
+	// Symbol is declared as public.
+	SymbolPublic
 )
+
+func (s *Symbol) IsPublic() bool {
+	return s.Flags&SymbolPublic != 0
+}
 
 type SymDef interface {
 	// Discriminator method for interface implementations.
@@ -88,3 +93,7 @@ type SymDef interface {
 	// Does nothing when called.
 	_symdef()
 }
+
+type nodeSymDef struct{}
+
+func (nodeSymDef) _symdef() {}

@@ -16,6 +16,7 @@ func Walk(cfg WalkConfig, init ...QueueItem) (*Bundle, diag.Error) {
 
 		pool: srcmap.New(),
 	}
+	w.Bundle.Pool = w.pool
 
 	err := w.WalkFrom(init...)
 	if err != nil {

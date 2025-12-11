@@ -1,0 +1,7 @@
+pub
+type String struct {
+    ptr: [*]u8
+    len: u32
+}
+
+const k := 10;

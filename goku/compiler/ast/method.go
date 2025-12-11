@@ -35,10 +35,18 @@ func (m Method) String() string {
 	return g.Output()
 }
 
+type ReceiverKind uint8
+
+const (
+	ReceiverVal ReceiverKind = 1 + iota
+	ReceiverRef
+	ReceiverPtr
+)
+
 // Formal definition:
 //
-//	Receiver => [ "*" ] TypeName
+//	Receiver -> [ Name ] [ "*" | "&" ] TypeName
 type Receiver struct {
 	Name Word
-	Ptr  bool
+	Kind ReceiverKind
 }

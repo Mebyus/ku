@@ -19,6 +19,10 @@ func (lx *Lexer) Lex() token.Token {
 }
 
 func (lx *Lexer) lex() token.Token {
+	if lx.Peek() == 'c' && lx.Next() == '"' {
+		return lx.cstring()
+	}
+
 	if char.IsLatinLetterOrUnderscore(lx.Peek()) {
 		return lx.word()
 	}
@@ -286,6 +290,20 @@ func (lx *Lexer) word() token.Token {
 	return tok
 }
 
+func (lx *Lexer) cstring() token.Token {
+	pin := lx.Pin()
+	lx.Advance() // skip 'c'
+
+	tok := lx.str()
+	tok.Pin = pin
+
+	if tok.Kind == token.String {
+		tok.Kind = token.CString
+		return tok
+	}
+	return tok
+}
+
 // Scan string literal.
 func (lx *Lexer) str() token.Token {
 	var tok token.Token
@@ -532,6 +550,9 @@ func (lx *Lexer) other() token.Token {
 	case '-':
 		if lx.Next() == '=' {
 			return lx.twoBytesToken(token.SubAssign)
+		}
+		if lx.Next() == '>' {
+			return lx.twoBytesToken(token.RightArrow)
 		}
 		return lx.oneByteToken(token.Minus)
 	case ',':

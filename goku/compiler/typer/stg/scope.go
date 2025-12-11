@@ -23,11 +23,11 @@ type Scope struct {
 	// Scope's nesting level. Starts from 0 for global scope. Language structure
 	// implies that first levels are dependant on Kind:
 	//
-	//	- global     => 0
-	//	- unit       => 1
-	//	- test       => 2
-	//	- unsafe     => 2
-	//	- node       => 3
+	//	- global     -> 0
+	//	- unit       -> 1
+	//	- test       -> 2
+	//	- unsafe     -> 2
+	//	- node       -> 3
 	//
 	// Subsequent levels are created inside function and method bodies by means of
 	// various language constructs.
@@ -68,10 +68,6 @@ func (s *Scope) Init(kind sck.Kind, parent *Scope) {
 	s.m = make(map[string]*Symbol)
 }
 
-func (s *Scope) InitGlobal() {
-	s.Init(sck.Global, nil)
-}
-
 // Has checks if symbol with a given name already exists inside the scope.
 func (s *Scope) Has(name string) bool {
 	return s.m[name] != nil
@@ -80,19 +76,30 @@ func (s *Scope) Has(name string) bool {
 // Alloc allocates new symbol inside the scope.
 func (s *Scope) Alloc(kind smk.Kind, name string, pin srcmap.Pin) *Symbol {
 	symbol := &Symbol{
-		Name:  name,
-		Pin:   pin,
-		Scope: s,
-		Kind:  kind,
+		Name: name,
+		Pin:  pin,
+		Kind: kind,
 	}
-	s.Symbols = append(s.Symbols, symbol)
-	s.m[name] = symbol
+	s.Bind(symbol)
 	return symbol
+}
+
+func (s *Scope) Bind(symbol *Symbol) {
+	symbol.Scope = s
+	s.Symbols = append(s.Symbols, symbol)
+	s.m[symbol.Name] = symbol
 }
 
 // Lookup finds a symbol by its name inside the scope or by doing lookup in
 // parent scope.
 func (s *Scope) Lookup(name string) *Symbol {
+	symbol := s.Get(name)
+	if symbol != nil {
+		return symbol
+	}
+	if s.Parent != nil {
+		return s.Parent.Lookup(name)
+	}
 	return nil
 }
 

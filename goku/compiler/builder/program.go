@@ -6,6 +6,7 @@ import (
 	"github.com/mebyus/ku/goku/compiler/ast"
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/parser"
+	"github.com/mebyus/ku/goku/compiler/srcmap"
 	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
 	"github.com/mebyus/ku/goku/compiler/typer"
 	"github.com/mebyus/ku/goku/compiler/typer/stg"
@@ -30,6 +31,9 @@ type Bundle struct {
 
 	// Not nil if bundle has main unit inside.
 	Main *stg.Unit
+
+	// Contains all source files discovered during uwalk phase.
+	Pool *srcmap.Pool
 }
 
 func (b *Bundle) GetUnitParsers(unit *stg.Unit) ParserSet {

@@ -1,4 +1,4 @@
-fun unsafe_fmt_dec_exp_f32(p: [&]u8, f: 32) => uint {
+fun unsafe_fmt_dec_exp_f32(p: [&]u8, f: f32) => uint {
     const bits: u32 = get_bits_f32(f);
 
     // true if sign bit is set

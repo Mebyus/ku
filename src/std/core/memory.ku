@@ -46,6 +46,10 @@ fun memory_arena_alloc(al: &MemoryArenaAllocator, block: &MemoryBlock) => error_
 	ret 0;
 }
 
+fun (&MemoryArenaAllocator) alloc(block: &MemoryBlock) -> error_id {
+	ret memory_arena_alloc(g, block);
+}
+
 let MEMORY_DYNAMIC_STACK_SIZE => 1 << 26;
 
 type MemoryDynamicStackAllocator => struct {

@@ -250,20 +250,20 @@ fun unsafe_fmt_time_dur_micro(p: [&]u8, t: TimeDur) => uint {
 	ret n + 6;
 }
 
-type FormatCapBuffer => struct {
+type FormatCapBuffer struct {
 	// Pointer to buffer memory.
 	// Always not nil for initialized struct.
-	ptr: [*]u8,
+	ptr: [*]u8
 
 	// Content length. How many bytes is already written to buffer.
 	// Length cannot be greater than capacity.
-	len: uint,
+	len: uint
 
 	// Buffer storage capacity. Max bytes it can hold.
-	cap: uint,
+	cap: uint
 
     // Indicates that buffer is full and no more formatted data can be written to it.
-    eof: bool,
+    eof: bool
 }
 
 fun fmt_cap_buffer_reset(buf: &FormatCapBuffer) {
@@ -273,29 +273,29 @@ fun fmt_cap_buffer_reset(buf: &FormatCapBuffer) {
 
 const fmt_buffer_eof: str = "(...)";
 
-fun init_fmt_cap_buffer(buf: &FormatCapBuffer, s: []u8) {
+fun (&FormatCapBuffer) init(s: []u8) {
     const min_initial_size: uint = 1 << 8;
     must(min_initial_size > fmt_buffer_eof.len); // could be #must, but C compiler is unable to work with that
 	must(s.len >= min_initial_size);
 	must(s.ptr != nil);
 
-	buf.*.ptr = s.ptr;
-	buf.*.cap = s.len;
-    fmt_cap_buffer_reset(buf);
+	g.*.ptr = s.ptr;
+	g.*.cap = s.len;
+    fmt_cap_buffer_reset(g);
 }
 
-fun fmt_cap_buffer_tail(buf: &FormatCapBuffer) => []u8 {
+fun (&FormatCapBuffer) tail() -> []u8 {
     var tail: []u8;
-    if buf.*.eof {
+    if g.*.eof {
         ret tail;
     }
-    if buf.*.len >= buf.*.cap {
+    if g.*.len >= g.*.cap {
         buf.*.eof = true;
         ret tail;
     }
 
-    var body: []u8 = make_span_u8(buf.*.ptr, buf.*.cap);
-    tail = span_u8_slice_tail(body, buf.*.len);
+    var body: []u8 = make_span_u8(g.*.ptr, g.*.cap);
+    tail = span_u8_slice_tail(body, g.*.len);
 
     ret tail;
 }

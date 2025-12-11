@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mebyus/ku/goku/compiler/diag"
+	"github.com/mebyus/ku/goku/compiler/enums/sck"
 	"github.com/mebyus/ku/goku/compiler/enums/smk"
 	"github.com/mebyus/ku/goku/compiler/typer/stg"
 )
@@ -56,6 +57,27 @@ func (p *Inspector) Links() []Link {
 	return links
 }
 
+// Add link between the given symbol and the one currently under inspection.
+func (p *Inspector) link(s *stg.Symbol) {
+	if s.Scope.Kind != sck.Unit {
+		// do not link global symbols, they are defined implicitly
+		// before everything else
+		return
+	}
+	p.links[s] = p.kind
+}
+
+// Change link nature to indirect and return previous state.
+func (p *Inspector) indirect() LinkKind {
+	k := p.kind
+	p.kind = LinkIndirect
+	return k
+}
+
+func (p *Inspector) restore(k LinkKind) {
+	p.kind = k
+}
+
 func (t *Typer) inspectSymbol(s *stg.Symbol) diag.Error {
 	k := s.Kind
 	switch k {
@@ -73,6 +95,8 @@ func (t *Typer) inspectSymbol(s *stg.Symbol) diag.Error {
 		return t.inspectGenSymbol(s)
 	case smk.Const:
 		return t.inspectConstSymbol(s)
+	case smk.Var:
+		return t.inspectVarSymbol(s)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) symbol kind", k, k))
 	}

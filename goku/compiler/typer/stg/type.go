@@ -9,6 +9,8 @@ import (
 )
 
 type Type struct {
+	nodeSymDef
+
 	Def TypeDef
 
 	// Byte size of this type's value. May be 0 for some types.
@@ -78,6 +80,7 @@ const (
 	TypeFlagSigned
 )
 
+// Custom defines custom type.
 type Custom struct {
 	// List of methods which are bound to this custom type.
 	Methods []*Symbol

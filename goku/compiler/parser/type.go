@@ -33,10 +33,11 @@ func (p *Parser) Type(traits ast.Traits) (ast.Type, diag.Error) {
 		bags = list
 	}
 
-	if p.c.Kind != token.RightArrow {
-		return ast.Type{}, p.unexpected()
+	if p.c.Kind == token.RightArrow {
+		// TODO: arrow in type definition is optional for now
+		// Remove it completely, after we fix source code in standard library.
+		p.advance() // skip "->"
 	}
-	p.advance() // skip "=>"
 
 	spec, err := p.CustomTypeSpec()
 	if err != nil {

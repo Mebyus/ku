@@ -1,7 +1,10 @@
+/bin/
+/.kub/
 /.kubout/
 
 /*.ku
 /*.c
+/*.txt
 
 *.i
 *.o

@@ -41,11 +41,8 @@ func (p *Parser) fields() ([]ast.Field, diag.Error) {
 		fields = append(fields, field)
 
 		if p.c.Kind == token.Comma {
+			// Commas are optional between struct fields.
 			p.advance() // skip ","
-		} else if p.c.Kind == token.RightCurly {
-			// will be skipped at next iteration
-		} else {
-			return nil, p.unexpected()
 		}
 	}
 }

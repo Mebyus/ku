@@ -10,14 +10,14 @@ const max_integer_s64: s64 = 0x7FFFFFFFFFFFFFFF;
 
 const max_integer_uint: uint = ^cast(uint, 0);
 
-fun min_uint(a: uint, b: uint) => uint {
+fun min_uint(a: uint, b: uint) -> uint {
     if a < b {
         ret a;
     }
     ret b;
 }
 
-fun max_uint(a: uint, b: uint) => uint {
+fun max_uint(a: uint, b: uint) -> uint {
     if a < b {
         ret b;
     }
@@ -54,7 +54,7 @@ fun rotate_left_u64(x: u64, k: uint) => u64 {
     ret (x << k) | (x >> (64 - k));
 }
 
-fun make_span_u8(ptr: [*]u8, len: uint) => []u8 {
+fun make_span_u8(ptr: [*]u8, len: uint) -> []u8 {
     var s: []u8;
 	if len == 0 {
 		ret s;
@@ -65,23 +65,23 @@ fun make_span_u8(ptr: [*]u8, len: uint) => []u8 {
     ret s;
 }
 
-fun span_u8_slice_head(s: []u8, n: uint) => []u8 {
+fun span_u8_slice_head(s: []u8, n: uint) -> []u8 {
 	must(n <= s.len);
 	ret make_span_u8(s.ptr, n);
 }
 
-fun span_u8_slice_tail(s: []u8, n: uint) => []u8 {
+fun span_u8_slice_tail(s: []u8, n: uint) -> []u8 {
 	must(n <= s.len);
 	ret make_span_u8(s.ptr + n, s.len - n);
 }
 
-fun span_u8_slice(s: []u8, i: uint, j: uint) => []u8 {
+fun span_u8_slice(s: []u8, i: uint, j: uint) -> []u8 {
 	must(i <= j);
 	must(j <= s.len);
 	ret make_span_u8(s.ptr + i, j - i);
 }
 
-fun span_u8_clip_head(s: []u8, n: uint) => []u8 {
+fun span_u8_clip_head(s: []u8, n: uint) -> []u8 {
     var head: []u8;
     if n > s.len {
         ret head;
@@ -89,7 +89,7 @@ fun span_u8_clip_head(s: []u8, n: uint) => []u8 {
     ret span_u8_slice_head(s, n);
 }
 
-fun span_u8_clip_tail(s: []u8, n: uint) => []u8 {
+fun span_u8_clip_tail(s: []u8, n: uint) -> []u8 {
     var tail: []u8;
     if n > s.len {
         ret tail;
@@ -100,12 +100,12 @@ fun span_u8_clip_tail(s: []u8, n: uint) => []u8 {
 /*/doc
 Represents a blob that was fully loaded into memory.
 */
-type Blob => struct {
+type Blob struct {
     // Memory block that holds loaded data.
-    block: MemoryBlock,
+    block: MemoryBlock
 
     // Actual blob size in bytes.
-    size: uint,
+    size: uint
 }
 
 fun blob_get_data(blob: &Blob) => []u8 {
@@ -117,22 +117,22 @@ fun blob_clear_fields(blob: &Blob) {
 	blob.*.size = 0;
 }
 
-fun make_str(ptr: [*]u8, len: uint) => str {
+fun make_str(ptr: [*]u8, len: uint) -> str {
 	ret make_span_u8(ptr, len);
 }
 
-fun str_slice_head(s: str, n: uint) => str {
+fun str_slice_head(s: str, n: uint) -> str {
 	ret span_u8_slice_head(s, n);
 }
 
-fun str_slice_tail(s: str, n: uint) => str {
+fun str_slice_tail(s: str, n: uint) -> str {
 	ret span_u8_slice_tail(s, n);
 }
 
 /*/doc
 Returns true if two strings contain the same data.
 */
-fun str_equal(a: str, b: str) => bool {
+fun str_equal(a: str, b: str) -> bool {
 	if a.len != b.len {
 		ret false;
 	}
@@ -174,7 +174,7 @@ fun unsafe_make_c_string_from_pointer(p: [&]u8) => c_string {
 	ret s;
 }
 
-type span_s64 => struct {
+type span_s64 struct {
 	ptr: [*]s64,
 	len: uint,
 }
