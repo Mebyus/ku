@@ -120,7 +120,7 @@ fun fmt_cap_buffer_put_map_str_u64_slot(buf: &FormatCapBuffer, m: &MapStrU64, s:
 fun map_str_u64_print_slots(m: &MapStrU64) {
     var output_buffer: [1 << 16]u8 = ?;
     var buf: FormatCapBuffer = ?;
-    init_fmt_cap_buffer(buf.&, make_span_u8(output_buffer, #len(output_buffer)));
+    init_fmt_cap_buffer(buf.&, make_span_u8(output_buffer, output_buffer.len));
 
     fmt_cap_buffer_put_str(buf.&, "map(num, cap, load) = (");
     fmt_cap_buffer_put_dec_u64(buf.&, m.*.num);

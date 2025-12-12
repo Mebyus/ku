@@ -16,7 +16,7 @@ func (t *Typer) inspectFunSymbol(s *stg.Symbol) diag.Error {
 		return err
 	}
 
-	return t.inspectBody(fun.Body)
+	return t.inspectBlock(fun.Body)
 }
 
 func (t *Typer) inspectMethodSymbol(s *stg.Symbol) diag.Error {
@@ -44,6 +44,10 @@ func (t *Typer) inspectResultType(spec ast.TypeSpec) diag.Error {
 	case nil:
 		// function returns nothing or never returns
 		return nil
+	case ast.TypeName:
+		return t.linkTypeName(p)
+	case ast.Chunk:
+		return t.linkChunk(p)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier (%T)", p.Kind(), p.Kind(), p))
 	}
@@ -77,21 +81,19 @@ func (t *Typer) inspectParam(param ast.Param) diag.Error {
 		return t.linkArray(p)
 	case ast.Chunk:
 		return t.linkChunk(p)
+	case ast.ArrayRef:
+		return t.linkArrayRef(p)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier (%T)", p.Kind(), p.Kind(), p))
 	}
 }
 
-func (t *Typer) inspectBody(body ast.Block) diag.Error {
-	for _, s := range body.Nodes {
+func (t *Typer) inspectBlock(block ast.Block) diag.Error {
+	for _, s := range block.Nodes {
 		err := t.inspectStatement(s)
 		if err != nil {
 			return err
 		}
 	}
-	return nil
-}
-
-func (t *Typer) inspectStatement(stm ast.Statement) diag.Error {
 	return nil
 }

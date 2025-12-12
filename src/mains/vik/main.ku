@@ -86,7 +86,7 @@ fun read_key() => RetKey {
     var rk: RetKey;
 
     var input_buffer: [8]u8 = ?;
-    var buf: []u8 = make_span_u8(input_buffer, #len(input_buffer));
+    var buf: []u8 = make_span_u8(input_buffer, input_buffer.len);
     const r: RetRead = stdin_read_until_full(buf);
     if r.eid != 0 {
         rk.eid = r.eid;
@@ -124,7 +124,7 @@ fun test_render(width: u32, height: u32) {
     var output_buffer_array: [1 << 16]u8 = ?;
 
     var out: TerminalOutputBuffer = ?;
-    init_terminal_output_buffer(out.&, make_span_u8(output_buffer_array, #len(output_buffer_array)));
+    init_terminal_output_buffer(out.&, make_span_u8(output_buffer_array, output_buffer_array.len));
 
     var cells: [100 * 100]TerminalScreenCell = ?;
     var screen: TerminalScreenBuffer = {
@@ -132,7 +132,7 @@ fun test_render(width: u32, height: u32) {
         width:  width,
         height: height,
         stride: width,
-        cap:    #len(cells),
+        cap:    cells.len,
     };
     init_terminal_screen_buffer(screen.&);
 

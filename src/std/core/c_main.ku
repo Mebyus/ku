@@ -1,7 +1,7 @@
 #stub
 fun ku_main() => uint
 
-let MAIN_EXIT_FORMAT_BUFFER_SIZE => 1 << 12;
+const MAIN_EXIT_FORMAT_BUFFER_SIZE := 1 << 12;
 
 fun print_main_exit_code(c: uint) {
     var output_buffer: [MAIN_EXIT_FORMAT_BUFFER_SIZE]u8 = ?;
@@ -18,7 +18,7 @@ fun print_main_exit_code(c: uint) {
 #[
     link.type = "c.main";
 ]
-fun c_main(argc: sint, argv: [*][*]u8, envp: [*][*]u8) => i32 {
+fun c_main(argc: sint, argv: [*][*]u8, envp: [*][*]u8) => s32 {
     init_proc_memory_arena_allocator();
     const eid: error_id = init_os_proc_input(tint(uint, argc), cast([*][*]u8, argv), cast([*][*]u8, envp));
     if eid != 0 {

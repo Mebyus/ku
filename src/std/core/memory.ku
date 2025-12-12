@@ -50,11 +50,11 @@ fun (&MemoryArenaAllocator) alloc(block: &MemoryBlock) -> error_id {
 	ret memory_arena_alloc(g, block);
 }
 
-let MEMORY_DYNAMIC_STACK_SIZE => 1 << 26;
+const MEMORY_DYNAMIC_STACK_SIZE := 1 << 26;
 
-type MemoryDynamicStackAllocator => struct {
-	buf: [MEMORY_DYNAMIC_STACK_SIZE]u8,
-	pos: uint,
+type MemoryDynamicStackAllocator struct {
+	buf: [MEMORY_DYNAMIC_STACK_SIZE]u8
+	pos: uint
 }
 
 fun memory_dynamic_stack_alloc(al: &MemoryDynamicStackAllocator, block: &MemoryBlock) => error_id {

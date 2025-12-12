@@ -10,6 +10,8 @@ func (s *Scope) InitGlobal() {
 	s.Init(sck.Global, nil)
 }
 
+const archPointerSize = 8
+
 func addBuiltinTypes(c *Context) {
 	addUnsignedIntegerType(c, "u8", 1)
 	addUnsignedIntegerType(c, "u16", 2)
@@ -23,7 +25,32 @@ func addBuiltinTypes(c *Context) {
 	addSignedIntegerType(c, "s64", 8)
 	addSignedIntegerType(c, "s128", 16)
 
+	addUnsignedIntegerType(c, "uint", archPointerSize) // TODO: uint and sint sizes should depend on target architecture
+	addSignedIntegerType(c, "sint", archPointerSize)
+
 	addBoolType(c)
+	addUnsignedIntegerType(c, "rune", 4)
+	addUnsignedIntegerType(c, "error_id", archPointerSize)
+
+	addFloatType(c, "f32", 4)
+	addFloatType(c, "f64", 8)
+	addFloatType(c, "f128", 16)
+
+	addStringType(c)
+}
+
+func addStringType(c *Context) {
+	s := &Symbol{
+		Name:  "str",
+		Kind:  smk.Type,
+		Flags: SymbolBuiltin,
+	}
+	t := &Type{
+		Size:  2 * archPointerSize,
+		Flags: TypeFlagBuiltin,
+		Kind:  tpk.String,
+	}
+	c.addType(s, t)
 }
 
 func addUnsignedIntegerType(c *Context, name string, size uint32) {
@@ -64,6 +91,20 @@ func addBoolType(c *Context) {
 		Size:  1,
 		Flags: TypeFlagBuiltin,
 		Kind:  tpk.Boolean,
+	}
+	c.addType(s, t)
+}
+
+func addFloatType(c *Context, name string, size uint32) {
+	s := &Symbol{
+		Name:  name,
+		Kind:  smk.Type,
+		Flags: SymbolBuiltin,
+	}
+	t := &Type{
+		Size:  size,
+		Flags: TypeFlagBuiltin,
+		Kind:  tpk.Float,
 	}
 	c.addType(s, t)
 }

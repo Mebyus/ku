@@ -45,7 +45,7 @@ type While struct {
 var _ Statement = While{}
 
 func (While) Kind() stk.Kind {
-	return stk.Loop
+	return stk.While
 }
 
 func (w While) Span() srcmap.Span {

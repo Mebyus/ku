@@ -1,6 +1,6 @@
 test map_str_u64_noalloc {
     var array_map_buf: [1 << 8]u8 = ?;
-    var map_buf: []u8 = make_span_u8(array_map_buf, #len(array_map_buf));
+    var map_buf: []u8 = make_span_u8(array_map_buf, array_map_buf.len);
 
     var m: MapStrU64;
     init_map_str_u64_noalloc(m.&, map_buf);
@@ -161,7 +161,7 @@ test map_str_u64_alloc_rand {
 
     var array_memory_buffer: [1 << 16]u8 = ?;
     var arena: MemoryArenaAllocator = ?;
-    init_memory_arena_allocator(arena.&, make_span_u8(array_memory_buffer, #len(array_memory_buffer)));
+    init_memory_arena_allocator(arena.&, make_span_u8(array_memory_buffer, array_memory_buffer.len));
     var al: MemoryAllocator = make_memory_allocator_from_arena(arena.&);
 
     var m: MapStrU64;

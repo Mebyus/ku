@@ -17,11 +17,39 @@ func (t *Typer) inspectConstExp(exp ast.Exp) diag.Error {
 		return nil
 	case ast.Symbol:
 		return t.linkConstSymbol(e)
+	case ast.Unary:
+		return t.inspectConstUnaryExp(e)
 	case ast.Binary:
 		return t.inspectConstBinaryExp(e)
+	case ast.Cast:
+		return t.inspectConstCastExp(e)
+	case ast.List:
+		return t.inspectConstListExp(e)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) expression (%T)", e.Kind(), e.Kind(), e))
 	}
+}
+
+func (t *Typer) inspectConstListExp(l ast.List) diag.Error {
+	for _, e := range l.Exps {
+		err := t.inspectConstExp(e)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (t *Typer) inspectConstCastExp(c ast.Cast) diag.Error {
+	err := t.inspectVarType(c.Type)
+	if err != nil {
+		return err
+	}
+	return t.inspectConstExp(c.Exp)
+}
+
+func (t *Typer) inspectConstUnaryExp(exp ast.Unary) diag.Error {
+	return t.inspectConstExp(exp.Exp)
 }
 
 func (t *Typer) inspectConstBinaryExp(exp ast.Binary) diag.Error {

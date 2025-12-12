@@ -121,15 +121,15 @@ fun stdin_read_until_full(buf: []u8) => RetRead {
     ret rr;
 }
 
-let OS_LINUX_MAX_PATH_LENGTH => 1 << 14;
+const OS_LINUX_MAX_PATH_LENGTH := 1 << 14;
 
-let OS_LINUX_OPEN_FLAG_READ_ONLY  => 0x0;
-let OS_LINUX_OPEN_FLAG_WRITE_ONLY => 0x1;
-let OS_LINUX_OPEN_FLAG_READ_WRITE => 0x2;
+const OS_LINUX_OPEN_FLAG_READ_ONLY  := 0x0;
+const OS_LINUX_OPEN_FLAG_WRITE_ONLY := 0x1;
+const OS_LINUX_OPEN_FLAG_READ_WRITE := 0x2;
 
-let OS_LINUX_OPEN_FLAG_CREATE   => 0x40;
-let OS_LINUX_OPEN_FLAG_TRUNCATE => 0x200;
-let OS_LINUX_OPEN_FLAG_APPEND   => 0x400;
+const OS_LINUX_OPEN_FLAG_CREATE   := 0x40;
+const OS_LINUX_OPEN_FLAG_TRUNCATE := 0x200;
+const OS_LINUX_OPEN_FLAG_APPEND   := 0x400;
 
 fun os_linux_convert_syscall_open_error(c: uint) => error_id {
     ret #error(TODO_OPEN);

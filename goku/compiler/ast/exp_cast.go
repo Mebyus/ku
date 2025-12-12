@@ -5,11 +5,11 @@ import (
 	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
-// Cast represents a compile-time type case of expression.
+// Cast represents a compile-time type cast of expression to another type.
 //
 // Formal definition:
 //
-//	Cast => "#cast" "(" TypeSpec "," Exp ")"
+//	Cast => "cast" "(" TypeSpec "," Exp ")"
 type Cast struct {
 	nodeOperand
 

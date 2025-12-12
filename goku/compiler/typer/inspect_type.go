@@ -26,7 +26,23 @@ func (t *Typer) inspectTypeSymbol(s *stg.Symbol) diag.Error {
 	// TODO: probably need to add new type to index
 	// t.ctx.Types.
 
-	var err diag.Error
+	err := t.inspectCustomTypeSpec(spec)
+	if err != nil {
+		return err
+	}
+
+	kind, ok := t.ins.links[s]
+	if ok && kind == LinkDirect {
+		return &diag.SimpleMessageError{
+			Pin:  s.Pin,
+			Text: fmt.Sprintf("type \"%s\" definition directly references itself", s.Name),
+		}
+	}
+
+	return nil
+}
+
+func (t *Typer) inspectCustomTypeSpec(spec ast.TypeSpec) diag.Error {
 	switch p := spec.(type) {
 	case ast.TypeName:
 		return t.linkTypeName(p)
@@ -42,13 +58,14 @@ func (t *Typer) inspectTypeSymbol(s *stg.Symbol) diag.Error {
 		// TODO: check for unique names among fields + methods
 		return t.inspectStructFields(p.Fields)
 	case ast.Bag:
-		fmt.Printf("WARN: bag type specifier not implemented (%s %d %T)\n", s.Name, s.Aux, spec)
+		fmt.Printf("WARN: bag type specifier not implemented\n")
+		return nil
 	case ast.Union:
-		fmt.Printf("WARN: union type specifier not implemented (%s %d %T)\n", s.Name, s.Aux, spec)
+		fmt.Printf("WARN: union type specifier not implemented\n")
+		return nil
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier (%T)", p.Kind(), p.Kind(), p))
 	}
-	return err
 }
 
 func (t *Typer) inspectStructFields(fields []ast.Field) diag.Error {
@@ -147,101 +164,69 @@ func (t *Typer) linkTypeName(p ast.TypeName) diag.Error {
 	return nil
 }
 
-func (t *Typer) linkPointer(p ast.Pointer) diag.Error {
-	k := t.ins.indirect()
-
-	var err diag.Error
-	switch p := p.Type.(type) {
-	case ast.TypeName:
-		err = t.linkTypeName(p)
-	case ast.Pointer:
-		err = t.linkPointer(p)
+func (t *Typer) inspectType(spec ast.TypeSpec) diag.Error {
+	switch p := spec.(type) {
 	case ast.AnyPointer:
-		// do nothing
+		return nil
+	case ast.TypeName:
+		return t.linkTypeName(p)
+	case ast.TypeFullName:
+		return t.inspectTypeFullName(p)
+	case ast.Pointer:
+		return t.linkPointer(p)
+	case ast.ArrayPointer:
+		return t.linkArrayPointer(p)
+	case ast.Chunk:
+		return t.linkChunk(p)
+	case ast.Array:
+		return t.linkArray(p)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier (%T)", p.Kind(), p.Kind(), p))
 	}
+}
 
+func (t *Typer) linkPointer(p ast.Pointer) diag.Error {
+	k := t.ins.indirect()
+	err := t.inspectType(p.Type)
+	t.ins.restore(k)
+	return err
+}
+
+func (t *Typer) linkArrayRef(p ast.ArrayRef) diag.Error {
+	k := t.ins.indirect()
+	err := t.inspectType(p.Type)
 	t.ins.restore(k)
 	return err
 }
 
 func (t *Typer) linkArrayPointer(p ast.ArrayPointer) diag.Error {
-	// TODO: do we need to unify this function with linkPointer?
-	// they should behave identically anyway
 	k := t.ins.indirect()
-
-	var err diag.Error
-	switch p := p.Type.(type) {
-	case ast.TypeName:
-		err = t.linkTypeName(p)
-	case ast.Pointer:
-		err = t.linkPointer(p)
-	case ast.AnyPointer:
-		// do nothing
-	default:
-		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier (%T)", p.Kind(), p.Kind(), p))
-	}
-
+	err := t.inspectType(p.Type)
 	t.ins.restore(k)
 	return err
 }
 
-
 func (t *Typer) linkRef(p ast.Ref) diag.Error {
-	// TODO: do we need to unify this function with linkPointer?
-	// they should behave identically anyway
 	k := t.ins.indirect()
-
-	var err diag.Error
-	switch p := p.Type.(type) {
-	case ast.TypeName:
-		err = t.linkTypeName(p)
-	case ast.Pointer:
-		err = t.linkPointer(p)
-	case ast.AnyPointer:
-		// do nothing
-	default:
-		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier (%T)", p.Kind(), p.Kind(), p))
-	}
-
+	err := t.inspectType(p.Type)
 	t.ins.restore(k)
 	return err
 }
 
 func (t *Typer) linkChunk(c ast.Chunk) diag.Error {
 	k := t.ins.indirect()
-
-	var err diag.Error
-	switch p := c.Type.(type) {
-	case ast.TypeName:
-		err = t.linkTypeName(p)
-	case ast.Pointer:
-		err = t.linkPointer(p)
-	case ast.AnyPointer:
-		// do nothing
-	default:
-		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier (%T)", p.Kind(), p.Kind(), p))
-	}
-
+	err := t.inspectType(c.Type)
 	t.ins.restore(k)
 	return err
 }
 
 func (t *Typer) linkArray(a ast.Array) diag.Error {
-	err := t.inspectConstExp(a.Size)
-	if err != nil {
-		return err
+	if a.Size != nil {
+		err := t.inspectConstExp(a.Size)
+		if err != nil {
+			return err
+		}
 	}
 
-	switch p := a.Type.(type) {
-	case ast.TypeName:
-		return t.linkTypeName(p)
-	case ast.Pointer:
-		return t.linkPointer(p)
-	case ast.AnyPointer:
-		return nil
-	default:
-		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier (%T)", p.Kind(), p.Kind(), p))
-	}
+	return t.inspectType(a.Type)
 }

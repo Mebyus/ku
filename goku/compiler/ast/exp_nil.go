@@ -5,7 +5,7 @@ import (
 	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
-// Dirty represents usage of "nil" keyword as expression.
+// Nil represents usage of "nil" keyword as expression.
 type Nil struct {
 	nodeOperand
 

@@ -1,10 +1,10 @@
-let LOG_LEVEL_FATAL => 0;
-let LOG_LEVEL_ERROR => 1;
-let LOG_LEVEL_WARN  => 2;
-let LOG_LEVEL_INFO  => 3;
-let LOG_LEVEL_DEBUG => 4;
+const LOG_LEVEL_FATAL := 0;
+const LOG_LEVEL_ERROR := 1;
+const LOG_LEVEL_WARN  := 2;
+const LOG_LEVEL_INFO  := 3;
+const LOG_LEVEL_DEBUG := 4;
 
-let LOG_BUFFER_SIZE => 1 << 14;
+const LOG_BUFFER_SIZE := 1 << 14;
 
 /*/doc
 Encapsulates buffered writes to an opened file.
@@ -14,18 +14,18 @@ Related:
     .log_sink_write(...)
     .log_sink_flush(...)
 */
-type LogSink => struct {
-    buf: [LOG_BUFFER_SIZE]u8,
+type LogSink struct {
+    buf: [LOG_BUFFER_SIZE]u8
 
     // Value returned by clock when sink was initialized.
-    start: TimeDur,
+    start: TimeDur
 
     // Write position for buffer. Corresponds to number of bytes
     // currently stored in buffer.
-    pos: uint,
+    pos: uint
 
     // File descriptor of log file. Flush is nop if this field is 0.
-    fd: uint,
+    fd: uint
 }
 
 /*/doc

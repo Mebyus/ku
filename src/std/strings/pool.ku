@@ -113,7 +113,7 @@ fun fmt_cap_buffer_put_str_pool_slot(buf: &FormatCapBuffer, s: &StringPoolSlot) 
 fun str_pool_print_slots(p: &StringPool) {
     var output_buffer: [1 << 16]u8 = ?;
     var buf: FormatCapBuffer = ?;
-    init_fmt_cap_buffer(buf.&, make_span_u8(output_buffer, #len(output_buffer)));
+    init_fmt_cap_buffer(buf.&, make_span_u8(output_buffer, output_buffer.len));
 
     fmt_cap_buffer_put_str(buf.&, "pool(num, cap) = (");
     fmt_cap_buffer_put_dec_u64(buf.&, p.*.num);

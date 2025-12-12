@@ -11,53 +11,10 @@
 #must(#size(f32) == 4);
 #must(#size(f64) == 8);
 
-type uint => u64
-type sint => s64
-
-type rune => u32
-
 #must(#size(uint) == #size(*any));
 #must(#size(sint) == #size(*any));
 
-/*/doc
-Note that {c_string} can be used where {str} or {[]u8} are accepted.
-But reverse usage is not valid.
-*/
-type span_u8 => struct {
-	// Array pointer to raw bytes data.
-	ptr: [*]u8,
-
-	// Number of bytes in array designated by {ptr}.
-	//
-	// For {c_string} contains byte length of the string (without null byte).
-	len: uint,
-}
-
-type str []u8
 type c_string []u8
-
-const empty_str: str = "";
-
-// #stub
-// fun make_str(ptr: [*]u8, len: uint) => str
-
-// #stub
-// fun stdout_print(msg: str)
-
-// #stub
-// fun stderr_print(msg: str)
-
-// #stub
-// fun panic_pos(msg: str, path: str, line: uint) => #never
-
-// #stub
-// fun panic_never(path: str, line: uint) => #never
-
-// #stub
-// fun panic_stub(path: str, line: uint) => #never
-
-// #stub
-// fun must_pos(c: bool, path: str, line: uint)
 
 fun panic_trap() -> #never {
 	__builtin_trap();
@@ -66,8 +23,6 @@ fun panic_trap() -> #never {
 
 // #stub
 // fun os_exit(code: uint) => #never
-
-type error_id uint
 
 type MemoryAllocator struct {
     ptr:  *any

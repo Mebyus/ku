@@ -4,6 +4,7 @@ import (
 	"sort"
 
 	"github.com/mebyus/ku/goku/compiler/enums/sck"
+	"github.com/mebyus/ku/goku/compiler/enums/smk"
 	"github.com/mebyus/ku/goku/compiler/srcmap"
 	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
 )
@@ -84,7 +85,12 @@ func SortImports(ss []ImportSite) {
 }
 
 func (u *Unit) HasMain() bool {
-	return false
+	// TODO: we can add this check in symbol indexing phase and store result in flags
+	s := u.Scope.Get("main")
+	if s == nil {
+		return false
+	}
+	return s.Kind == smk.Fun
 }
 
 func (u *Unit) FindImportSite(path origin.Path) (ImportSite, bool) {

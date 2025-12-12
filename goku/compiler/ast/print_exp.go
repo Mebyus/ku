@@ -263,7 +263,7 @@ func (g *Printer) Size(s Size) {
 }
 
 func (g *Printer) Cast(c Cast) {
-	g.puts("#cast(")
+	g.puts("cast(")
 	g.TypeSpec(c.Type)
 	g.puts(", ")
 	g.Exp(c.Exp)

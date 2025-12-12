@@ -4,6 +4,7 @@ import {
 
 fun alter(t: &SomeType, x: Sized) {
     var a: AnotherType;
+    var b: uint = 1 + a;
     if a.buf2.len != 10 {
         ret;
     }

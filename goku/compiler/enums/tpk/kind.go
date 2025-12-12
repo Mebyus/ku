@@ -76,6 +76,8 @@ const (
 	// And this static type has size set to 0.
 	Boolean
 
+	Float
+
 	AnyPointer
 
 	// Types which are defined as continuous region of memory holding
@@ -118,6 +120,7 @@ var text = [...]string{
 	Integer: "int",
 	String:  "str",
 	Boolean: "bool",
+	Float:   "float",
 
 	Array:  "array",
 	Chunk:  "chunk",

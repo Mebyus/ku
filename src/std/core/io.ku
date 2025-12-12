@@ -36,7 +36,7 @@ fun bag_copy(writer: BagWriter, reader: BagReader) => RetCopy {
     var rc: RetCopy;
 
     var array_buf: [1 << 14]u8 = ?;
-    var buf: []u8 = make_span_u8(array_buf, #len(array_buf));
+    var buf: []u8 = make_span_u8(array_buf, array_buf.len);
     for {
         const r: RetRead = reader.tab.*.read(reader.obj, buf);
         rc.r_num += r.num;

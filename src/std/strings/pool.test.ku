@@ -1,7 +1,7 @@
 test str_pool {
     var array_memory_buffer: [1 << 16]u8 = ?;
     var arena: MemoryArenaAllocator = ?;
-    init_memory_arena_allocator(arena.&, make_span_u8(array_memory_buffer, #len(array_memory_buffer)));
+    init_memory_arena_allocator(arena.&, make_span_u8(array_memory_buffer, array_memory_buffer.len));
     var al: MemoryAllocator = make_memory_allocator_from_arena(arena.&);
 
     var p: StringPool;

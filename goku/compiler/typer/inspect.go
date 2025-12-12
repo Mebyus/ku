@@ -64,6 +64,18 @@ func (p *Inspector) link(s *stg.Symbol) {
 		// before everything else
 		return
 	}
+	if s.Kind == smk.Import {
+		// no need to keep track of links to import symbol
+		// since we handle unit ranking during uwalk phase
+		return
+	}
+
+	k, ok := p.links[s]
+	if ok && k == LinkDirect {
+		// direct link is stronger than indirect one
+		return
+	}
+
 	p.links[s] = p.kind
 }
 

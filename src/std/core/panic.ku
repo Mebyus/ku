@@ -1,7 +1,7 @@
 fun fmt_cap_buffer_put_stack_trace(buf: &FormatCapBuffer) {
     var address_buffer_array: [64]*any = ?;
 
-    const size: uint = save_stack_trace(address_buffer_array, #len(address_buffer_array));
+    const size: uint = save_stack_trace(address_buffer_array, address_buffer_array.len);
     if size == 0 {
         ret;
     }
