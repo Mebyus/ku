@@ -2,6 +2,13 @@ import {
     abc -> "buildtest/abc"
 }
 
+fun alter(t: &SomeType, x: Sized) {
+    var a: AnotherType;
+    if a.buf2.len != 10 {
+        ret;
+    }
+}
+
 type SomeType struct {
     name: abc.String
     data: [*]u8

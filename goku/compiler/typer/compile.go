@@ -438,6 +438,9 @@ func (t *Typer) addMethod(m ast.Method) diag.Error {
 
 	symbol := t.unit.Scope.Alloc(smk.Method, name, pin)
 	symbol.Aux = t.box.addMethod(m)
+	if m.Pub {
+		symbol.Flags |= stg.SymbolPublic
+	}
 	t.methods = append(t.methods, symbol)
 	return nil
 }

@@ -187,6 +187,28 @@ func (t *Typer) linkArrayPointer(p ast.ArrayPointer) diag.Error {
 	return err
 }
 
+
+func (t *Typer) linkRef(p ast.Ref) diag.Error {
+	// TODO: do we need to unify this function with linkPointer?
+	// they should behave identically anyway
+	k := t.ins.indirect()
+
+	var err diag.Error
+	switch p := p.Type.(type) {
+	case ast.TypeName:
+		err = t.linkTypeName(p)
+	case ast.Pointer:
+		err = t.linkPointer(p)
+	case ast.AnyPointer:
+		// do nothing
+	default:
+		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier (%T)", p.Kind(), p.Kind(), p))
+	}
+
+	t.ins.restore(k)
+	return err
+}
+
 func (t *Typer) linkChunk(c ast.Chunk) diag.Error {
 	k := t.ins.indirect()
 
