@@ -1,0 +1,49 @@
+package typer
+
+import (
+	"fmt"
+
+	"github.com/mebyus/ku/goku/compiler/diag"
+	"github.com/mebyus/ku/goku/compiler/enums/smk"
+	"github.com/mebyus/ku/goku/compiler/typer/stg"
+)
+
+func (t *Typer) checkAndConvertAST() diag.Error {
+	graph := t.graph
+	for _, i := range graph.Isolated {
+		err := t.convSymbol(graph.Nodes[i].Symbol)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, comp := range graph.Comps {
+		for _, c := range comp.Cohorts {
+			for _, k := range c {
+				err := t.convSymbol(graph.Nodes[comp.V[k].Index].Symbol)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func (t *Typer) convSymbol(s *stg.Symbol) diag.Error {
+	switch s.Kind {
+	case smk.Const:
+		return t.convConstSymbol(s)
+	case smk.Fun:
+		return nil
+	case smk.Method:
+		return nil
+	case smk.Type:
+		return nil
+	case smk.Var:
+		return nil
+	default:
+		panic(fmt.Sprintf("unexpected \"%s\" (=%d) symbol (%s)", s.Kind, s.Kind, s.Name))
+	}
+}

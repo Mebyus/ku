@@ -8,7 +8,7 @@ import (
 )
 
 func (t *Typer) inspectVarSymbol(s *stg.Symbol) diag.Error {
-	v := t.box.Const(s.Aux)
+	v := t.box.Var(s.Aux)
 
 	err := t.inspectType(v.Type)
 	if err != nil {

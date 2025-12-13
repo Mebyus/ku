@@ -46,6 +46,10 @@ type Symbol struct {
 	// naming scheme cannot have accidental collisions.
 	Name string
 
+	// Link name. Not empty only if it differs from standard link name
+	// mangling algorithm.
+	Link string
+
 	// Source position of symbol origin (where this symbol was declared).
 	Pin srcmap.Pin
 
@@ -79,10 +83,22 @@ const (
 
 	// Symbol is declared as public.
 	SymbolPublic
+
+	// Symbol should be skipped during compilation.
+	// Flag is set as a result of symbol usage analysis and program tree pruning.
+	SymbolSkip
 )
 
 func (s *Symbol) IsPublic() bool {
 	return s.Flags&SymbolPublic != 0
+}
+
+func (s *Symbol) MarkSkip() {
+	s.Flags |= SymbolSkip
+}
+
+func (s *Symbol) ShouldSkip() bool {
+	return s.Flags&SymbolSkip != 0
 }
 
 type SymDef interface {

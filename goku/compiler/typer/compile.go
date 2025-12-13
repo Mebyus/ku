@@ -28,11 +28,15 @@ type Typer struct {
 
 	ins Inspector
 
+	gb GraphBuilder
+
 	Warns []diag.Error
 
 	unit *stg.Unit
 
 	ctx *stg.Context
+
+	graph *Graph
 
 	// After index phase is complete, contains all methods defined inside unit.
 	methods []*stg.Symbol
@@ -82,6 +86,14 @@ func (t *Typer) compile(texts []*ast.Text) diag.Error {
 		return err
 	}
 	err = t.inspectSymbols()
+	if err != nil {
+		return err
+	}
+	err = t.hoistSymbols()
+	if err != nil {
+		return err
+	}
+	err = t.checkAndConvertAST()
 	if err != nil {
 		return err
 	}
@@ -605,8 +617,14 @@ func (t *Typer) addGenericMethod(g *stg.Generic, m ast.Method) diag.Error {
 func (t *Typer) inspectSymbols() diag.Error {
 	const debug = true
 
+	symbols := t.unit.Scope.Symbols
 	t.ins.Init()
-	for _, s := range t.unit.Scope.Symbols {
+	t.gb.Init(len(symbols))
+	for _, s := range symbols {
+		if s.Kind == smk.Import {
+			continue
+		}
+
 		t.ins.Reset()
 		err := t.inspectSymbol(s)
 		if err != nil {
@@ -621,6 +639,8 @@ func (t *Typer) inspectSymbols() diag.Error {
 			}
 			fmt.Printf("%s -> %v\n", s.Name, names)
 		}
+
+		t.gb.Add(s, links)
 	}
 	return nil
 }

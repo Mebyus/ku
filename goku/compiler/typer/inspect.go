@@ -91,10 +91,11 @@ func (p *Inspector) restore(k LinkKind) {
 }
 
 func (t *Typer) inspectSymbol(s *stg.Symbol) diag.Error {
+	// TODO: current fnction body inspect algorithm cannot properly
+	// detect usage of method symbols
+
 	k := s.Kind
 	switch k {
-	case smk.Import:
-		return nil
 	case smk.Fun:
 		return t.inspectFunSymbol(s)
 	case smk.Type:

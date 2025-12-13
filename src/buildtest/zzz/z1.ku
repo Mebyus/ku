@@ -22,6 +22,9 @@ type SomeType struct {
     aa: AnotherType
 }
 
+// type A B
+// type B A
+
 type Sized s32
 
 // TODO: fix inspect on enums
