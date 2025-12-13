@@ -22,12 +22,19 @@ func (t *Typer) inspectFunSymbol(s *stg.Symbol) diag.Error {
 func (t *Typer) inspectMethodSymbol(s *stg.Symbol) diag.Error {
 	m := t.box.Method(s.Aux)
 
+	rname := m.Receiver.Name.Str
+	r := t.unit.Scope.Get(rname)
+	if r == nil {
+		panic(fmt.Sprintf("missing %s receiver", rname))
+	}
+	t.ins.link(r)
+
 	err := t.inspectSignature(m.Signature)
 	if err != nil {
 		return err
 	}
 
-	return nil
+	return t.inspectBlock(m.Body)
 }
 
 func (t *Typer) inspectSignature(sig ast.Signature) diag.Error {

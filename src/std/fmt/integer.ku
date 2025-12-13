@@ -1,0 +1,131 @@
+fun dec_digit(x: u8) -> u8 {
+    must(x < 10);
+
+	ret x + '0';
+}
+
+fun hex_digit(x: u8) -> u8 {
+    must(x < 16);
+
+	if x <= 9 {
+		ret fmt_dec_digit(x);
+	}
+	ret x - 10 + 'A';
+}
+
+const hex_byte_length := 2;
+
+fun unsafe.put_hex_byte(p: [&]u8, x: u8) {
+    must(p != nil);
+
+	p.[0] = hex_digit(x >> 4);
+	p.[1] = hex_digit(x & 0xF);
+}
+
+fun unsafe.put_bin_byte(p: [&]u8, x: u8) {
+    must(p != nil);
+
+	var i: uint = 8;
+    // digits are written from least to most significant bit
+	for i != 0 {
+		i -= 1;
+		p.[i] = dec_digit(x & 1);
+		x >>= 1;
+	}
+}
+
+const bin_bytes_u16_length := 8 + 1 + 8;
+
+fun unsafe.put_bin_bytes_u16(p: [&]u8, x: u16) {
+    must(p != nil);
+
+    unsafe.put_bin_byte(p, cast(u8, x >> 8));
+    p.[8] = ' ';
+    unsafe.put_bin_byte(p + 9, cast(u8, x & 0xFF));
+}
+
+const bin_bytes_u32_length := 8 + 1 + 8 + 1 + 8 + 1 + 8;
+
+fun unsafe.put_bin_bytes_u32(p: [&]u8, x: u32) {
+    must(p != nil);
+
+    unsafe.put_bin_byte(p + 27, cast(u8, x & 0xFF));
+    p.[26] = ' ';
+    
+    x >>= 8;
+    unsafe.put_bin_byte(p + 18, cast(u8, x & 0xFF));
+    p.[17] = ' ';
+
+    x >>= 8;
+    unsafe.put_bin_byte(p + 9, cast(u8, x & 0xFF));
+    p.[8] = ' ';
+
+    x >>= 8;
+    unsafe.put_bin_byte(p, cast(u8, x));
+}
+
+const max_u32_hex_length := 8;
+
+/*/doc
+Formats a given u32 integer as a hexadecimal number of
+fixed width (=8) format, prefixing significant digits with
+zeroes if necessary. Buffer must be at least 8 bytes
+long.
+*/
+fun unsafe.put_hex_prefix_zeroes_u32(p: [&]u8, x: u32) {
+    must(p != nil);
+
+	var i: uint = max_u32_hex_length;
+	// digits are written from least to most significant byte
+	for i != 0 {
+		i -= 1;
+		var n: u8 = cast(u8, x & 0xFF);
+		p.[i] = hex_digit(n);
+		x = x >> 4;
+	}
+}
+
+const max_u64_hex_length := 16;
+
+/*/doc
+Formats a given u64 integer as a hexadecimal number of
+fixed width (=16) format, prefixing significant digits with
+zeroes if necessary. Buffer must be at least 16 bytes
+long.
+*/
+fun unsafe.put_hex_prefix_zeroes_u64(p: [&]u8, x: u64) {
+    must(p != nil);
+
+	var i: uint = max_u64_hex_length;
+	// digits are written from least to most significant byte
+	for i != 0 {
+		i -= 1;
+		var n: u8 = cast(u8, x & 0xFF);
+		p.[i] = hex_digit(n);
+		x = x >> 4;
+	}
+}
+
+const bits_f32_length := 32 + 2;
+
+/*/doc
+IEEE 754 32-bit float
+*/
+fun unsafe.put_bits_f32(p: [&]u8, f: f32) {
+    var bits: u32 = get_bits_f32(f);
+
+    // format fraction digits
+    for i = [:23] {
+        p.[33 - i] = dec_digit(cast(u8, (bits >> i) & 1));
+    }
+
+    // format exponent digits
+    p.[10] = ' ';
+    for i = [23:31] {
+        p.[32 - i] = dec_digit(cast(u8, (bits >> i) & 1));
+    }
+
+    // format sign bit
+    p.[1] = ' ';
+    p.[0] = dec_digit(cast(u8, (bits >> 31) & 1));
+}

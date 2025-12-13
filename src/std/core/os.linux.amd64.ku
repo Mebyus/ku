@@ -182,6 +182,60 @@ fun os_linux_close(fd: uint) => error_id {
     ret 0;
 }
 
+
+type LinuxTimespec struct {
+    sec:  s64
+    nano: s64
+}
+
+type LinuxFileStat struct {
+    // ID of device containing file
+    device: u64
+
+    // Inode number
+    inode: u64
+
+    // Number of hard links
+    num_links: u64
+
+    // File type and mode
+    mode: u32
+
+    // User ID of owner
+    user_id: u32
+
+    // Group ID of owner
+    group_id: u32
+
+    // This field is placed here purely for padding. It does not
+    // carry any useful information
+    padding: u32
+
+    // Device ID (if special file)
+    r_device: u64
+
+    // Total size in bytes
+    size: u64
+
+    // Block size for filesystem I/O
+    block_size: u64
+
+    // Number of 512B blocks allocated
+    num_blocks: u64
+
+    // Time of last access
+    access_time: LinuxTimespec
+
+    // Time of last modification
+    mod_time: LinuxTimespec
+
+    // Time of last status change
+    status_change_time: LinuxTimespec
+
+    // Additional reserved fields for future compatibility
+    reserved: [3]u64
+}
+
 fun os_linux_convert_syscall_stat_error(c: uint) => error_id {
     ret #error(TODO_STAT);
 }

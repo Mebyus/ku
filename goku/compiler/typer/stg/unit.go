@@ -20,11 +20,6 @@ type Unit struct {
 	// This field is always not nil and Scope.Kind is always equal to sck.Test.
 	TestScope Scope
 
-	// Scope that holds all unit unsafe symbols from all unit texts.
-	//
-	// This field is always not nil and Scope.Kind is always equal to sck.Unsafe.
-	UnsafeScope Scope
-
 	// Unit path of this unit.
 	Path origin.Path
 
@@ -105,5 +100,4 @@ func (u *Unit) FindImportSite(path origin.Path) (ImportSite, bool) {
 func (u *Unit) InitScopes(global *Scope) {
 	u.Scope.Init(sck.Unit, global)
 	u.TestScope.Init(sck.Test, &u.Scope)
-	u.UnsafeScope.Init(sck.Unsafe, &u.Scope)
 }

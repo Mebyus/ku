@@ -337,6 +337,9 @@ func (t *Typer) addFun(fun ast.Fun) diag.Error {
 	name := fun.Name.Str
 	pin := fun.Name.Pin
 
+	if fun.Unsafe {
+		name = "unsafe." + name
+	}
 	if t.unit.Scope.Has(name) {
 		return errMultDef(name, pin)
 	}

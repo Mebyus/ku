@@ -114,7 +114,7 @@ type TerminalScreenCell => struct {
     rune: rune,
 }
 
-let TERMINAL_SCREEN_BUFFER_MAX_LINES => 256;
+const TERMINAL_SCREEN_BUFFER_MAX_LINES := 256;
 
 type TerminalScreenBuffer => struct {
     // For each line with index {i} contains {line_change_cutoff[i]} cutoff value

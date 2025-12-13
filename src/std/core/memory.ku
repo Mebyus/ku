@@ -111,7 +111,7 @@ allocator sets all fields in {block} argument.
 
 Number of requested bytes must be not zero.
 */
-fun memory_alloc(al: MemoryAllocator, block: *MemoryBlock) => error_id {
+fun memory_alloc(al: MemoryAllocator, block: *MemoryBlock) -> error_id {
 	must(al.ptr != nil);
 	must(block.*.span.len != 0);
 
@@ -123,7 +123,7 @@ fun memory_alloc(al: MemoryAllocator, block: *MemoryBlock) => error_id {
 	else { #never; }
 }
 
-fun memory_alloc_clear(al: MemoryAllocator, block: *MemoryBlock) => error_id {
+fun memory_alloc_clear(al: MemoryAllocator, block: *MemoryBlock) -> error_id {
 	const eid: error_id = memory_alloc(al, block);
 	if eid != 0 {
 		ret eid;
@@ -139,8 +139,8 @@ fun memory_free(al: MemoryAllocator, block: *MemoryBlock) {
 	must(block.*.span.ptr != nil);
 
 	if al.kind
-	=> 0 { #never; }
-	=> #enum(MEMORY_ALLOCATOR.ARENA) {
+	-> 0 { #never; }
+	-> #enum(MEMORY_ALLOCATOR.ARENA) {
 		// Arena allocator does not free memory blocks
     }
 	else { #never; }

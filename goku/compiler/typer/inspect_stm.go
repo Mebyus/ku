@@ -212,6 +212,8 @@ func (t *Typer) inspectExp(exp ast.Exp) diag.Error {
 		return t.inspectTintExp(e)
 	case ast.Call:
 		return t.inspectCallExp(e)
+	case ast.Slice:
+		return t.inspectSliceExp(e)
 	case ast.GetRef:
 		return t.inspectRefExp(e)
 	case ast.Object:
@@ -290,6 +292,29 @@ func (t *Typer) inspectUnaryExp(u ast.Unary) diag.Error {
 	return t.inspectExp(u.Exp)
 }
 
+func (t *Typer) inspectSliceExp(s ast.Slice) diag.Error {
+	err := t.inspectChainExp(s.Chain)
+	if err != nil {
+		return err
+	}
+
+	if s.Start != nil {
+		err = t.inspectExp(s.Start)
+		if err != nil {
+			return err
+		}
+	}
+
+	if s.End != nil {
+		err = t.inspectExp(s.End)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (t *Typer) inspectCallExp(c ast.Call) diag.Error {
 	err := t.inspectChainExp(c.Chain)
 	if err != nil {
@@ -323,6 +348,31 @@ func (t *Typer) inspectBinaryExp(exp ast.Binary) diag.Error {
 
 func (t *Typer) inspectChainExp(chain ast.Chain) diag.Error {
 	name := chain.Start.Str
+	if name == "" {
+		// handle unsafe prefix
+		if len(chain.Parts) == 0 {
+			panic("empty chain")
+		}
+		p := chain.Parts[0]
+		u, ok := p.(ast.Unsafe)
+		if !ok {
+			// TODO: should redesign unsafe storage in AST
+			fmt.Printf("WARN: probably an error in parser")
+			return nil
+		}
+		name = "unsafe." + u.Name
+		s := t.unit.Scope.Get(name)
+		if s == nil {
+			return &diag.SimpleMessageError{
+				Pin:  u.Pin,
+				Text: fmt.Sprintf("name \"%s\" refers to undefined symbol", name),
+			}
+		}
+
+		t.ins.link(s)
+		return nil
+	}
+
 	s := t.unit.Scope.Get(name)
 	if s == nil {
 		// probably local or global symbol

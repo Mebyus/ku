@@ -1,0 +1,232 @@
+
+type FixedBuffer struct {
+	// Pointer to buffer memory.
+	// Always not nil for initialized struct.
+	ptr: [*]u8
+
+	// Content length. How many bytes is already written to buffer.
+	// Length cannot be greater than capacity.
+	len: uint
+
+	// Buffer storage capacity. Max bytes it can hold.
+	cap: uint
+
+    // Indicates that buffer is full and no more formatted data can be written to it.
+    eof: bool
+}
+
+fun (&FixedBuffer) reset() {
+	g.len = 0;
+    g.eof = false;
+}
+
+const buffer_eof := "(...)";
+
+fun (&FixedBuffer) init(s: []u8) {
+    const min_initial_size := 1 << 8;
+    must(min_initial_size > buffer_eof.len); // could be #must, but C compiler is unable to work with that
+	must(s.len >= min_initial_size);
+	must(s.ptr != nil);
+
+	g.ptr = s.ptr;
+	g.cap = s.len;
+    g.reset(g);
+}
+
+fun (&FixedBuffer) tail() -> []u8 {
+    var tail: []u8;
+    if g.eof {
+        ret tail;
+    }
+    if g.len >= g.cap {
+        g.eof = true;
+        ret tail;
+    }
+
+    var body: []u8 = make_span(g.ptr, g.cap);
+    tail = body[g.len:];
+
+    ret tail;
+}
+
+fun (&FixedBuffer) take() -> str {
+    var body: []u8 = make_span(g.ptr, g.cap);
+
+    var s: str;
+    if !g.eof {
+        s = body[:g.len];
+    } else {
+        var pos: uint = min_uint(g.len, g.cap - buffer_eof.len);
+        var tail: []u8 = body[pos:];
+        copy(tail, buffer_eof);
+        s = body[:pos + buffer_eof.len];
+    }
+
+    g.reset();
+    ret s;
+}
+
+fun (&FixedBuffer) put_byte(x: u8) {
+    var tail: []u8 = g.tail(buf);
+    if tail.len == 0 {
+        ret;
+    } else if tail.len == 1 {
+        g.eof = true;
+    }
+
+    tail.ptr.[0] = x;
+    g.len += 1;
+}
+
+fun (&FixedBuffer) put_byte_repeat(x: u8, k: uint) {
+    var tail: []u8 = g.tail(buf);
+    if tail.len == 0 {
+        ret;
+    }
+
+    var n: uint = min_uint(tail.len, k);
+    for i = [:n] {
+        tail.ptr.[i] = x;
+    }
+    g.len += n;
+    if n < k {
+        g.eof = true;
+    }
+}
+
+fun (&FixedBuffer) put_newline() {
+    g.put_byte('\n');
+}
+
+fun (&FixedBuffer) put_space() {
+    g.put_byte(buf, ' ');
+}
+
+fun (&FixedBuffer) put_space_repeat(k: uint) {
+    g.put_byte_repeat(' ', k);
+}
+
+fun (&FixedBuffer) put_str(s: str) {
+    if s.len == 0 {
+        ret;
+    }
+
+    var tail: []u8 = g.tail(buf);
+    if tail.len == 0 {
+        ret;
+    }
+
+    var n: uint = copy(tail, s);
+    g.len += n;
+    if n < s.len {
+        g.eof = true;
+    }
+}
+
+fun (&FixedBuffer) put_dec_u64(x: u64) {
+    var tail: []u8 = g.tail();
+    if tail.len == 0 {
+        ret;
+    }
+
+    var n: uint = put_dec_u64(tail, x);
+    g.len += n;
+    if n == 0 {
+        g.eof = true;
+    }
+}
+
+fun (&FixedBuffer) put_hex_prefix_zeroes_u32(x: u32) {
+    var tail: []u8 = g.tail();
+    if tail.len == 0 {
+        ret;
+    }
+    if tail.len < max_u32_hex_length {
+        g.eof = true;
+        ret;
+    }
+
+    unsafe.put_hex_prefix_zeroes_u32(tail.ptr, x);
+    g.len += max_u32_hex_length;
+}
+
+fun (&FixedBuffer) put_hex_prefix_zeroes_u64(x: u64) {
+    var tail: []u8 = g.tail();
+    if tail.len == 0 {
+        ret;
+    }
+    if tail.len < max_u64_hex_length {
+        g.eof = true;
+        ret;
+    }
+
+    unsafe.put_hex_prefix_zeroes_u64(tail.ptr, x);
+    g.len += max_u64_hex_length;
+}
+
+fun (&FixedBuffer) put_bin_bytes_u16(x: u16) {
+    var tail: []u8 = g.tail();
+    if tail.len == 0 {
+        ret;
+    }
+    if tail.len < bin_bytes_u16_length {
+        g.eof = true;
+        ret;
+    }
+
+    unsafe.put_bin_bytes_u16(tail.ptr, x);
+    g.len += bin_bytes_u16_length;
+}
+
+fun (&FixedBuffer) put_bin_bytes_u32(x: u32) {
+    var tail: []u8 = g.tail();
+    if tail.len == 0 {
+        ret;
+    }
+    if tail.len < bin_bytes_u32_length {
+        g.eof = true;
+        ret;
+    }
+
+    unsafe.put_bin_bytes_u32(tail.ptr, x);
+    g.len += bin_bytes_u32_length;
+}
+
+fun (&FixedBuffer) put_bits_f32(f: f32) {
+    var tail: []u8 = g.tail();
+    if tail.len == 0 {
+        ret;
+    }
+    if tail.len < bits_f32_length {
+        g.eof = true;
+        ret;
+    }
+
+    unsafe.put_bits_f32(tail.ptr, f);
+    g.len += fmt_bits_f32_length;
+}
+
+fun (&FixedBuffer) put_hex_bytes(s: []u8) {
+    if s.len == 0 {
+        ret;
+    }
+
+    var tail: []u8 = g.tail();
+    if tail.len == 0 {
+        ret;
+    }
+
+    var len: uint = 3 * s.len - 1;
+    if tail.len < len {
+        g.eof = true;
+        ret;
+    }
+
+    unsafe.put_hex_byte(tail.ptr, s[0]);
+    for i = [1:s.len] {
+        var offset: uint = 3 * i - 1;
+        tail.ptr.[offset] = ' ';
+        unsafe.put_hex_byte(tail.ptr + offset + 1, s[i]);
+    }
+    g.len += len;
+}
