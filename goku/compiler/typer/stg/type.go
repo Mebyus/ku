@@ -11,6 +11,16 @@ import (
 type Type struct {
 	nodeSymDef
 
+	// For some types this field is nil, since all necessary properties
+	// are stored in other fields.
+	//
+	//	- void
+	//	- integers
+	//	- floats
+	//	- strings
+	//	- boolean
+	//	- rune
+	//	- *void
 	Def TypeDef
 
 	// Byte size of this type's value. May be 0 for some types.
@@ -24,6 +34,67 @@ type Type struct {
 
 	// Discriminator for type definition category.
 	Kind tpk.Kind
+}
+
+// String use only for debugging.
+func (t *Type) String() string {
+	var s string
+	switch t.Kind {
+	case tpk.Trivial:
+		return "void"
+	case tpk.Integer:
+		switch t.Size {
+		case 0:
+			// unsized static
+			s = "int"
+		case 1:
+			s = "8"
+		case 2:
+			s = "16"
+		case 4:
+			s = "32"
+		case 8:
+			s = "64"
+		case 16:
+			s = "128"
+		default:
+			panic(fmt.Sprintf("unexpected size (=%d)", t.Size))
+		}
+		if t.Size != 0 {
+			if t.IsSigned() {
+				s = "s" + s
+			} else {
+				s = "u" + s
+			}
+		}
+	case tpk.Boolean:
+		s = "bool"
+	case tpk.String:
+		s = "str"
+	case tpk.Float:
+		switch t.Size {
+		case 0:
+			// unsized static
+			s = "float"
+		case 4:
+			s = "f32"
+		case 8:
+			s = "f64"
+		case 16:
+			s = "f128"
+		default:
+			panic(fmt.Sprintf("unexpected size (=%d)", t.Size))
+		}
+	case tpk.AnyPointer:
+		return "*void"
+	default:
+		return fmt.Sprintf("???(%d)", t.Kind)
+	}
+
+	if t.IsStatic() {
+		s = "<" + s + ">"
+	}
+	return s
 }
 
 // TypeHash is a pseudo-unique type identifier which depends purely on type definition.
@@ -80,6 +151,14 @@ const (
 	TypeFlagSigned
 )
 
+func (t *Type) IsStatic() bool {
+	return t.Flags&TypeFlagStatic != 0
+}
+
+func (t *Type) IsSigned() bool {
+	return t.Flags&TypeFlagSigned != 0
+}
+
 // Custom defines custom type.
 type Custom struct {
 	// List of methods which are bound to this custom type.
@@ -127,13 +206,39 @@ func (Array) Kind() tpk.Kind {
 }
 
 type TypeIndex struct {
-	// Maps chunk type definition to the corresponding chunk type.
-	Chunks map[Chunk]*Type
+	Static StaticTypes
+
+	// Maps span element type to the corresponding span type.
+	Spans map[ /* span element type */ *Type]*Type
 
 	// Maps array type definition to the corresponding array type.
-	Arrays map[Array]*Type
+	// Arrays map[Array]*Type
+}
+
+// StaticTypes contains instances of various predefined (builtin) static types.
+type StaticTypes struct {
+	// Unsized.
+	Integer *Type
+
+	String *Type
+}
+
+func (t *StaticTypes) Init() {
+	t.Integer = &Type{
+		Size:  0, // unsized static integer can hold arbitrary large integer number
+		Flags: TypeFlagBuiltin | TypeFlagSigned | TypeFlagStatic,
+		Kind:  tpk.Integer,
+	}
+
+	t.String = &Type{
+		Size:  0,
+		Flags: TypeFlagBuiltin | TypeFlagStatic,
+		Kind:  tpk.String,
+	}
 }
 
 func (x *TypeIndex) Init() {
+	x.Static.Init()
 
+	x.Spans = make(map[*Type]*Type)
 }

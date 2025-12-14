@@ -10,7 +10,7 @@ import (
 )
 
 func (t *Typer) hoistSymbols() diag.Error {
-	const debug = true
+	const debug = false
 
 	graph := t.gb.Scan()
 	t.graph = graph

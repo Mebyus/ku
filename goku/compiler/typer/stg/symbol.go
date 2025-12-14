@@ -113,3 +113,11 @@ type SymDef interface {
 type nodeSymDef struct{}
 
 func (nodeSymDef) _symdef() {}
+
+// StaticValue is a SymDef for constant symbols. It holds a value known
+// at compile time.
+type StaticValue struct {
+	nodeSymDef
+
+	Exp Exp
+}

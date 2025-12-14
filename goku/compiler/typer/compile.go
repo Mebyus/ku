@@ -615,7 +615,7 @@ func (t *Typer) addGenericMethod(g *stg.Generic, m ast.Method) diag.Error {
 }
 
 func (t *Typer) inspectSymbols() diag.Error {
-	const debug = true
+	const debug = false
 
 	symbols := t.unit.Scope.Symbols
 	t.ins.Init()

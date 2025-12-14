@@ -2,8 +2,11 @@ package srcmap
 
 import (
 	"fmt"
+	"hash/fnv"
+	"io"
 	"os"
 	"path/filepath"
+	"slices"
 )
 
 // Pool loads and stores source files. Stored files can be accessed as Text.
@@ -40,27 +43,29 @@ func (p *Pool) DecodePin(pin Pin) (FilePos, error) {
 //
 // Path argument should be cleaned by caller for consistency.
 func (p *Pool) Load(path string) (*Text, error) {
+	if path == "" || path == "." {
+		panic("empty or invalid path")
+	}
 	text, ok := p.m[path]
 	if ok {
 		return text, nil
 	}
 
-	data, err := os.ReadFile(path)
+	text, err := loadTextFromFile(path)
 	if err != nil {
 		return nil, err
 	}
 
-	i := uint32(len(p.list))
-	id := i + 1
-	text = &Text{
-		Data: data,
-		Path: path,
-		Ext:  filepath.Ext(path),
-		ID:   id,
-	}
+	p.add(path, text)
+	return text, nil
+}
+
+func (p *Pool) add(path string, text *Text) {
+	id := uint32(len(p.list)) + 1
+	text.ID = id
+
 	p.list = append(p.list, text)
 	p.m[path] = text
-	return text, nil
 }
 
 // get returns stored Text by its id.
@@ -74,4 +79,52 @@ func (p *Pool) get(id uint32) *Text {
 		return nil
 	}
 	return p.list[id-1]
+}
+
+// does not set Text.ID
+func loadTextFromFile(path string) (*Text, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	info, err := f.Stat()
+	if err != nil {
+		return nil, err
+	}
+
+	h := fnv.New64a()
+	size := info.Size()
+	if size <= 0 {
+		return &Text{
+			Path: path,
+			Ext:  filepath.Ext(path),
+			Hash: h.Sum64(),
+		}, nil
+	}
+	size += 1 // one byte for final read at EOF
+
+	data := make([]byte, 0, size)
+	r := io.TeeReader(f, h)
+
+	for {
+		n, err := r.Read(data[len(data):cap(data)])
+		data = data[:len(data)+n]
+		if err != nil {
+			if err == io.EOF {
+				return &Text{
+					Data: data,
+					Path: path,
+					Ext:  filepath.Ext(path),
+					Hash: h.Sum64(),
+				}, nil
+			}
+			return nil, err
+		}
+
+		if cap(data) <= len(data) {
+			data = slices.Grow(data, 1<<10)
+		}
+	}
 }

@@ -10,7 +10,7 @@ import (
 
 const maxFileSize = 1 << 26
 
-// DirScanParams
+// DirScanParams specifies how directory should be scanned for source files.
 type DirScanParams struct {
 	// Default value will be used if this field equals 0.
 	MaxFileSize uint32
@@ -25,8 +25,8 @@ type DirScanParams struct {
 //
 // Second argument can be nil. In that case default scan parameters are used.
 func (p *Pool) LoadDir(dir string, params *DirScanParams) ([]*Text, error) {
-	if dir == "" {
-		panic("empty unit directory path")
+	if dir == "" || dir == "." {
+		panic("empty or invalid unit directory path")
 	}
 
 	if params == nil {

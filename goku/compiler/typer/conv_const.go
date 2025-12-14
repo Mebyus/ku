@@ -10,11 +10,17 @@ import (
 )
 
 func (t *Typer) convConstSymbol(s *stg.Symbol) diag.Error {
+	const debug = true
+
 	c := t.box.Const(s.Aux)
 
-	_, err := t.evalConstExp(&t.unit.Scope, c.Exp)
+	exp, err := t.evalConstExp(&t.unit.Scope, c.Exp)
 	if err != nil {
 		return err
+	}
+
+	if debug {
+		fmt.Printf("const %s = %s\n", c.Name.Str, exp)
 	}
 
 	return nil
@@ -30,10 +36,14 @@ func (t *Typer) evalConstExp(scope *stg.Scope, exp ast.Exp) (stg.Exp, diag.Error
 	case ast.Symbol:
 		return t.evalConstSymbolExp(scope, e)
 	case ast.Integer:
+		return t.ctx.Types.MakeInteger(e.Pin, e.Val), nil
 	case ast.String:
+		return t.ctx.Types.MakeString(e.Pin, e.Val), nil
 	case ast.True:
 	case ast.False:
 	case ast.Rune:
+	case ast.Binary:
+		return t.evalConstBinaryExp(scope, e)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) expression (%T)", e.Kind(), e.Kind(), e))
 	}
@@ -60,5 +70,23 @@ func (t *Typer) evalConstSymbolExp(scope *stg.Scope, sym ast.Symbol) (stg.Exp, d
 		}
 	}
 
-	return s.Def.(stg.Exp), nil
+	return s.Def.(stg.StaticValue).Exp, nil
+}
+
+func (t *Typer) evalConstBinaryExp(scope *stg.Scope, exp ast.Binary) (stg.Exp, diag.Error) {
+	a, err := t.evalConstExp(scope, exp.A)
+	if err != nil {
+		return nil, err
+	}
+	b, err := t.evalConstExp(scope, exp.B)
+	if err != nil {
+		return nil, err
+	}
+	if a.Type() != b.Type() {
+		return nil, &diag.SimpleMessageError{
+			Pin:  a.Span().Pin,
+			Text: fmt.Sprintf("incompatible operand types (%s and %s) in binary expression", a.Type(), b.Type()),
+		}
+	}
+	return nil, nil
 }

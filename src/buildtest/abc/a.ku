@@ -5,3 +5,5 @@ type String struct {
 }
 
 const k := 10;
+
+const a := 1 + 2;

@@ -87,6 +87,9 @@ func PinTextMask(id uint32) Pin {
 //
 // Low 32-bits of this integer carry byte offset into text.
 // High 32-bits carry text id.
+//
+// Zero value is reserved for things that do not have position
+// in source (ex: generated symbols and nodes).
 type Pin uint64
 
 func (p Pin) Pos() Pos {

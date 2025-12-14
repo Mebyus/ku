@@ -7,7 +7,7 @@ import (
 
 // Text represents something that contains source text.
 // Most often text comes from a file, but sometimes it may be generated on the
-// fly during compilation and not stored on a file system. Other cases include
+// fly during compilation and not stored in a filesystem. Other cases include
 // source text from strings which is helpful for automated tests.
 type Text struct {
 	Data []byte
@@ -23,6 +23,9 @@ type Text struct {
 	//	- ".h"
 	//	- ".kub"
 	Ext string
+
+	// Contains consistent hash of bytes stored in Data field.
+	Hash uint64
 
 	// Assigned automatically when text is loaded by Pool.
 	// Zero value is reserved for texts which are used for consistent testing.
