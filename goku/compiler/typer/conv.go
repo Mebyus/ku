@@ -40,7 +40,7 @@ func (t *Typer) convSymbol(s *stg.Symbol) diag.Error {
 	case smk.Method:
 		return nil
 	case smk.Type:
-		return nil
+		return t.convTypeSymbol(s)
 	case smk.Var:
 		return nil
 	default:

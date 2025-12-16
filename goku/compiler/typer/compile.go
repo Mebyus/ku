@@ -44,6 +44,10 @@ type Typer struct {
 	// Maps custom type symbol to a list of its method symbols.
 	// Filled during method bind phase.
 	methodsByReceiver map[*stg.Symbol][]*stg.Symbol
+
+	// Used for field and method name collision check on a struct.
+	// Map is cleared and reused between different symbols.
+	fields map[ /* field or method name */ string]srcmap.Pin
 }
 
 func Compile(c *stg.Context, unit *stg.Unit, texts []*ast.Text) diag.Error {
@@ -62,6 +66,7 @@ func Compile(c *stg.Context, unit *stg.Unit, texts []*ast.Text) diag.Error {
 		ctx:  c,
 		unit: unit,
 
+		fields:            make(map[string]srcmap.Pin),
 		methodsByReceiver: make(map[*stg.Symbol][]*stg.Symbol),
 	}
 	t.box.init(texts)
@@ -218,7 +223,7 @@ func (t *Typer) checkGenericBinds() diag.Error {
 	return nil
 }
 
-func (t *Typer) addImports(imports []stg.ImportSite) diag.Error {
+func (t *Typer) addImports(imports []srcmap.ImportSite) diag.Error {
 	for _, s := range imports {
 		err := t.addImport(s)
 		if err != nil {
@@ -328,7 +333,7 @@ func (t *Typer) addGenBinds(binds []ast.GenBind) diag.Error {
 	return nil
 }
 
-func (t *Typer) addImport(s stg.ImportSite) diag.Error {
+func (t *Typer) addImport(s srcmap.ImportSite) diag.Error {
 	unit := t.ctx.Map[s.Path]
 	if unit == nil {
 		panic("unit not found: impossible due to map construction")

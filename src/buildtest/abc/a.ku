@@ -1,7 +1,15 @@
+type s []str
+
+type p *u64
+
 pub
 type String struct {
     ptr: [*]u8
     len: u32
+}
+
+fun (&String) klen() -> u32 {
+    ret g.len;
 }
 
 const k := 10;

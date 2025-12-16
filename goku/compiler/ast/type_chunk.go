@@ -10,7 +10,7 @@ import (
 // Formal definition:
 //
 //	Chunk => "[]" TypeSpec
-type Chunk struct {
+type Chunk struct { // TODO: rename this to Span across project
 	// Chunk element type specifier.
 	Type TypeSpec
 }

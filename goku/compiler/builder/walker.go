@@ -105,7 +105,7 @@ func (w *Walker) AnalyzeUnit(item QueueItem) (*stg.Unit, diag.Error) {
 		}
 	}
 
-	var imports []stg.ImportSite
+	var imports []srcmap.ImportSite
 	parsers := make([]*parser.Parser, 0, len(files))
 	pset := origin.NewSet()
 	for _, file := range files {
@@ -141,7 +141,7 @@ func (w *Walker) AnalyzeUnit(item QueueItem) (*stg.Unit, diag.Error) {
 					}
 				}
 				pset.Add(p)
-				imports = append(imports, stg.ImportSite{
+				imports = append(imports, srcmap.ImportSite{
 					Path: p,
 					Name: m.Name.Str,
 					Pin:  m.Name.Pin,

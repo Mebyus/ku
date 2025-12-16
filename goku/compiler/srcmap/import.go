@@ -9,6 +9,18 @@ type Import struct {
 	Pin  Pin
 }
 
+// ImportSite represents a single unit import inside an import block.
+type ImportSite struct {
+	// Unit path of imported unit.
+	Path origin.Path
+
+	// Unit is imported under this name.
+	Name string
+
+	// Place where import occurs in source code.
+	Pin Pin
+}
+
 func CheckUniqueImports(ss []Import) bool {
 	if len(ss) < 2 {
 		return true

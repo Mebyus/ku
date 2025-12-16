@@ -6,25 +6,11 @@ import (
 	"github.com/mebyus/ku/goku/compiler/ast"
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/enums/smk"
-	"github.com/mebyus/ku/goku/compiler/enums/tpk"
 	"github.com/mebyus/ku/goku/compiler/typer/stg"
 )
 
 func (t *Typer) inspectTypeSymbol(s *stg.Symbol) diag.Error {
 	spec := t.box.Type(s.Aux).Spec
-
-	custom := &stg.Custom{
-		Symbol:  s,
-		Methods: t.methodsByReceiver[s],
-	}
-	def := &stg.Type{
-		Def:  custom,
-		Kind: tpk.Custom,
-	}
-	s.Def = def
-
-	// TODO: probably need to add new type to index
-	// t.ctx.Types.
 
 	err := t.inspectCustomTypeSpec(spec)
 	if err != nil {

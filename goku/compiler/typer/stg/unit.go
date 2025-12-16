@@ -10,7 +10,7 @@ import (
 )
 
 type Unit struct {
-	nodeSymDef
+	nodeSymDef // TODO: move this to separate wrapper struct
 
 	// Unit top level scope.
 	Scope Scope
@@ -24,7 +24,7 @@ type Unit struct {
 	Path origin.Path
 
 	// All imports inside this unit.
-	Imports []ImportSite
+	Imports []srcmap.ImportSite
 
 	// Unit index assigned by order in which units are discovered
 	// during unit discovery phase (uwalk).
@@ -32,18 +32,6 @@ type Unit struct {
 
 	// Unit index assigned after path sorting.
 	Index uint32
-}
-
-// ImportSite represents a single unit import inside an import block.
-type ImportSite struct {
-	// Unit path of imported unit.
-	Path origin.Path
-
-	// Unit is imported under this name.
-	Name string
-
-	// Place where import occurs in source code.
-	Pin srcmap.Pin
 }
 
 func SortAndOrderUnits(units []*Unit) {
@@ -67,7 +55,7 @@ func SortAndOrderUnits(units []*Unit) {
 	}
 }
 
-func SortImports(ss []ImportSite) {
+func SortImports(ss []srcmap.ImportSite) {
 	if len(ss) < 2 {
 		return
 	}
@@ -88,13 +76,13 @@ func (u *Unit) HasMain() bool {
 	return s.Kind == smk.Fun
 }
 
-func (u *Unit) FindImportSite(path origin.Path) (ImportSite, bool) {
+func (u *Unit) FindImportSite(path origin.Path) (srcmap.ImportSite, bool) {
 	for _, s := range u.Imports {
 		if s.Path == path {
 			return s, true
 		}
 	}
-	return ImportSite{}, false
+	return srcmap.ImportSite{}, false
 }
 
 func (u *Unit) InitScopes(global *Scope) {

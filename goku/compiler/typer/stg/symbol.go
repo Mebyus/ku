@@ -1,6 +1,8 @@
 package stg
 
 import (
+	"fmt"
+
 	"github.com/mebyus/ku/goku/compiler/enums/smk"
 	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
@@ -99,6 +101,27 @@ func (s *Symbol) MarkSkip() {
 
 func (s *Symbol) ShouldSkip() bool {
 	return s.Flags&SymbolSkip != 0
+}
+
+// GetMethodName get original method name without receiver prefix.
+// Panics on symbols that are not methods.
+func (s *Symbol) GetMethodName() string {
+	if s.Kind != smk.Method {
+		panic(fmt.Sprintf("%s (=%d) symbol \"%s\"", s.Kind, s.Kind, s.Name))
+	}
+
+	for i := range len(s.Name) {
+		c := s.Name[i]
+		if c == '.' {
+			name := s.Name[i+1:]
+			if name == "" {
+				break
+			}
+			return name
+		}
+	}
+
+	panic(fmt.Sprintf("method \"%s\" has bad symbol name format", s.Name))
 }
 
 type SymDef interface {

@@ -6,7 +6,6 @@ import (
 
 	"github.com/mebyus/ku/goku/compiler/ast"
 	"github.com/mebyus/ku/goku/compiler/srcmap"
-	"github.com/mebyus/ku/goku/compiler/typer/stg"
 )
 
 type UnknownOriginError struct {
@@ -37,7 +36,7 @@ func (e *UnknownOriginError) Render(w io.Writer, m srcmap.PinMap) error {
 }
 
 type ImportCycleError struct {
-	Sites []stg.ImportSite
+	Sites []srcmap.ImportSite
 }
 
 var _ Error = &ImportCycleError{}
@@ -60,7 +59,7 @@ func (e *ImportCycleError) Render(w io.Writer, m srcmap.PinMap) error {
 	return nil
 }
 
-func renderImport(w io.Writer, m srcmap.PinMap, site stg.ImportSite) error {
+func renderImport(w io.Writer, m srcmap.PinMap, site srcmap.ImportSite) error {
 	pos, err := m.DecodePin(site.Pin)
 	if err != nil {
 		return err

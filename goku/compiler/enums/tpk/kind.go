@@ -99,7 +99,7 @@ const (
 	// Types of symbols, created by importing other unit
 	//
 	//	import std {
-	//		math => "math"
+	//		math -> "math"
 	//	}
 	//
 	// Symbol math in the example above has Type with Kind = Import.
@@ -109,8 +109,10 @@ const (
 	//
 	// Created via language construct:
 	//
-	//	type Name => <OtherType>
+	//	type Name <OtherType>
 	Custom
+
+	Struct
 )
 
 var text = [...]string{
@@ -125,6 +127,7 @@ var text = [...]string{
 	Array:  "array",
 	Chunk:  "chunk",
 	Custom: "custom",
+	Struct: "struct",
 
 	Pointer:      "pointer",
 	AnyPointer:   "pointer.any",

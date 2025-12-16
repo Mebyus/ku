@@ -9,7 +9,7 @@ import (
 )
 
 type Type struct {
-	nodeSymDef
+	nodeSymDef // TODO: move type symdef to separate wrapper struct
 
 	// For some types this field is nil, since all necessary properties
 	// are stored in other fields.
@@ -87,6 +87,9 @@ func (t *Type) String() string {
 		}
 	case tpk.AnyPointer:
 		return "*void"
+	case tpk.Custom:
+		c := t.Def.(*Custom)
+		s = c.Symbol.Name
 	default:
 		return fmt.Sprintf("???(%d)", t.Kind)
 	}
@@ -205,40 +208,16 @@ func (Array) Kind() tpk.Kind {
 	return tpk.Array
 }
 
-type TypeIndex struct {
-	Static StaticTypes
-
-	// Maps span element type to the corresponding span type.
-	Spans map[ /* span element type */ *Type]*Type
-
-	// Maps array type definition to the corresponding array type.
-	// Arrays map[Array]*Type
+type Field struct {
+	Name   string
+	Type   *Type
+	Offset uint32
 }
 
-// StaticTypes contains instances of various predefined (builtin) static types.
-type StaticTypes struct {
-	// Unsized.
-	Integer *Type
-
-	String *Type
+type Struct struct {
+	Fields []Field
 }
 
-func (t *StaticTypes) Init() {
-	t.Integer = &Type{
-		Size:  0, // unsized static integer can hold arbitrary large integer number
-		Flags: TypeFlagBuiltin | TypeFlagSigned | TypeFlagStatic,
-		Kind:  tpk.Integer,
-	}
-
-	t.String = &Type{
-		Size:  0,
-		Flags: TypeFlagBuiltin | TypeFlagStatic,
-		Kind:  tpk.String,
-	}
-}
-
-func (x *TypeIndex) Init() {
-	x.Static.Init()
-
-	x.Spans = make(map[*Type]*Type)
+func (Struct) Kind() tpk.Kind {
+	return tpk.Struct
 }

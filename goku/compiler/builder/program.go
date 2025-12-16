@@ -112,12 +112,12 @@ func (b *Bundle) mapGraphNodes() {
 	}
 }
 
-func convertImportCycle(c *graphs.Cycle, units []*stg.Unit) []stg.ImportSite {
+func convertImportCycle(c *graphs.Cycle, units []*stg.Unit) []srcmap.ImportSite {
 	if len(c.Nodes) < 2 {
 		panic("bad cycle data")
 	}
 
-	sites := make([]stg.ImportSite, 0, len(c.Nodes))
+	sites := make([]srcmap.ImportSite, 0, len(c.Nodes))
 	for i := 0; i < len(c.Nodes)-1; i += 1 {
 		j := c.Nodes[i]
 		k := c.Nodes[i+1]
