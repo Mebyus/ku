@@ -55,6 +55,8 @@ func (t *Typer) inspectResultType(spec ast.TypeSpec) diag.Error {
 		return t.linkTypeName(p)
 	case ast.Chunk:
 		return t.linkChunk(p)
+	case ast.Tuple:
+		return t.inspectTuple(p)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier (%T)", p.Kind(), p.Kind(), p))
 	}

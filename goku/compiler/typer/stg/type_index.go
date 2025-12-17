@@ -1,8 +1,10 @@
 package stg
 
 import (
+	"encoding/binary"
 	"fmt"
 	"strings"
+	"unsafe"
 
 	"github.com/mebyus/ku/goku/compiler/ast"
 	"github.com/mebyus/ku/goku/compiler/diag"
@@ -27,6 +29,8 @@ type TypeIndex struct {
 	// Maps joined field names to a list of struct types with the same field
 	// names (including field order).
 	Structs map[ /* joined field names */ string][]*Type
+
+	Tuples map[ /* binary encoded string of all types inside tuple */ string]*Type
 
 	// Maps array type definition (element type + size) to the corresponding array type.
 	Arrays map[Array]*Type
@@ -87,6 +91,7 @@ func (x *TypeIndex) Init() {
 	x.Pointers = make(map[*Type]*Type)
 	x.Refs = make(map[*Type]*Type)
 	x.Structs = make(map[string][]*Type)
+	x.Tuples = make(map[string]*Type)
 	x.Arrays = make(map[Array]*Type)
 }
 
@@ -121,6 +126,8 @@ func (x *TypeIndex) lookup(scope *Scope, spec ast.TypeSpec) (*Type, diag.Error) 
 		return x.lookupArray(scope, p)
 	case ast.Struct:
 		return x.lookupStruct(scope, p)
+	case ast.Tuple:
+		return x.lookupTuple(scope, p)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier (%T)", p.Kind(), p.Kind(), p))
 	}
@@ -301,6 +308,35 @@ func (x *TypeIndex) lookupStruct(scope *Scope, p ast.Struct) (*Type, diag.Error)
 	return typ, nil
 }
 
+func (x *TypeIndex) lookupTuple(scope *Scope, tuple ast.Tuple) (*Type, diag.Error) {
+	if len(tuple.Types) == 0 {
+		panic("empty tuple")
+	}
+
+	types := make([]*Type, 0, len(tuple.Types))
+	for _, p := range tuple.Types {
+		typ, err := x.lookup(scope, p)
+		if err != nil {
+			return nil, err
+		}
+		types = append(types, typ)
+	}
+
+	key := encodeTypesAsKey(types)
+	typ, ok := x.Tuples[key]
+	if ok {
+		return typ, nil
+	}
+	typ = &Type{
+		// TODO: calculate size
+		Def:  Tuple{Types: types},
+		Kind: tpk.Tuple,
+	}
+	x.Tuples[key] = typ
+
+	return typ, nil
+}
+
 // Checks that all corresponding fields in two lists have the same types:
 //
 //	a[0].Type == b[0].Type
@@ -315,4 +351,23 @@ func equalFieldTypes(a, b []Field) bool {
 		}
 	}
 	return true
+}
+
+// HACK: this function produces a non-utf8 string which is essentially a slice of
+// binary encoded pointer values of each *Type in list.
+//
+// We use this hack to uniquely identify tuple types with map[string]*Type.
+func encodeTypesAsKey(list []*Type) string {
+	var buf strings.Builder
+	buf.Grow(8 * len(list))
+
+	for _, t := range list {
+		p := uint64(uintptr(unsafe.Pointer(t)))
+
+		var b [8]byte
+		binary.LittleEndian.PutUint64(b[:], p)
+		buf.Write(b[:])
+	}
+
+	return buf.String()
 }

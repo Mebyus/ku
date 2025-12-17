@@ -220,6 +220,8 @@ func (t *Typer) inspectExp(exp ast.Exp) diag.Error {
 		return t.inspectObject(e)
 	case ast.List:
 		return t.inspectListExp(e)
+	case ast.Pack:
+		return t.inspectPack(e)
 	case ast.Size:
 		return t.inspectSizeExp(e)
 	default:
@@ -245,6 +247,16 @@ func (t *Typer) linkExpSymbol(symbol ast.Symbol) diag.Error {
 	}
 
 	t.ins.link(s)
+	return nil
+}
+
+func (t *Typer) inspectPack(p ast.Pack) diag.Error {
+	for _, e := range p.List {
+		err := t.inspectExp(e)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

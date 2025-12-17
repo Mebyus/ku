@@ -215,6 +215,18 @@ func (Chunk) Kind() tpk.Kind {
 	return tpk.Chunk
 }
 
+type Tuple struct {
+	// Always not nil.
+	Types []*Type
+}
+
+// Explicit interface implementation check.
+var _ TypeDef = Tuple{}
+
+func (Tuple) Kind() tpk.Kind {
+	return tpk.Tuple
+}
+
 type Array struct {
 	// Array element type.
 	Type *Type

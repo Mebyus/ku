@@ -115,6 +115,8 @@ const (
 	Custom
 
 	Struct
+
+	Tuple
 )
 
 var text = [...]string{
@@ -130,6 +132,7 @@ var text = [...]string{
 	Chunk:  "chunk",
 	Custom: "custom",
 	Struct: "struct",
+	Tuple:  "tuple",
 
 	Ref:          "ref",
 	Pointer:      "pointer",

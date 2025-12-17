@@ -150,6 +150,16 @@ func (t *Typer) linkTypeName(p ast.TypeName) diag.Error {
 	return nil
 }
 
+func (t *Typer) inspectTuple(p ast.Tuple) diag.Error {
+	for _, p := range p.Types {
+		err := t.inspectType(p)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (t *Typer) inspectType(spec ast.TypeSpec) diag.Error {
 	switch p := spec.(type) {
 	case ast.AnyPointer:

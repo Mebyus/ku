@@ -14,9 +14,9 @@ fun strip(s: str) -> str {
     ret s;
 }
 
-// fun load(path: str) -> ([]u8, error) {
-//     ret nil, nil;
-// }
+fun load(path: str) -> ([]u8, error) {
+    ret nil, nil;
+}
 
 type error struct {
     id:  uint
@@ -33,6 +33,16 @@ type SomeType struct {
     ptr: *any
 
     aa: AnotherType
+}
+
+fun (&SomeType) init(a: str, b: s32) -> error {
+    if g.data == nil {
+        ret nil;
+    }
+    if g.buf.len != 8 {
+        ret nil;
+    }
+    ret nil;
 }
 
 // type A B
