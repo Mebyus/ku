@@ -6,8 +6,9 @@ import (
 	"github.com/mebyus/ku/goku/compiler/enums/tpk"
 )
 
-func (s *Scope) InitGlobal() {
+func (s *Scope) InitGlobal(types *TypeIndex) {
 	s.Init(sck.Global, nil)
+	s.Types = types
 }
 
 const archPointerSize = 8

@@ -35,7 +35,7 @@ func (p Pointer) String() string {
 //
 // Formal definition:
 //
-// Ref => "&" TypeSpec
+// Ref -> "&" TypeSpec
 type Ref struct {
 	// Type to which pointer refers to.
 	Type TypeSpec

@@ -12,7 +12,7 @@ type Context struct {
 
 func (c *Context) Init() {
 	c.Types.Init()
-	c.Global.InitGlobal()
+	c.Global.InitGlobal(&c.Types)
 
 	if c.Map == nil {
 		c.Map = make(map[origin.Path]*Unit)

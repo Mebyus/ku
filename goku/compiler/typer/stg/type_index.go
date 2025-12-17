@@ -21,12 +21,15 @@ type TypeIndex struct {
 	// Maps type referred by pointer to corresponding pointer type.
 	Pointers map[ /* type referred by pointer */ *Type]*Type
 
+	// Maps type referred by reference to corresponding reference type.
+	Refs map[ /* type referred by reference */ *Type]*Type
+
 	// Maps joined field names to a list of struct types with the same field
 	// names (including field order).
 	Structs map[ /* joined field names */ string][]*Type
 
-	// Maps array type definition to the corresponding array type.
-	// Arrays map[Array]*Type
+	// Maps array type definition (element type + size) to the corresponding array type.
+	Arrays map[Array]*Type
 }
 
 // StaticTypes contains instances of various predefined (builtin) static types.
@@ -82,7 +85,9 @@ func (x *TypeIndex) Init() {
 
 	x.Spans = make(map[*Type]*Type)
 	x.Pointers = make(map[*Type]*Type)
+	x.Refs = make(map[*Type]*Type)
 	x.Structs = make(map[string][]*Type)
+	x.Arrays = make(map[Array]*Type)
 }
 
 func (x *TypeIndex) Lookup(scope *Scope, spec ast.TypeSpec) (*Type, diag.Error) {
@@ -104,6 +109,8 @@ func (x *TypeIndex) lookup(scope *Scope, spec ast.TypeSpec) (*Type, diag.Error) 
 		return x.Known.VoidPointer, nil
 	case ast.Pointer:
 		return x.lookupPointer(scope, p)
+	case ast.Ref:
+		return x.lookupRef(scope, p)
 	case ast.Trivial:
 		return x.Known.Void, nil
 	case ast.TypeFullName:
@@ -111,6 +118,7 @@ func (x *TypeIndex) lookup(scope *Scope, spec ast.TypeSpec) (*Type, diag.Error) 
 	case ast.Chunk:
 		return x.lookupSpan(scope, p)
 	case ast.Array:
+		return x.lookupArray(scope, p)
 	case ast.Struct:
 		return x.lookupStruct(scope, p)
 	default:
@@ -140,6 +148,49 @@ func (x *TypeIndex) lookupTypeName(scope *Scope, p ast.TypeName) (*Type, diag.Er
 	return s.Def.(*Type), nil
 }
 
+func (x *TypeIndex) lookupArray(scope *Scope, a ast.Array) (*Type, diag.Error) {
+	sizeExp, err := scope.EvalConstExp(a.Size)
+	if err != nil {
+		return nil, err
+	}
+	integer, err := expectInteger(sizeExp)
+	if err != nil {
+		return nil, err
+	}
+	if integer.Neg {
+		return nil, &diag.SimpleMessageError{
+			Pin:  integer.Pin,
+			Text: "negative number of elements in array declaration",
+		}
+	}
+	size := integer.Val
+	if size == 0 {
+		return x.Known.Void, nil
+	}
+
+	t, err := x.lookup(scope, a.Type)
+	if err != nil {
+		return nil, err
+	}
+
+	def := Array{
+		Type: t,
+		Len:  uint32(size),
+	}
+	typ, ok := x.Arrays[def]
+	if ok {
+		return typ, nil
+	}
+	typ = &Type{
+		Def:  def,
+		Size: t.Size * uint32(size),
+		Kind: tpk.Array,
+	}
+	x.Arrays[def] = typ
+
+	return typ, nil
+}
+
 func (x *TypeIndex) lookupPointer(scope *Scope, p ast.Pointer) (*Type, diag.Error) {
 	t, err := x.lookup(scope, p.Type)
 	if err != nil {
@@ -151,10 +202,31 @@ func (x *TypeIndex) lookupPointer(scope *Scope, p ast.Pointer) (*Type, diag.Erro
 		return typ, nil
 	}
 	typ = &Type{
-		Def:  Chunk{Type: t},
-		Size: 2 * archPointerSize,
-		Kind: tpk.Chunk,
+		Def:  Pointer{Type: t},
+		Size: archPointerSize,
+		Kind: tpk.Pointer,
 	}
+	x.Pointers[t] = typ
+
+	return typ, nil
+}
+
+func (x *TypeIndex) lookupRef(scope *Scope, p ast.Ref) (*Type, diag.Error) {
+	t, err := x.lookup(scope, p.Type)
+	if err != nil {
+		return nil, err
+	}
+
+	typ, ok := x.Refs[t]
+	if ok {
+		return typ, nil
+	}
+	typ = &Type{
+		Def:  Ref{Type: t},
+		Size: archPointerSize,
+		Kind: tpk.Ref,
+	}
+	x.Refs[t] = typ
 
 	return typ, nil
 }
@@ -174,6 +246,7 @@ func (x *TypeIndex) lookupSpan(scope *Scope, p ast.Chunk) (*Type, diag.Error) {
 		Size: 2 * archPointerSize,
 		Kind: tpk.Chunk,
 	}
+	x.Spans[t] = typ
 
 	return typ, nil
 }

@@ -10,6 +10,19 @@ fun alter(t: &SomeType, x: Sized) {
     }
 }
 
+fun strip(s: str) -> str {
+    ret s;
+}
+
+// fun load(path: str) -> ([]u8, error) {
+//     ret nil, nil;
+// }
+
+type error struct {
+    id:  uint
+    obj: *any
+}
+
 type SomeType struct {
     name: abc.String
     data: [*]u8

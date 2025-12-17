@@ -181,6 +181,28 @@ func (Custom) Kind() tpk.Kind {
 	return tpk.Custom
 }
 
+type Pointer struct {
+	// Type referenced by pointer.
+	Type *Type
+}
+
+var _ TypeDef = Pointer{}
+
+func (Pointer) Kind() tpk.Kind {
+	return tpk.Pointer
+}
+
+type Ref struct {
+	// Type referenced by reference.
+	Type *Type
+}
+
+var _ TypeDef = Ref{}
+
+func (Ref) Kind() tpk.Kind {
+	return tpk.Ref
+}
+
 type Chunk struct {
 	// Chunk element type.
 	Type *Type
@@ -198,7 +220,7 @@ type Array struct {
 	Type *Type
 
 	// Number of elements in array.
-	Size uint64
+	Len uint32
 }
 
 // Explicit interface implementation check.

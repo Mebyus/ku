@@ -13,12 +13,14 @@ type Scope struct {
 
 	Parent *Scope
 
+	Types *TypeIndex
+
 	// Symbol map. Maps name to its local symbol.
 	m map[string]*Symbol
 
 	// Unit where this scope is located.
 	// Always nil for global scope.
-	Unit *Unit
+	// Unit *Unit
 
 	// Scope's nesting level. Starts from 0 for global scope. Language structure
 	// implies that first levels are dependant on Kind:
@@ -61,10 +63,12 @@ func (s *Scope) Init(kind sck.Kind, parent *Scope) {
 		if parent == nil {
 			panic("no parent scope")
 		}
+		s.Types = parent.Types
 	}
 
 	s.Kind = kind
 	s.Parent = parent
+
 	s.m = make(map[string]*Symbol)
 }
 

@@ -92,6 +92,8 @@ const (
 	// (pointer to a string)
 	Pointer
 
+	Ref
+
 	// Pointer to continuous region of memory holding
 	// variable number of elements of another type.
 	ArrayPointer
@@ -129,6 +131,7 @@ var text = [...]string{
 	Custom: "custom",
 	Struct: "struct",
 
+	Ref:          "ref",
 	Pointer:      "pointer",
 	AnyPointer:   "pointer.any",
 	ArrayPointer: "pointer.array",

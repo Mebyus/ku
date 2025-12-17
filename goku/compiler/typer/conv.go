@@ -36,9 +36,9 @@ func (t *Typer) convSymbol(s *stg.Symbol) diag.Error {
 	case smk.Const:
 		return t.convConstSymbol(s)
 	case smk.Fun:
-		return nil
+		return t.convFunSymbol(s)
 	case smk.Method:
-		return nil
+		return t.convMethodSymbol(s)
 	case smk.Type:
 		return t.convTypeSymbol(s)
 	case smk.Var:
