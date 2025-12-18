@@ -71,6 +71,7 @@ var text = [...]string{
 	Import: "import",
 	Param:  "param",
 
+	Receiver:  "receiver",
 	OmitParam: "param.omit",
 }
 

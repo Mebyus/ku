@@ -9,7 +9,11 @@ type String struct {
 }
 
 fun (&String) klen() -> u32 {
-    ret g.len;
+    var a: uint;
+    {
+        a = 1;
+    }
+    ret a;
 }
 
 const k := 10;

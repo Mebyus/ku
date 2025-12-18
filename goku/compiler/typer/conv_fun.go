@@ -47,7 +47,6 @@ func (t *Typer) convMethodSymbol(s *stg.Symbol) diag.Error {
 	}
 	def.Receiver = typ
 
-
 	const rname = "g"
 	if def.Body.Scope.Has(rname) {
 		return &diag.SimpleMessageError{

@@ -23,10 +23,18 @@ type Var struct {
 	Exp Exp
 }
 
+// Assign represents value assignment to a variable.
+type Assign struct {
+	// Always not nil.
+	Exp Exp
+
+	Symbol *Symbol
+}
+
 type If struct {
-	If     Branch
-	IfElse []Branch
-	Else   *Block
+	If      Branch
+	ElseIfs []Branch
+	Else    *Block
 }
 
 type Branch struct {

@@ -7,6 +7,7 @@ import (
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/enums/sck"
 	"github.com/mebyus/ku/goku/compiler/enums/smk"
+	"github.com/mebyus/ku/goku/compiler/enums/tpk"
 	"github.com/mebyus/ku/goku/compiler/typer/stg"
 )
 
@@ -95,6 +96,8 @@ func (t *Typer) translateStatement(stm ast.Statement) (stg.Statement, diag.Error
 		return t.translateVar(s)
 	case ast.If:
 		return t.translateIf(s)
+	case ast.Assign:
+		return t.translateAssign(s)
 	case ast.Block:
 		if len(s.Nodes) == 0 {
 			// block statement with no statements is equivalent to empty statement
@@ -114,6 +117,56 @@ func (t *Typer) translateStatement(stm ast.Statement) (stg.Statement, diag.Error
 	default:
 		panic(fmt.Sprintf("unexpected %s (=%d) statement (%T)", s.Kind(), s.Kind(), s))
 	}
+}
+
+func (t *Typer) translateAssign(a ast.Assign) (*stg.Assign, diag.Error) {
+	switch r := a.Target.(type) {
+	case ast.Symbol:
+		return t.translateAssignSymbol(r, a)
+	default:
+		panic(fmt.Sprintf("unexpected %s (=%d) target expression (%T)", r.Kind(), r.Kind(), r))
+	}
+}
+
+func (t *Typer) translateAssignSymbol(symbol ast.Symbol, a ast.Assign) (*stg.Assign, diag.Error) {
+	name := symbol.Name
+	pin := symbol.Pin
+
+	s := t.scope.Lookup(name)
+	if s == nil {
+		return nil, &diag.SimpleMessageError{
+			Pin:  pin,
+			Text: fmt.Sprintf("name \"%s\" refers to undefined symbol", name),
+		}
+	}
+	if s.Kind != smk.Var && s.Kind != smk.Param {
+		return nil, &diag.SimpleMessageError{
+			Pin:  pin,
+			Text: fmt.Sprintf("cannot assign to %s symbol \"%s\"", s.Kind, name),
+		}
+	}
+
+	exp, err := t.translateExp(a.Value)
+	if err != nil {
+		return nil, err
+	}
+	err = t.checkAssignTypes(s.Type, exp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &stg.Assign{
+		Symbol: s,
+		Exp:    exp,
+	}, nil
+}
+
+func (t *Typer) checkAssignTypes(want *stg.Type, exp stg.Exp) diag.Error {
+	if exp.Type() == want {
+		return nil
+	}
+
+	return nil
 }
 
 func (t *Typer) translateVar(v ast.Var) (*stg.Var, diag.Error) {
@@ -140,7 +193,58 @@ func (t *Typer) translateVar(v ast.Var) (*stg.Var, diag.Error) {
 }
 
 func (t *Typer) translateIf(f ast.If) (*stg.If, diag.Error) {
-	return &stg.If{}, nil
+	var s stg.If
+
+	err := t.translateBranch(&s.If, f.If)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(f.ElseIfs) != 0 {
+		s.ElseIfs = make([]stg.Branch, 0, len(f.ElseIfs))
+		for i := range len(f.ElseIfs) {
+			err := t.translateBranch(&s.ElseIfs[i], f.ElseIfs[i])
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	if f.Else != nil && len(f.Else.Nodes) != 0 {
+		var block stg.Block
+		block.Scope.Init(sck.Branch, t.scope)
+		err := t.translateBlock(&block, *f.Else)
+		if err != nil {
+			return nil, err
+		}
+		if len(block.Nodes) != 0 {
+			s.Else = &block
+		}
+	}
+	return &s, nil
+}
+
+func (t *Typer) translateBranch(branch *stg.Branch, f ast.IfClause) diag.Error {
+	exp, err := t.translateExp(f.Exp)
+	if err != nil {
+		return err
+	}
+	typ := exp.Type()
+	if typ.Kind != tpk.Boolean {
+		return &diag.SimpleMessageError{
+			Pin:  exp.Span().Pin,
+			Text: fmt.Sprintf("branch condition yields %s value, not a boolean", typ),
+		}
+	}
+
+	branch.Block.Scope.Init(sck.Branch, t.scope)
+	err = t.translateBlock(&branch.Block, f.Body)
+	if err != nil {
+		return err
+	}
+
+	branch.Exp = exp
+	return nil
 }
 
 func (t *Typer) translateRet(r ast.Ret) (*stg.Ret, diag.Error) {
