@@ -23,6 +23,9 @@ type Type struct {
 	//	- *void
 	Def TypeDef
 
+	// Zero (default) type value.
+	Zero Exp
+
 	// Byte size of this type's value. May be 0 for some types.
 	// More specifically this field equals the stride between two
 	// consecutive elements of this type inside an array.
@@ -190,6 +193,17 @@ var _ TypeDef = Pointer{}
 
 func (Pointer) Kind() tpk.Kind {
 	return tpk.Pointer
+}
+
+type ArrayPointer struct {
+	// Type referenced by pointer.
+	Type *Type
+}
+
+var _ TypeDef = ArrayPointer{}
+
+func (ArrayPointer) Kind() tpk.Kind {
+	return tpk.ArrayPointer
 }
 
 type Ref struct {

@@ -32,6 +32,8 @@ func (t *Typer) inspectStatement(stm ast.Statement) diag.Error {
 		return t.inspectForRange(s)
 	case ast.While:
 		return t.inspectWhile(s)
+	case ast.Block:
+		return t.inspectBlock(s)
 	case ast.Loop:
 		return t.inspectLoop(s)
 	case ast.Match:

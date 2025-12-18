@@ -47,6 +47,17 @@ func (t *Typer) convMethodSymbol(s *stg.Symbol) diag.Error {
 	}
 	def.Receiver = typ
 
+
+	const rname = "g"
+	if def.Body.Scope.Has(rname) {
+		return &diag.SimpleMessageError{
+			Pin:  r.Name.Pin,
+			Text: fmt.Sprintf("multiple parameters with name \"%s\" in function \"%s\"", rname, s.Name),
+		}
+	}
+	rs := def.Body.Scope.Alloc(smk.Receiver, rname, r.Name.Pin)
+	rs.Type = typ
+
 	s.Def = def
 	return nil
 }

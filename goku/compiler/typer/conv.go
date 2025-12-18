@@ -28,7 +28,7 @@ func (t *Typer) checkAndConvertAST() diag.Error {
 		}
 	}
 
-	return nil
+	return t.translateSymbols()
 }
 
 func (t *Typer) convSymbol(s *stg.Symbol) diag.Error {

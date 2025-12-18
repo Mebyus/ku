@@ -23,6 +23,9 @@ type TypeIndex struct {
 	// Maps type referred by pointer to corresponding pointer type.
 	Pointers map[ /* type referred by pointer */ *Type]*Type
 
+	// Maps type referred by array pointer to corresponding array pointer type.
+	ArrayPointers map[ /* type referred by pointer */ *Type]*Type
+
 	// Maps type referred by reference to corresponding reference type.
 	Refs map[ /* type referred by reference */ *Type]*Type
 
@@ -89,6 +92,7 @@ func (x *TypeIndex) Init() {
 
 	x.Spans = make(map[*Type]*Type)
 	x.Pointers = make(map[*Type]*Type)
+	x.ArrayPointers = make(map[*Type]*Type)
 	x.Refs = make(map[*Type]*Type)
 	x.Structs = make(map[string][]*Type)
 	x.Tuples = make(map[string]*Type)
@@ -120,6 +124,7 @@ func (x *TypeIndex) lookup(scope *Scope, spec ast.TypeSpec) (*Type, diag.Error) 
 		return x.Known.Void, nil
 	case ast.TypeFullName:
 	case ast.ArrayPointer:
+		return x.lookupArrayPointer(scope, p)
 	case ast.Chunk:
 		return x.lookupSpan(scope, p)
 	case ast.Array:
@@ -214,6 +219,26 @@ func (x *TypeIndex) lookupPointer(scope *Scope, p ast.Pointer) (*Type, diag.Erro
 		Kind: tpk.Pointer,
 	}
 	x.Pointers[t] = typ
+
+	return typ, nil
+}
+
+func (x *TypeIndex) lookupArrayPointer(scope *Scope, p ast.ArrayPointer) (*Type, diag.Error) {
+	t, err := x.lookup(scope, p.Type)
+	if err != nil {
+		return nil, err
+	}
+
+	typ, ok := x.ArrayPointers[t]
+	if ok {
+		return typ, nil
+	}
+	typ = &Type{
+		Def:  ArrayPointer{Type: t},
+		Size: archPointerSize,
+		Kind: tpk.ArrayPointer,
+	}
+	x.ArrayPointers[t] = typ
 
 	return typ, nil
 }

@@ -38,6 +38,9 @@ type Typer struct {
 
 	graph *Graph
 
+	// After index phase is complete, contains all functions defined inside unit.
+	funs []*stg.Symbol
+
 	// After index phase is complete, contains all methods defined inside unit.
 	methods []*stg.Symbol
 
@@ -48,6 +51,12 @@ type Typer struct {
 	// Used for field and method name collision check on a struct.
 	// Map is cleared and reused between different symbols.
 	fields map[ /* field or method name */ string]srcmap.Pin
+
+	// Signature of current function or method being translated.
+	sig *stg.Signature
+
+	// Scope of current block being translated.
+	scope *stg.Scope
 }
 
 func Compile(c *stg.Context, unit *stg.Unit, texts []*ast.Text) diag.Error {
@@ -366,6 +375,7 @@ func (t *Typer) addFun(fun ast.Fun) diag.Error {
 	if fun.Pub {
 		symbol.Flags |= stg.SymbolPublic
 	}
+	t.funs = append(t.funs, symbol)
 	return nil
 }
 

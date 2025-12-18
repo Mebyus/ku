@@ -35,13 +35,15 @@ type SomeType struct {
     aa: AnotherType
 }
 
-fun (&SomeType) init(a: str, b: s32) -> error {
+fun (&SomeType) init(a: str, b: s32, k: [*]str) -> error {
+    {}
     if g.data == nil {
         ret nil;
     }
     if g.buf.len != 8 {
         ret nil;
     }
+    // var g: uint;
     ret nil;
 }
 
