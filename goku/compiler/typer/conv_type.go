@@ -21,7 +21,7 @@ func (t *Typer) convTypeSymbol(s *stg.Symbol) diag.Error {
 		}
 	}
 
-	typ, err := t.ctx.Types.Lookup(&t.unit.Scope, spec)
+	typ, err := t.unit.Scope.LookupType(spec)
 	if err != nil {
 		return err
 	}

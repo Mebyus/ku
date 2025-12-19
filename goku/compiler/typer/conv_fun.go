@@ -41,7 +41,7 @@ func (t *Typer) convMethodSymbol(s *stg.Symbol) diag.Error {
 		panic(fmt.Sprintf("unexpected receiver kind (=%d)", r.Kind))
 	}
 
-	typ, err := t.ctx.Types.Lookup(&t.unit.Scope, spec)
+	typ, err := t.unit.Scope.LookupType(spec)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func (t *Typer) createFun(sname string, sig ast.Signature) (*stg.Fun, diag.Error
 	def.Never = sig.Never
 
 	if sig.Result != nil {
-		result, err := t.ctx.Types.Lookup(&t.unit.Scope, sig.Result)
+		result, err := t.unit.Scope.LookupType(sig.Result)
 		if err != nil {
 			return nil, err
 		}
@@ -95,7 +95,7 @@ func (t *Typer) createFun(sname string, sig ast.Signature) (*stg.Fun, diag.Error
 		}
 		ps := scope.Alloc(smk.Param, name, pin)
 
-		typ, err := t.ctx.Types.Lookup(&t.unit.Scope, p.Type)
+		typ, err := t.unit.Scope.LookupType(p.Type)
 		if err != nil {
 			return nil, err
 		}

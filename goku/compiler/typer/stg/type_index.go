@@ -107,71 +107,64 @@ func (x *TypeIndex) Init() {
 	x.Arrays = make(map[Array]*Type)
 }
 
-func (x *TypeIndex) Lookup(scope *Scope, spec ast.TypeSpec) (*Type, diag.Error) {
-	typ, err := x.lookup(scope, spec)
-	if err != nil {
-		return nil, err
-	}
-	if typ == nil {
-		panic(fmt.Sprintf("%s (=%d) type specifier (%T) produced no type", spec.Kind(), spec.Kind(), spec))
-	}
-	return typ, nil
-}
-
-func (x *TypeIndex) lookup(scope *Scope, spec ast.TypeSpec) (*Type, diag.Error) {
+func (s *Scope) LookupType(spec ast.TypeSpec) (*Type, diag.Error) {
 	switch p := spec.(type) {
 	case ast.VoidPointer:
-		return x.Known.VoidPointer, nil
+		return s.Types.Known.VoidPointer, nil
 	case ast.VoidRef:
-		return x.Known.VoidRef, nil
+		return s.Types.Known.VoidRef, nil
 	case ast.Void:
-		return x.Known.Void, nil
+		return s.Types.Known.Void, nil
 	case ast.TypeName:
-		return x.lookupTypeName(scope, p)
+		return s.lookupTypeName(p)
 	case ast.Pointer:
-		return x.lookupPointer(scope, p)
+		return s.lookupPointer(p)
 	case ast.Ref:
-		return x.lookupRef(scope, p)
+		return s.lookupRef(p)
 	case ast.TypeFullName:
+		return s.lookupTypeFullName(p)
 	case ast.ArrayPointer:
-		return x.lookupArrayPointer(scope, p)
+		return s.lookupArrayPointer(p)
 	case ast.Span:
-		return x.lookupSpan(scope, p)
+		return s.lookupSpan(p)
 	case ast.Array:
-		return x.lookupArray(scope, p)
+		return s.lookupArray(p)
 	case ast.Struct:
-		return x.lookupStruct(scope, p)
+		return s.lookupStruct(p)
 	case ast.Tuple:
-		return x.lookupTuple(scope, p)
+		return s.lookupTuple(p)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier (%T)", p.Kind(), p.Kind(), p))
 	}
-	return nil, nil
 }
 
-func (x *TypeIndex) lookupTypeName(scope *Scope, p ast.TypeName) (*Type, diag.Error) {
+func (s *Scope) lookupTypeName(p ast.TypeName) (*Type, diag.Error) {
 	name := p.Name.Str
 	pin := p.Name.Pin
 
-	s := scope.Lookup(name)
-	if s == nil {
+	symbol := s.Lookup(name)
+	if symbol == nil {
 		return nil, &diag.SimpleMessageError{
 			Pin:  pin,
 			Text: fmt.Sprintf("type name \"%s\" refers to undefined symbol", name),
 		}
 	}
-	if s.Kind != smk.Type {
+	if symbol.Kind != smk.Type {
 		return nil, &diag.SimpleMessageError{
 			Pin:  pin,
 			Text: fmt.Sprintf("name \"%s\" refers to %s, not a type", name, s.Kind),
 		}
 	}
 
-	return s.Def.(*Type), nil
+	return symbol.Def.(*Type), nil
 }
 
-func (x *TypeIndex) lookupArray(scope *Scope, a ast.Array) (*Type, diag.Error) {
-	sizeExp, err := scope.EvalConstExp(a.Size)
+func (s *Scope) lookupTypeFullName(p ast.TypeFullName) (*Type, diag.Error) {
+	return nil, nil
+}
+
+func (s *Scope) lookupArray(a ast.Array) (*Type, diag.Error) {
+	sizeExp, err := s.EvalConstExp(a.Size)
 	if err != nil {
 		return nil, err
 	}
@@ -187,10 +180,10 @@ func (x *TypeIndex) lookupArray(scope *Scope, a ast.Array) (*Type, diag.Error) {
 	}
 	size := integer.Val
 	if size == 0 {
-		return x.Known.Void, nil
+		return s.Types.Known.Void, nil
 	}
 
-	t, err := x.lookup(scope, a.Type)
+	t, err := s.LookupType(a.Type)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +192,7 @@ func (x *TypeIndex) lookupArray(scope *Scope, a ast.Array) (*Type, diag.Error) {
 		Type: t,
 		Len:  uint32(size),
 	}
-	typ, ok := x.Arrays[def]
+	typ, ok := s.Types.Arrays[def]
 	if ok {
 		return typ, nil
 	}
@@ -208,18 +201,18 @@ func (x *TypeIndex) lookupArray(scope *Scope, a ast.Array) (*Type, diag.Error) {
 		Size: t.Size * uint32(size),
 		Kind: tpk.Array,
 	}
-	x.Arrays[def] = typ
+	s.Types.Arrays[def] = typ
 
 	return typ, nil
 }
 
-func (x *TypeIndex) lookupPointer(scope *Scope, p ast.Pointer) (*Type, diag.Error) {
-	t, err := x.lookup(scope, p.Type)
+func (s *Scope) lookupPointer(p ast.Pointer) (*Type, diag.Error) {
+	t, err := s.LookupType(p.Type)
 	if err != nil {
 		return nil, err
 	}
 
-	typ, ok := x.Pointers[t]
+	typ, ok := s.Types.Pointers[t]
 	if ok {
 		return typ, nil
 	}
@@ -228,18 +221,18 @@ func (x *TypeIndex) lookupPointer(scope *Scope, p ast.Pointer) (*Type, diag.Erro
 		Size: archPointerSize,
 		Kind: tpk.Pointer,
 	}
-	x.Pointers[t] = typ
+	s.Types.Pointers[t] = typ
 
 	return typ, nil
 }
 
-func (x *TypeIndex) lookupArrayPointer(scope *Scope, p ast.ArrayPointer) (*Type, diag.Error) {
-	t, err := x.lookup(scope, p.Type)
+func (s *Scope) lookupArrayPointer(p ast.ArrayPointer) (*Type, diag.Error) {
+	t, err := s.LookupType(p.Type)
 	if err != nil {
 		return nil, err
 	}
 
-	typ, ok := x.ArrayPointers[t]
+	typ, ok := s.Types.ArrayPointers[t]
 	if ok {
 		return typ, nil
 	}
@@ -248,18 +241,18 @@ func (x *TypeIndex) lookupArrayPointer(scope *Scope, p ast.ArrayPointer) (*Type,
 		Size: archPointerSize,
 		Kind: tpk.ArrayPointer,
 	}
-	x.ArrayPointers[t] = typ
+	s.Types.ArrayPointers[t] = typ
 
 	return typ, nil
 }
 
-func (x *TypeIndex) lookupRef(scope *Scope, p ast.Ref) (*Type, diag.Error) {
-	t, err := x.lookup(scope, p.Type)
+func (s *Scope) lookupRef(p ast.Ref) (*Type, diag.Error) {
+	t, err := s.LookupType(p.Type)
 	if err != nil {
 		return nil, err
 	}
 
-	typ, ok := x.Refs[t]
+	typ, ok := s.Types.Refs[t]
 	if ok {
 		return typ, nil
 	}
@@ -268,18 +261,18 @@ func (x *TypeIndex) lookupRef(scope *Scope, p ast.Ref) (*Type, diag.Error) {
 		Size: archPointerSize,
 		Kind: tpk.Ref,
 	}
-	x.Refs[t] = typ
+	s.Types.Refs[t] = typ
 
 	return typ, nil
 }
 
-func (x *TypeIndex) lookupSpan(scope *Scope, p ast.Span) (*Type, diag.Error) {
-	t, err := x.lookup(scope, p.Type)
+func (s *Scope) lookupSpan(p ast.Span) (*Type, diag.Error) {
+	t, err := s.LookupType(p.Type)
 	if err != nil {
 		return nil, err
 	}
 
-	typ, ok := x.Spans[t]
+	typ, ok := s.Types.Spans[t]
 	if ok {
 		return typ, nil
 	}
@@ -288,12 +281,12 @@ func (x *TypeIndex) lookupSpan(scope *Scope, p ast.Span) (*Type, diag.Error) {
 		Size: 2 * archPointerSize,
 		Kind: tpk.Span,
 	}
-	x.Spans[t] = typ
+	s.Types.Spans[t] = typ
 
 	return typ, nil
 }
 
-func (x *TypeIndex) lookupStruct(scope *Scope, p ast.Struct) (*Type, diag.Error) {
+func (s *Scope) lookupStruct(p ast.Struct) (*Type, diag.Error) {
 	if len(p.Fields) == 0 {
 		panic("struct with no fields")
 	}
@@ -301,7 +294,7 @@ func (x *TypeIndex) lookupStruct(scope *Scope, p ast.Struct) (*Type, diag.Error)
 	n := 0 // total length of joined field names
 	fields := make([]Field, 0, len(p.Fields))
 	for _, f := range p.Fields {
-		t, err := x.lookup(scope, f.Type)
+		t, err := s.LookupType(f.Type)
 		if err != nil {
 			return nil, err
 		}
@@ -328,7 +321,7 @@ func (x *TypeIndex) lookupStruct(scope *Scope, p ast.Struct) (*Type, diag.Error)
 	}
 	joined := buf.String()
 
-	list := x.Structs[joined]
+	list := s.Types.Structs[joined]
 	for _, t := range list {
 		if equalFieldTypes(fields, t.Def.(Struct).Fields) {
 			return t, nil
@@ -339,18 +332,18 @@ func (x *TypeIndex) lookupStruct(scope *Scope, p ast.Struct) (*Type, diag.Error)
 		Def:  Struct{Fields: fields},
 		Kind: tpk.Struct,
 	}
-	x.Structs[joined] = append(x.Structs[joined], typ)
+	s.Types.Structs[joined] = append(s.Types.Structs[joined], typ)
 	return typ, nil
 }
 
-func (x *TypeIndex) lookupTuple(scope *Scope, tuple ast.Tuple) (*Type, diag.Error) {
+func (s *Scope) lookupTuple(tuple ast.Tuple) (*Type, diag.Error) {
 	if len(tuple.Types) == 0 {
 		panic("empty tuple")
 	}
 
 	types := make([]*Type, 0, len(tuple.Types))
 	for _, p := range tuple.Types {
-		typ, err := x.lookup(scope, p)
+		typ, err := s.LookupType(p)
 		if err != nil {
 			return nil, err
 		}
@@ -358,7 +351,7 @@ func (x *TypeIndex) lookupTuple(scope *Scope, tuple ast.Tuple) (*Type, diag.Erro
 	}
 
 	key := encodeTypesAsKey(types)
-	typ, ok := x.Tuples[key]
+	typ, ok := s.Types.Tuples[key]
 	if ok {
 		return typ, nil
 	}
@@ -367,7 +360,7 @@ func (x *TypeIndex) lookupTuple(scope *Scope, tuple ast.Tuple) (*Type, diag.Erro
 		Def:  Tuple{Types: types},
 		Kind: tpk.Tuple,
 	}
-	x.Tuples[key] = typ
+	s.Types.Tuples[key] = typ
 
 	return typ, nil
 }

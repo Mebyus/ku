@@ -24,7 +24,7 @@ func (t *Typer) convConstSymbol(s *stg.Symbol) diag.Error {
 		typ = exp.Type()
 	} else {
 		var err diag.Error
-		typ, err = t.ctx.Types.Lookup(&t.unit.Scope, c.Type)
+		typ, err = t.unit.Scope.LookupType(c.Type)
 		if err != nil {
 			return err
 		}

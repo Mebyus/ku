@@ -170,7 +170,7 @@ func (t *Typer) checkAssignTypes(want *stg.Type, exp stg.Exp) diag.Error {
 }
 
 func (t *Typer) translateVar(v ast.Var) (*stg.Var, diag.Error) {
-	typ, err := t.ctx.Types.Lookup(t.scope, v.Type)
+	typ, err := t.scope.LookupType(v.Type)
 	if err != nil {
 		return nil, err
 	}

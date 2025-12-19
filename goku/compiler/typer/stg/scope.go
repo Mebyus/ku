@@ -28,7 +28,6 @@ type Scope struct {
 	//	- global     -> 0
 	//	- unit       -> 1
 	//	- test       -> 2
-	//	- unsafe     -> 2
 	//	- node       -> 3
 	//
 	// Subsequent levels are created inside function and method bodies by means of
