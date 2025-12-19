@@ -119,7 +119,9 @@ const (
 
 	Pub
 	Unsafe
+	Never
 
+	Stub
 	Must
 	Panic
 	Cast // cast
@@ -130,15 +132,13 @@ const (
 	Nil
 	True
 	False
-	Any // designator to use as *any (void* analog)
+	Void // designator to use as *void (void* analog from C)
 
 	StaticMust // #must
 	StaticIf   // #if
 
 	Debug  // #debug
 	Build  // #build
-	Never  // #never
-	Stub   // #stub
 	Size   // #size - query type size
 	Lookup // #lookup
 

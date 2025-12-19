@@ -32,7 +32,7 @@ func (g *Printer) fun(f Fun) {
 }
 
 func (g *Printer) FunStub(s FunStub) {
-	g.puts("#stub")
+	g.puts("stub")
 	g.nl()
 	g.puts("fun ")
 	g.puts(s.Name.Str)
@@ -45,7 +45,7 @@ func (g *Printer) Signature(s Signature) {
 	g.puts(")")
 
 	if s.Never {
-		g.puts(" => #never")
+		g.puts(" -> never")
 		return
 	}
 
@@ -53,7 +53,7 @@ func (g *Printer) Signature(s Signature) {
 		return
 	}
 
-	g.puts(" => ")
+	g.puts(" -> ")
 	g.TypeSpec(s.Result)
 }
 

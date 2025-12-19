@@ -38,7 +38,7 @@ func (g *Printer) ImportBlock(block ImportBlock) {
 	for _, i := range block.Imports {
 		g.indent()
 		g.puts(i.Name.Str)
-		g.puts(" => \"")
+		g.puts(" -> \"")
 		g.puts(i.String.Str)
 		g.puts("\"")
 		g.nl()

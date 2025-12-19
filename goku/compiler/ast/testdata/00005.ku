@@ -1,12 +1,12 @@
-type Foo => struct {
-	bar: str,
+type Foo struct {
+	bar: str
 }
 
-type Bar => str
+type Bar str
 
-type Hello => {}
+type Hello void
 
-type FooError => u32 {
+type FooError u32 {
 	BIG = 1,
 	SMALL = 2,
 }

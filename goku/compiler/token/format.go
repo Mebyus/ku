@@ -102,10 +102,12 @@ var literal = [...]string{
 	Struct: "struct",
 	Pub:    "pub",
 	Unsafe: "unsafe",
+	Never:  "never",
 	Let:    "let",
 	Gen:    "gen",
 	Must:   "must",
 	Panic:  "panic",
+	Stub:   "stub",
 	Cast:   "cast",
 	Tint:   "tint",
 
@@ -114,15 +116,13 @@ var literal = [...]string{
 	Nil:   "nil",
 	True:  "true",
 	False: "false",
-	Any:   "any",
+	Void:  "void",
 
 	StaticMust: "#must",
 	StaticIf:   "#if",
 
 	Debug:  "#debug",
 	Build:  "#build",
-	Stub:   "#stub",
-	Never:  "#never",
 	Size:   "#size",
 	Lookup: "#lookup",
 
@@ -146,6 +146,7 @@ var literal = [...]string{
 	Illegal:    "ILG",
 	Word:       "WORD",
 	String:     "STR",
+	CString:    "STR.C",
 	RawString:  "STR.RAW",
 	FillString: "STR.FILL",
 	Rune:       "RUNE",

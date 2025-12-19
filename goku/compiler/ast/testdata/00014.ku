@@ -1,10 +1,10 @@
 import std {
-	mem => "mem"
+	mem -> "mem"
 }
 
-fun use_copy(a: []u64) => u64 {
+fun use_copy(a: []u64) -> u64 {
 	if a.len == 0 {
-		#never;
+		never;
 	}
 	var i: u32;
 	unsafe.copy(a, nil);

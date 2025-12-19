@@ -5,15 +5,15 @@ gen maps(T: type, n: int) #{
 
 gen maps(...) {
 
-let m0 => maps0(T);
+let m0 -> maps0(T);
 
 #lookup m0;
 
-fun index(s: []T) => uint {
+fun index(s: []T) -> uint {
 	ret s.len;
 }
 
-type Map => struct {
+type Map struct {
 	a: T,
 	b: uint,
 }
@@ -25,8 +25,8 @@ fun (*Map) init(x: T) {
 
 }
 
-fun use_index(a: []u32) => uint {
-	let m => maps(u32, 10);
+fun use_index(a: []u32) -> uint {
+	let m -> maps(u32, 10);
 	len := m.index(a);
 	ret len + 1;
 }

@@ -233,10 +233,6 @@ func (lx *Lexer) static() token.Token {
 		tok.Kind = token.Check
 	case "len":
 		tok.Kind = token.Len
-	case "never":
-		tok.Kind = token.Never
-	case "stub":
-		tok.Kind = token.Stub
 	case "build":
 		tok.Kind = token.Build
 	case "debug":

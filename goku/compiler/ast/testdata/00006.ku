@@ -1,7 +1,7 @@
-fun (*Foo) write(data: []u8) => (u64, error) {
+fun (*Foo) write(data: []u8) -> (u64, error) {
 	ret data.len, nil;
 }
 
-fun (Foo) string(al: mem.Allocator) => str {
+fun (Foo) string(al: mem.Allocator) -> str {
 	ret "";
 }

@@ -11,7 +11,7 @@ func (g *Printer) Type(typ Type) {
 		g.bagList(typ.Bags)
 	}
 
-	g.puts(" => ")
+	g.space()
 	g.TypeSpec(typ.Spec)
 }
 
@@ -48,12 +48,12 @@ func (g *Printer) TypeSpec(typ TypeSpec) {
 		g.Array(t)
 	case Struct:
 		g.Struct(t)
-	case Trivial:
-		g.Trivial(t)
+	case Void:
+		g.Void(t)
 	case Pointer:
 		g.Pointer(t)
-	case AnyPointer:
-		g.AnyPointer(t)
+	case VoidPointer:
+		g.VoidPointer(t)
 	case ArrayPointer:
 		g.ArrayPointer(t)
 	case AnyType:
@@ -99,8 +99,8 @@ func (g *Printer) EnumEntry(entry EnumEntry) {
 	g.Exp(entry.Exp)
 }
 
-func (g *Printer) Trivial(t Trivial) {
-	g.puts("{}")
+func (g *Printer) Void(t Void) {
+	g.puts("void")
 }
 
 func (g *Printer) AnyType(t AnyType) {
@@ -117,8 +117,8 @@ func (g *Printer) Ref(r Ref) {
 	g.TypeSpec(r.Type)
 }
 
-func (g *Printer) AnyPointer(p AnyPointer) {
-	g.puts("*any")
+func (g *Printer) VoidPointer(p VoidPointer) {
+	g.puts("*void")
 }
 
 func (g *Printer) ArrayPointer(p ArrayPointer) {
@@ -181,7 +181,6 @@ func (g *Printer) fieldsCurly(fields []Field) {
 	for _, f := range fields {
 		g.indent()
 		g.Field(f)
-		g.puts(",")
 		g.nl()
 	}
 

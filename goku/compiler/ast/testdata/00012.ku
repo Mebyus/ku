@@ -5,5 +5,5 @@
 }
 
 import std {
-	win => "os/windows"
+	win -> "os/windows"
 }

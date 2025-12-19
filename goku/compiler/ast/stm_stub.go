@@ -11,7 +11,7 @@ import (
 //
 // Formal definition:
 //
-//	Stub => "#stub" ";"
+//	Stub -> "stub" ";"
 type Stub struct {
 	Pin srcmap.Pin
 }
@@ -38,7 +38,7 @@ func (s Stub) String() string {
 //
 // Formal definition:
 //
-//	Never => "#never" ";"
+//	Never -> "never" ";"
 type Never struct {
 	Pin srcmap.Pin
 }

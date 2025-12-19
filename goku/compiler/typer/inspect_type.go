@@ -38,7 +38,7 @@ func (t *Typer) inspectCustomTypeSpec(spec ast.TypeSpec) diag.Error {
 		return t.linkPointer(p)
 	case ast.Array:
 		return t.linkArray(p)
-	case ast.AnyPointer:
+	case ast.VoidPointer:
 		return nil
 	case ast.Struct:
 		// TODO: check for unique names among fields + methods
@@ -74,7 +74,7 @@ func (t *Typer) inspectStructField(field ast.Field) diag.Error {
 		return t.linkPointer(p)
 	case ast.ArrayPointer:
 		return t.linkArrayPointer(p)
-	case ast.AnyPointer:
+	case ast.VoidPointer:
 		return nil
 	case ast.Array:
 		return t.linkArray(p)
@@ -162,7 +162,7 @@ func (t *Typer) inspectTuple(p ast.Tuple) diag.Error {
 
 func (t *Typer) inspectType(spec ast.TypeSpec) diag.Error {
 	switch p := spec.(type) {
-	case ast.AnyPointer:
+	case ast.VoidPointer:
 		return nil
 	case ast.TypeName:
 		return t.linkTypeName(p)

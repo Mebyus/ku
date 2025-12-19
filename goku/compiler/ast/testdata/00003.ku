@@ -1,6 +1,6 @@
 const x: u64 = 0x10;
 
-fun foo_bar(a: str) => #never {
+fun foo_bar(a: str) -> never {
 	print(a);
 	crash();
 }

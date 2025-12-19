@@ -57,50 +57,50 @@ func (p Ref) String() string {
 	return g.Output()
 }
 
-// AnyPointer represents pointer to an unknown type.
+// VoidPointer represents pointer to an unknown type.
 //
 // Formal definition:
 //
-//	AnyPointer => "*" "any"
-type AnyPointer struct {
+//	VoidPointer -> "*" "void"
+type VoidPointer struct {
 	Pin srcmap.Pin
 }
 
-var _ TypeSpec = AnyPointer{}
+var _ TypeSpec = VoidPointer{}
 
-func (AnyPointer) Kind() tsk.Kind {
-	return tsk.AnyPointer
+func (VoidPointer) Kind() tsk.Kind {
+	return tsk.VoidPointer
 }
 
-func (p AnyPointer) Span() srcmap.Span {
+func (p VoidPointer) Span() srcmap.Span {
 	return srcmap.Span{Pin: p.Pin}
 }
 
-func (p AnyPointer) String() string {
-	return "*any"
+func (p VoidPointer) String() string {
+	return "*void"
 }
 
-// AnyRef represents pointer to an unknown type.
+// VoidRef represents pointer to an unknown type.
 //
 // Formal definition:
 //
-//	AnyRef => "&" "any"
-type AnyRef struct {
+//	VoidRef => "&" "void"
+type VoidRef struct {
 	Pin srcmap.Pin
 }
 
-var _ TypeSpec = AnyRef{}
+var _ TypeSpec = VoidRef{}
 
-func (AnyRef) Kind() tsk.Kind {
-	return tsk.AnyRef
+func (VoidRef) Kind() tsk.Kind {
+	return tsk.VoidRef
 }
 
-func (p AnyRef) Span() srcmap.Span {
+func (p VoidRef) Span() srcmap.Span {
 	return srcmap.Span{Pin: p.Pin}
 }
 
-func (p AnyRef) String() string {
-	return "&any"
+func (p VoidRef) String() string {
+	return "&void"
 }
 
 // ArrayPointer represents array pointer type specifier.
@@ -133,7 +133,7 @@ func (p ArrayPointer) String() string {
 //
 // Formal definition:
 //
-//	ArrayRef => "[&]" TypeSpec
+//	ArrayRef -> "[&]" TypeSpec
 type ArrayRef struct {
 	// Type to which pointer refers to.
 	Type TypeSpec

@@ -1,2 +1,2 @@
-#stub
-fun example(a: u32, b: u32) => (u32, bool)
+stub
+fun example(a: u32, b: u32) -> (u32, bool)

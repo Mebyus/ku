@@ -2,9 +2,9 @@ package ast
 
 // Formal definition:
 //
-//	Fun  => "fun" Name Signature Body
-//	Body => Block
-//	Name => word
+//	Fun  -> "fun" Name Signature Body
+//	Body -> Block
+//	Name -> word
 type Fun struct {
 	Signature Signature
 
@@ -16,9 +16,9 @@ type Fun struct {
 
 // Formal definition:
 //
-//	Fun  => "test" Name Body
-//	Body => Block
-//	Name => word
+//	TestFun  -> "test" Name Body
+//	Body     -> Block
+//	Name     -> word
 type TestFun struct {
 	Body Block
 	Name Word
@@ -26,8 +26,8 @@ type TestFun struct {
 
 // Formal definition:
 //
-//	Function => "stub" "fun" Name Signature
-//	Name     => word
+//	Function -> "stub" "fun" Name Signature
+//	Name     -> word
 type FunStub struct {
 	Signature Signature
 
@@ -38,9 +38,9 @@ type FunStub struct {
 
 // Formal definition:
 //
-//	Signature => "(" ParamList ")" [ "=>" ( Result | "never" ) ]
-//	ParamList => { Param "," } // last comma is optional
-//	Result    => TypeSpec
+//	Signature -> "(" ParamList ")" [ "->" ( Result | "never" ) ]
+//	ParamList -> { Param "," } // last comma is optional
+//	Result    -> TypeSpec
 type Signature struct {
 	// Equals nil if there are no parameters in signature.
 	Params []Param

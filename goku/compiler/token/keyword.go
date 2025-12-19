@@ -21,6 +21,8 @@ var kw = map[string]Kind{
 	"pub":    Pub,
 	"gen":    Gen,
 	"unsafe": Unsafe,
+	"never":  Never,
+	"stub":   Stub,
 
 	"must":  Must,
 	"panic": Panic,
@@ -31,7 +33,7 @@ var kw = map[string]Kind{
 	"true":  True,
 	"false": False,
 
-	"any": Any,
+	"void": Void,
 }
 
 const (

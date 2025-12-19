@@ -94,11 +94,11 @@ func (g *Printer) ForRange(r ForRange) {
 }
 
 func (g *Printer) Stub(s Stub) {
-	g.puts("#stub;")
+	g.puts("stub;")
 }
 
 func (g *Printer) Never(n Never) {
-	g.puts("#never;")
+	g.puts("never;")
 }
 
 func (g *Printer) Lookup(l Lookup) {

@@ -9,7 +9,7 @@ import (
 //
 // Formal definition:
 //
-//	AnyType => "type"
+//	AnyType -> "type"
 type AnyType struct {
 	Pin srcmap.Pin
 }

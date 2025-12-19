@@ -1,13 +1,13 @@
 import std {
-	mem => "mem"
-	json => "json"
+	mem -> "mem"
+	json -> "json"
 }
 
 import pkg {
-	pk => "another/person/package"
+	pk -> "another/person/package"
 }
 
 import {
-	bar => "foo/bar"
-	hello => "example/hello"
+	bar -> "foo/bar"
+	hello -> "example/hello"
 }

@@ -114,13 +114,13 @@ func (x *TypeIndex) lookup(scope *Scope, spec ast.TypeSpec) (*Type, diag.Error) 
 	switch p := spec.(type) {
 	case ast.TypeName:
 		return x.lookupTypeName(scope, p)
-	case ast.AnyPointer:
+	case ast.VoidPointer:
 		return x.Known.VoidPointer, nil
 	case ast.Pointer:
 		return x.lookupPointer(scope, p)
 	case ast.Ref:
 		return x.lookupRef(scope, p)
-	case ast.Trivial:
+	case ast.Void:
 		return x.Known.Void, nil
 	case ast.TypeFullName:
 	case ast.ArrayPointer:

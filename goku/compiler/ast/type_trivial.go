@@ -5,20 +5,22 @@ import (
 	"github.com/mebyus/ku/goku/compiler/srcmap"
 )
 
-type Trivial struct {
+// Void represents "void" usage as zero-size type specifier.
+// Should only be used for defining custom types.
+type Void struct {
 	Pin srcmap.Pin
 }
 
-var _ TypeSpec = Trivial{}
+var _ TypeSpec = Void{}
 
-func (Trivial) Kind() tsk.Kind {
-	return tsk.Trivial
+func (Void) Kind() tsk.Kind {
+	return tsk.Void
 }
 
-func (t Trivial) Span() srcmap.Span {
+func (t Void) Span() srcmap.Span {
 	return srcmap.Span{Pin: t.Pin, Len: 2}
 }
 
-func (Trivial) String() string {
-	return "()"
+func (Void) String() string {
+	return "void"
 }

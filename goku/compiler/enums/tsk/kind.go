@@ -15,8 +15,8 @@ const (
 	Union
 	Ref
 	Pointer
-	AnyRef
-	AnyPointer
+	VoidRef
+	VoidPointer
 	Array
 	ArrayRef
 	ArrayPointer
@@ -26,7 +26,7 @@ const (
 	Fun
 	Tuple
 	Form
-	Trivial
+	Void
 	Type
 )
 
@@ -48,11 +48,11 @@ var text = [...]string{
 	Fun:          "fun",
 	Tuple:        "tuple",
 	Form:         "form",
-	Trivial:      "trivial",
+	Void:         "trivial",
 	Type:         "type",
 
-	AnyPointer: "pointer.any",
-	AnyRef:     "ref.any",
+	VoidPointer: "pointer.any",
+	VoidRef:     "ref.any",
 }
 
 func (k Kind) String() string {

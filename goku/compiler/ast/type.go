@@ -9,10 +9,10 @@ import (
 //
 // Formal definitino:
 //
-//	Type => [ "pub" ] "type" Name [ "in" BagList ] "=>" TypeSpec
-//	BagList => "(" { BagName "," } ")"
-//	Name => word
-//	BagName => word
+//	Type    -> [ "pub" ] "type" Name [ "in" BagList ] TypeSpec
+//	BagList -> "(" { BagName "," } ")"
+//	Name    -> word
+//	BagName -> word
 type Type struct {
 	Name Word
 

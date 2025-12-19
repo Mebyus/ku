@@ -9,7 +9,7 @@ import (
 //
 // Formal definition:
 //
-//	Cast => "cast" "(" TypeSpec "," Exp ")"
+//	Cast -> "cast" "(" TypeSpec "," Exp ")"
 type Cast struct {
 	nodeOperand
 

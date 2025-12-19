@@ -149,6 +149,7 @@ func text6() *Text {
 	t.AddMethod(Method{
 		Receiver: Receiver{
 			Name: word("Foo"),
+			Kind: ReceiverVal,
 		},
 		Name: word("string"),
 		Signature: Signature{
@@ -682,4 +683,4 @@ var (
 	str = typename("str")
 )
 
-var triv = Trivial{}
+var triv = Void{}

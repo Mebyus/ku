@@ -50,15 +50,15 @@ func (g *Gen) TypeSpec(spec ast.TypeSpec) {
 		g.Struct(s)
 	case ast.Union:
 		g.Union(s)
-	case ast.Trivial:
+	case ast.Void:
 		panic("not supported")
 	case ast.Pointer:
 		g.Pointer(s)
 	case ast.Ref:
 		g.Ref(s)
-	case ast.AnyPointer:
+	case ast.VoidPointer:
 		g.AnyPointer(s)
-	case ast.AnyRef:
+	case ast.VoidRef:
 		g.AnyRef(s)
 	case ast.ArrayPointer:
 		g.ArrayPointer(s)
@@ -79,11 +79,11 @@ func (g *Gen) TypeName(t ast.TypeName) {
 	g.puts(t.Name.Str)
 }
 
-func (g *Gen) AnyPointer(p ast.AnyPointer) {
+func (g *Gen) AnyPointer(p ast.VoidPointer) {
 	g.puts("void*")
 }
 
-func (g *Gen) AnyRef(r ast.AnyRef) {
+func (g *Gen) AnyRef(r ast.VoidRef) {
 	g.puts("void*")
 }
 

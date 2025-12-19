@@ -1,9 +1,9 @@
-type Writer => bag {
-	write(data: []u8) => (n: uint, err: error);
-	foo();
-	bar(a: str, n: uint) => uint;
+type Writer bag {
+	write(data: []u8) -> (n: uint, err: error)
+	foo()
+	bar(a: str, n: uint) -> uint
 }
 
-type Foo in (Writer, Reader) => struct {
-	n: uint,
+type Foo in (Writer, Reader) struct {
+	n: uint
 }

@@ -84,7 +84,7 @@ func (t *Typer) inspectParam(param ast.Param) diag.Error {
 		return t.linkPointer(p)
 	case ast.ArrayPointer:
 		return t.linkArrayPointer(p)
-	case ast.AnyPointer:
+	case ast.VoidPointer:
 		return nil
 	case ast.Array:
 		return t.linkArray(p)

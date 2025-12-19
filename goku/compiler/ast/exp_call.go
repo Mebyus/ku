@@ -7,8 +7,8 @@ import (
 
 // Call represents an expression of calling something.
 //
-//	Call => Chain "(" Args ")"
-//	Args => { Exp "," } // trailing comma is optional
+//	Call -> Chain "(" Args ")"
+//	Args -> { Exp "," } // trailing comma is optional
 type Call struct {
 	nodeOperand
 

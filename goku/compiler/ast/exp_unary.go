@@ -10,7 +10,7 @@ import (
 //
 // Formal definition:
 //
-//	Unary => UnaryOp ( Operand | Unary )
+//	Unary -> UnaryOp ( Operand | Unary )
 type Unary struct {
 	nodeExp
 

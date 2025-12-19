@@ -20,7 +20,7 @@ fun load(path: str) -> ([]u8, error) {
 
 type error struct {
     id:  uint
-    obj: *any
+    obj: *void
 }
 
 type SomeType struct {
@@ -30,7 +30,7 @@ type SomeType struct {
     more_data: []u8
 
     buf: [8]u32
-    ptr: *any
+    ptr: *void
 
     aa: AnotherType
 }
