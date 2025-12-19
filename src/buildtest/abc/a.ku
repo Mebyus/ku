@@ -2,11 +2,18 @@ type s []str
 
 type p *u64
 
+type ZeroCustom void
+
 pub
 type String struct {
     ptr: [*]u8
     len: u32
 }
+
+// type Variant union {
+//     ptr: *void
+//     num: uint
+// }
 
 fun (&String) klen() -> u32 {
     var a: uint;

@@ -30,6 +30,8 @@ func (t *Typer) inspectTypeSymbol(s *stg.Symbol) diag.Error {
 
 func (t *Typer) inspectCustomTypeSpec(spec ast.TypeSpec) diag.Error {
 	switch p := spec.(type) {
+	case ast.Void, ast.VoidPointer, ast.VoidRef:
+		return nil
 	case ast.TypeName:
 		return t.linkTypeName(p)
 	case ast.Span:
@@ -38,25 +40,21 @@ func (t *Typer) inspectCustomTypeSpec(spec ast.TypeSpec) diag.Error {
 		return t.linkPointer(p)
 	case ast.Array:
 		return t.linkArray(p)
-	case ast.VoidPointer:
-		return nil
 	case ast.Struct:
-		// TODO: check for unique names among fields + methods
-		return t.inspectStructFields(p.Fields)
+		return t.inspectFields(p.Fields)
 	case ast.Bag:
 		fmt.Printf("WARN: bag type specifier not implemented\n")
 		return nil
 	case ast.Union:
-		fmt.Printf("WARN: union type specifier not implemented\n")
-		return nil
+		return t.inspectFields(p.Fields)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier (%T)", p.Kind(), p.Kind(), p))
 	}
 }
 
-func (t *Typer) inspectStructFields(fields []ast.Field) diag.Error {
+func (t *Typer) inspectFields(fields []ast.Field) diag.Error {
 	for _, f := range fields {
-		err := t.inspectStructField(f)
+		err := t.inspectField(f)
 		if err != nil {
 			return err
 		}
@@ -64,7 +62,7 @@ func (t *Typer) inspectStructFields(fields []ast.Field) diag.Error {
 	return nil
 }
 
-func (t *Typer) inspectStructField(field ast.Field) diag.Error {
+func (t *Typer) inspectField(field ast.Field) diag.Error {
 	switch p := field.Type.(type) {
 	case ast.TypeName:
 		return t.linkTypeName(p)

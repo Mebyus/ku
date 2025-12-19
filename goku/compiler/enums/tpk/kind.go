@@ -9,7 +9,7 @@ const (
 	// Mostly a trick to detect places where Kind is left unspecified.
 	empty Kind = iota
 
-	// Trivial type has no size or properties. It is formed by language
+	// Void type has no size or properties. It is formed by language
 	// constructs such as:
 	//
 	//	()        // empty tuple
@@ -17,7 +17,7 @@ const (
 	//	[0]int    // array with zero size
 	//
 	// There is always only one trivial type.
-	Trivial
+	Void
 
 	// Type for any integers (literals, constants and expressions)
 	// excluding custom integer types.
@@ -78,7 +78,8 @@ const (
 
 	Float
 
-	AnyPointer
+	VoidPointer
+	VoidRef
 
 	// Types which are defined as continuous region of memory holding
 	// fixed number of elements of another Type
@@ -86,7 +87,7 @@ const (
 	//	[5]u64 - an array of five u64 numbers
 	Array
 
-	Chunk
+	Span
 
 	// Pointer to another Type. An example of such a Type could be *str
 	// (pointer to a string)
@@ -122,22 +123,22 @@ const (
 var text = [...]string{
 	empty: "<nil>",
 
-	Trivial: "trivial",
+	Void:    "void",
 	Integer: "int",
 	String:  "str",
 	Boolean: "bool",
 	Float:   "float",
 
 	Array:  "array",
-	Chunk:  "chunk",
+	Span:   "span",
 	Custom: "custom",
 	Struct: "struct",
 	Tuple:  "tuple",
 
 	Ref:          "ref",
 	Pointer:      "pointer",
-	AnyPointer:   "pointer.any",
-	ArrayPointer: "pointer.array",
+	VoidPointer:  "void pointer",
+	ArrayPointer: "array pointer",
 
 	Import: "import",
 }

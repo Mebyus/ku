@@ -34,25 +34,25 @@ var text = [...]string{
 	empty: "<nil>",
 
 	Name:         "name",
-	FullName:     "name.full",
+	FullName:     "full name",
 	Struct:       "struct",
 	Union:        "union",
 	Ref:          "ref",
 	Pointer:      "pointer",
 	Array:        "array",
-	ArrayRef:     "ref.array",
-	ArrayPointer: "pointer.array",
+	ArrayRef:     "array ref",
+	ArrayPointer: "array pointer",
 	Span:         "chunk",
 	Enum:         "enum",
 	Bag:          "bag",
 	Fun:          "fun",
 	Tuple:        "tuple",
 	Form:         "form",
-	Void:         "trivial",
+	Void:         "void",
 	Type:         "type",
 
-	VoidPointer: "pointer.any",
-	VoidRef:     "ref.any",
+	VoidPointer: "void pointer",
+	VoidRef:     "void ref",
 }
 
 func (k Kind) String() string {

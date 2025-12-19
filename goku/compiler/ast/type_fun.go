@@ -9,9 +9,11 @@ import (
 //
 // Formal definition:
 //
-//	FunType => "fun" Signature
+//	FunType -> "fun" Signature
 type FunType struct {
 	Signature
+
+	Pin srcmap.Pin
 }
 
 var _ TypeSpec = FunType{}
@@ -21,7 +23,7 @@ func (FunType) Kind() tsk.Kind {
 }
 
 func (f FunType) Span() srcmap.Span {
-	return srcmap.Span{Pin: 0} // TODO: place something here
+	return srcmap.Span{Pin: f.Pin}
 }
 
 func (f FunType) String() string {

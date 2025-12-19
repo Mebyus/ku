@@ -69,12 +69,12 @@ func (p *Parser) TypeSpec() (ast.TypeSpec, diag.Error) {
 		return p.TypeName(), nil
 	case token.Ampersand:
 		if p.next.Kind == token.Void {
-			return p.AnyRef(), nil
+			return p.VoidRef(), nil
 		}
 		return p.Ref()
 	case token.Asterisk:
 		if p.next.Kind == token.Void {
-			return p.AnyPointer(), nil
+			return p.VoidPointer(), nil
 		}
 		return p.Pointer()
 	case token.ArrayPointer:
@@ -122,11 +122,14 @@ func (p *Parser) CustomTypeSpec() (ast.TypeSpec, diag.Error) {
 		}
 	case token.Union:
 		return p.Union()
+	case token.Void:
+		return p.Void(), nil
 	case token.Struct:
 		return p.Struct()
 	case token.Bag:
 		return p.Bag()
 	}
+
 	return p.TypeSpec()
 }
 
@@ -220,20 +223,28 @@ func (p *Parser) Ref() (ast.Ref, diag.Error) {
 	return ast.Ref{Type: t}, nil
 }
 
-func (p *Parser) AnyPointer() ast.VoidPointer {
+func (p *Parser) Void() ast.Void {
+	pin := p.peek.Pin
+
+	p.advance() // skip "void"
+
+	return ast.Void{Pin: pin}
+}
+
+func (p *Parser) VoidPointer() ast.VoidPointer {
 	pin := p.peek.Pin
 
 	p.advance() // skip "*"
-	p.advance() // skip "any"
+	p.advance() // skip "void"
 
 	return ast.VoidPointer{Pin: pin}
 }
 
-func (p *Parser) AnyRef() ast.VoidRef {
+func (p *Parser) VoidRef() ast.VoidRef {
 	pin := p.peek.Pin
 
 	p.advance() // skip "&"
-	p.advance() // skip "any"
+	p.advance() // skip "void"
 
 	return ast.VoidRef{Pin: pin}
 }

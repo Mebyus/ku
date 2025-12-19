@@ -71,18 +71,26 @@ type KnownTypes struct {
 
 	// *void
 	VoidPointer *Type
+
+	// &void
+	VoidRef *Type
 }
 
 func (t *KnownTypes) Init() {
 	t.Void = &Type{
 		Size:  0,
 		Flags: TypeFlagBuiltin,
-		Kind:  tpk.Trivial,
+		Kind:  tpk.Void,
 	}
 	t.VoidPointer = &Type{
 		Size:  archPointerSize,
 		Flags: TypeFlagBuiltin,
-		Kind:  tpk.AnyPointer,
+		Kind:  tpk.VoidPointer,
+	}
+	t.VoidRef = &Type{
+		Size:  archPointerSize,
+		Flags: TypeFlagBuiltin,
+		Kind:  tpk.VoidRef,
 	}
 }
 
@@ -112,16 +120,18 @@ func (x *TypeIndex) Lookup(scope *Scope, spec ast.TypeSpec) (*Type, diag.Error) 
 
 func (x *TypeIndex) lookup(scope *Scope, spec ast.TypeSpec) (*Type, diag.Error) {
 	switch p := spec.(type) {
-	case ast.TypeName:
-		return x.lookupTypeName(scope, p)
 	case ast.VoidPointer:
 		return x.Known.VoidPointer, nil
+	case ast.VoidRef:
+		return x.Known.VoidRef, nil
+	case ast.Void:
+		return x.Known.Void, nil
+	case ast.TypeName:
+		return x.lookupTypeName(scope, p)
 	case ast.Pointer:
 		return x.lookupPointer(scope, p)
 	case ast.Ref:
 		return x.lookupRef(scope, p)
-	case ast.Void:
-		return x.Known.Void, nil
 	case ast.TypeFullName:
 	case ast.ArrayPointer:
 		return x.lookupArrayPointer(scope, p)
@@ -274,9 +284,9 @@ func (x *TypeIndex) lookupSpan(scope *Scope, p ast.Span) (*Type, diag.Error) {
 		return typ, nil
 	}
 	typ = &Type{
-		Def:  Chunk{Type: t},
+		Def:  Span{Type: t},
 		Size: 2 * archPointerSize,
-		Kind: tpk.Chunk,
+		Kind: tpk.Span,
 	}
 	x.Spans[t] = typ
 

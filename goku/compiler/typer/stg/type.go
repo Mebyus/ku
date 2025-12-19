@@ -1,9 +1,7 @@
 package stg
 
 import (
-	"crypto/sha1"
 	"fmt"
-	"hash"
 
 	"github.com/mebyus/ku/goku/compiler/enums/tpk"
 )
@@ -24,7 +22,7 @@ type Type struct {
 	Def TypeDef
 
 	// Zero (default) type value.
-	Zero Exp
+	// Zero Exp
 
 	// Byte size of this type's value. May be 0 for some types.
 	// More specifically this field equals the stride between two
@@ -43,7 +41,7 @@ type Type struct {
 func (t *Type) String() string {
 	var s string
 	switch t.Kind {
-	case tpk.Trivial:
+	case tpk.Void:
 		return "void"
 	case tpk.Integer:
 		switch t.Size {
@@ -88,7 +86,7 @@ func (t *Type) String() string {
 		default:
 			panic(fmt.Sprintf("unexpected size (=%d)", t.Size))
 		}
-	case tpk.AnyPointer:
+	case tpk.VoidPointer:
 		return "*void"
 	case tpk.Custom:
 		c := t.Def.(*Custom)
@@ -106,35 +104,8 @@ func (t *Type) String() string {
 // TypeHash is a pseudo-unique type identifier which depends purely on type definition.
 // Value of type hash must not depend on runtime pointer values of specific types,
 // symbols, order of type definitions or usages.
-type TypeHash struct {
-	h [20]byte
-	f TypeFlag
-	k tpk.Kind
-}
-
-func (h TypeHash) String() string {
-	return fmt.Sprintf("%02X:%04X:%X", h.k, h.f, h.h)
-}
-
-func (t *Type) Hash() TypeHash {
-	digest := sha1.New()
-	t.hash(digest)
-	h := TypeHash{
-		f: t.Flags,
-		k: t.Kind,
-	}
-	digest.Sum(h.h[:])
-	return h
-}
-
-func (t *Type) hash(digest hash.Hash) {
-	switch def := t.Def.(type) {
-	case nil:
-		panic("nil def")
-	default:
-		panic(fmt.Sprintf("unexpected \"%s\" (=%d) def (%T)", def.Kind(), def.Kind(), def))
-	}
-}
+//
+// TODO: do we really need type hash?
 
 type TypeDef interface {
 	Kind() tpk.Kind
@@ -217,16 +188,16 @@ func (Ref) Kind() tpk.Kind {
 	return tpk.Ref
 }
 
-type Chunk struct {
+type Span struct {
 	// Chunk element type.
 	Type *Type
 }
 
 // Explicit interface implementation check.
-var _ TypeDef = Chunk{}
+var _ TypeDef = Span{}
 
-func (Chunk) Kind() tpk.Kind {
-	return tpk.Chunk
+func (Span) Kind() tpk.Kind {
+	return tpk.Span
 }
 
 type Tuple struct {
