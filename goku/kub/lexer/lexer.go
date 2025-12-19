@@ -1,14 +1,14 @@
 package lexer
 
 import (
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/kub/token"
 )
 
 type Lexer struct {
 	text []byte
 
-	mask srcmap.Pin
+	mask sm.Pin
 
 	// Byte offset into text.
 	pos uint32
@@ -19,10 +19,10 @@ type Lexer struct {
 	mark uint32
 }
 
-func FromText(text *srcmap.Text) *Lexer {
+func FromText(text *sm.Text) *Lexer {
 	return &Lexer{
 		text: text.Data,
-		mask: srcmap.PinTextMask(text.ID),
+		mask: sm.PinTextMask(text.ID),
 	}
 }
 
@@ -32,8 +32,8 @@ func FromBytes(data []byte) *Lexer {
 	return &Lexer{text: data}
 }
 
-func (lx *Lexer) pin() srcmap.Pin {
-	return lx.mask | srcmap.Pin(lx.pos)
+func (lx *Lexer) pin() sm.Pin {
+	return lx.mask | sm.Pin(lx.pos)
 }
 
 // Create token (without literal) of specified kind at current lexer position.

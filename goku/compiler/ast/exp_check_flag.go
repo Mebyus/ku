@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // CheckFlag represents a macro for checking a bit flag in expression.
@@ -24,7 +24,7 @@ func (CheckFlag) Kind() exk.Kind {
 	return exk.CheckFlag
 }
 
-func (c CheckFlag) Span() srcmap.Span {
+func (c CheckFlag) Span() sm.Span {
 	return c.Exp.Span()
 }
 

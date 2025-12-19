@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/stk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 type Match struct {
@@ -19,7 +19,7 @@ func (Match) Kind() stk.Kind {
 	return stk.Match
 }
 
-func (m Match) Span() srcmap.Span {
+func (m Match) Span() sm.Span {
 	return m.Exp.Span()
 }
 

@@ -4,8 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mebyus/ku/goku/compiler/diag"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
-	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
+	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/kub/ast"
 	"github.com/mebyus/ku/goku/kub/token"
 )
@@ -51,14 +50,14 @@ func (p *Parser) dir() (ast.Dir, diag.Error) {
 func (p *Parser) imp() (ast.Dir, diag.Error) {
 	p.advance() // skip "import"
 
-	var originPin srcmap.Pin
+	var originPin sm.Pin
 	var originName string
 	if p.peek.Kind == token.Word {
 		originPin = p.peek.Pin
 		originName = p.peek.Data
 		p.advance() // skip origin name
 	}
-	o, ok := origin.Parse(originName)
+	o, ok := sm.ParseOrigin(originName)
 	if !ok {
 		return nil, &diag.SimpleMessageError{
 			Pin:  originPin,
@@ -105,7 +104,7 @@ func (p *Parser) imp() (ast.Dir, diag.Error) {
 	}, nil
 }
 
-func (p *Parser) simpleImport(o origin.Origin) (ast.Import, diag.Error) {
+func (p *Parser) simpleImport(o sm.Origin) (ast.Import, diag.Error) {
 	pin := p.peek.Pin
 	val := p.peek.Data
 	p.advance() // skip string

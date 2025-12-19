@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // Pack represents an expression formed by a list of expressions. Although pack
@@ -51,8 +51,8 @@ func (Pack) Kind() exk.Kind {
 	return exk.Pack
 }
 
-func (p Pack) Span() srcmap.Span {
-	return srcmap.Span{Pin: p.List[0].Span().Pin}
+func (p Pack) Span() sm.Span {
+	return sm.Span{Pin: p.List[0].Span().Pin}
 }
 
 func (p Pack) String() string {

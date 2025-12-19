@@ -6,7 +6,7 @@ import (
 
 	"github.com/mebyus/ku/goku/butler"
 	"github.com/mebyus/ku/goku/compiler/enums/bk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/kub/builder"
 )
 
@@ -62,9 +62,9 @@ func exec(r *butler.Butler, files []string) error {
 }
 
 func compile(c *builder.CompileConfig, files []string) error {
-	pool := srcmap.New()
+	pool := sm.New()
 
-	texts := make([]*srcmap.Text, 0, len(files))
+	texts := make([]*sm.Text, 0, len(files))
 	for _, path := range files {
 		text, err := pool.Load(path)
 		if err != nil {

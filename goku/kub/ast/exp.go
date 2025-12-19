@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/bok"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 type Exp interface {
@@ -21,7 +21,7 @@ type String struct {
 	// String literal value represented by token.
 	Val string
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
 type Integer struct {
@@ -30,14 +30,14 @@ type Integer struct {
 	// Integer value represented by token.
 	Val uint64
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
 type Word struct {
 	// String that constitues the word.
 	Str string
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
 // Name represents usage of something with a name.
@@ -66,6 +66,6 @@ type Binary struct {
 
 // BinOp represents binary operator inside expression.
 type BinOp struct {
-	Pin  srcmap.Pin
+	Pin  sm.Pin
 	Kind bok.Kind
 }

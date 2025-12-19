@@ -1,12 +1,12 @@
 package stg
 
-import "github.com/mebyus/ku/goku/compiler/srcmap"
+import "github.com/mebyus/ku/goku/compiler/sm"
 
 // Exp node that represents an arbitrary expression.
 type Exp interface {
 	Type() *Type
 
-	Span() srcmap.Span
+	Span() sm.Span
 
 	// Use only for debugging.
 	String() string

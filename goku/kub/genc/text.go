@@ -5,7 +5,7 @@ import (
 
 	"github.com/mebyus/ku/goku/compiler/ast"
 	"github.com/mebyus/ku/goku/compiler/enums/tnk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 func (g *Gen) Nodes(text *ast.Text) {
@@ -59,7 +59,7 @@ func (g *Gen) topByIndex(text *ast.Text, x ast.NodeIndex) {
 	g.nl()
 }
 
-func (g *Gen) textPosArgs(pin srcmap.Pin) {
+func (g *Gen) textPosArgs(pin sm.Pin) {
 	pos, err := g.State.Map.DecodePin(pin)
 	if err != nil {
 		panic(err)

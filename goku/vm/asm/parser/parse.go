@@ -2,12 +2,12 @@ package parser
 
 import (
 	"github.com/mebyus/ku/goku/compiler/diag"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/vm/asm/ast"
 	"github.com/mebyus/ku/goku/vm/tokens"
 )
 
-func Parse(text *srcmap.Text) (*ast.Text, diag.Error) {
+func Parse(text *sm.Text) (*ast.Text, diag.Error) {
 	p := FromText(text)
 	return p.Text()
 }

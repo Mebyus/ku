@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // List represents a literal with list of expressions.
@@ -13,7 +13,7 @@ type List struct {
 
 	Exps []Exp
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
 var _ Exp = List{}
@@ -22,8 +22,8 @@ func (List) Kind() exk.Kind {
 	return exk.List
 }
 
-func (l List) Span() srcmap.Span {
-	return srcmap.Span{Pin: l.Pin}
+func (l List) Span() sm.Span {
+	return sm.Span{Pin: l.Pin}
 }
 
 func (l List) String() string {

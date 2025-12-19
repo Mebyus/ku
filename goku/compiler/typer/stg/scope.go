@@ -3,7 +3,7 @@ package stg
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/sck"
 	"github.com/mebyus/ku/goku/compiler/enums/smk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 type Scope struct {
@@ -78,7 +78,7 @@ func (s *Scope) Has(name string) bool {
 }
 
 // Alloc allocates new symbol inside the scope.
-func (s *Scope) Alloc(kind smk.Kind, name string, pin srcmap.Pin) *Symbol {
+func (s *Scope) Alloc(kind smk.Kind, name string, pin sm.Pin) *Symbol {
 	symbol := &Symbol{
 		Name: name,
 		Pin:  pin,

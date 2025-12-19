@@ -5,7 +5,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // Report combines several compilation errors into one report.
@@ -24,14 +24,14 @@ type Report struct {
 type Error interface {
 	error
 
-	Render(w io.Writer, m srcmap.PinMap) error
+	Render(w io.Writer, m sm.PinMap) error
 }
 
-func Format(m srcmap.PinMap, e Error) error {
+func Format(m sm.PinMap, e Error) error {
 	return errors.New(Stringify(m, e))
 }
 
-func RenderReport(w io.Writer, m srcmap.PinMap, r Report) error {
+func RenderReport(w io.Writer, m sm.PinMap, r Report) error {
 	for _, e := range r.Errors {
 		err := e.Render(w, m)
 		if err != nil {
@@ -41,7 +41,7 @@ func RenderReport(w io.Writer, m srcmap.PinMap, r Report) error {
 	return nil
 }
 
-func Stringify(m srcmap.PinMap, e Error) string {
+func Stringify(m sm.PinMap, e Error) string {
 	var buf strings.Builder
 	e.Render(&buf, m)
 	return buf.String()

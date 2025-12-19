@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/tsk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 type Enum struct {
@@ -26,7 +26,7 @@ func (Enum) Kind() tsk.Kind {
 	return tsk.Enum
 }
 
-func (e Enum) Span() srcmap.Span {
+func (e Enum) Span() sm.Span {
 	return e.Base.Span()
 }
 

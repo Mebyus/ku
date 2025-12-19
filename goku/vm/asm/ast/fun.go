@@ -1,7 +1,7 @@
 package ast
 
 import (
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/vm/opc"
 )
 
@@ -14,7 +14,7 @@ type Fun struct {
 
 	Name string
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
 // Label represents label name usage.
@@ -22,7 +22,7 @@ type Label struct {
 	nodeOperand
 
 	Name string
-	Pin  srcmap.Pin
+	Pin  sm.Pin
 }
 
 // Place represents label placement operation in function body.
@@ -30,7 +30,7 @@ type Place struct {
 	nodeAtom
 
 	Name string
-	Pin  srcmap.Pin
+	Pin  sm.Pin
 }
 
 // Symbol represents symbol usage operand (inside instruction).
@@ -38,7 +38,7 @@ type Symbol struct {
 	nodeOperand
 
 	Name string
-	Pin  srcmap.Pin
+	Pin  sm.Pin
 }
 
 // Integer represents integer usage operand (inside instruction).
@@ -46,7 +46,7 @@ type Integer struct {
 	nodeOperand
 
 	Val uint64
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
 // Register represents register usage operand (inside instruction).
@@ -54,7 +54,7 @@ type Register struct {
 	nodeOperand
 
 	Name opc.Register
-	Pin  srcmap.Pin
+	Pin  sm.Pin
 }
 
 // Instruction represents arbitrary instruction in function body.
@@ -70,5 +70,5 @@ type Instruction struct {
 	Variant string
 
 	// Mnemonic pin.
-	Pin srcmap.Pin
+	Pin sm.Pin
 }

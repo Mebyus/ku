@@ -9,7 +9,7 @@ import (
 	"github.com/mebyus/ku/goku/compiler/ast"
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/lexer"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // Idea of this test: compare token streams in the following round trip.
@@ -40,7 +40,7 @@ func TestParse(t *testing.T) {
 		}
 	}
 
-	pool := srcmap.New()
+	pool := sm.New()
 	for _, file := range files {
 		path := filepath.Join(dir, file)
 		src, err := pool.Load(path)

@@ -2,7 +2,7 @@ package lexer
 
 import (
 	"github.com/mebyus/ku/goku/compiler/baselex"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/vm/tokens"
 )
 
@@ -10,7 +10,7 @@ type Lexer struct {
 	baselex.Lexer
 }
 
-func FromText(text *srcmap.Text) *Lexer {
+func FromText(text *sm.Text) *Lexer {
 	lx := Lexer{}
 	lx.Init(text)
 	return &lx
@@ -19,7 +19,7 @@ func FromText(text *srcmap.Text) *Lexer {
 // FromBytes creates Lexer from raw text bytes. This function should be used
 // for tests, since it does not set text id needed for pins.
 func FromBytes(data []byte) *Lexer {
-	return FromText(srcmap.NewText("", data))
+	return FromText(sm.NewText("", data))
 }
 
 // Create token (without literal) of specified kind at current lexer position.

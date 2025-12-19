@@ -1,8 +1,7 @@
 package ast
 
 import (
-	"github.com/mebyus/ku/goku/compiler/srcmap"
-	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // <ImportBlock> = "import" [ <ImportOrigin> ] "(" { <ImportSpec> } ")"
@@ -15,18 +14,18 @@ import (
 type ImportBlock struct {
 	Imports []Import
 
-	Origin origin.Origin
+	Origin sm.Origin
 }
 
-// <Import> = <Name> "=>" <ImportString>
+// Import -> Name "->" ImportString
 //
-// <ImportString> = <String> (cannot be empty)
+// ImportString = String (cannot be empty)
 type Import struct {
 	Name   Word
 	String ImportString
 }
 
 type ImportString struct {
-	Pin srcmap.Pin
-	Str string
+	Val string
+	Pin sm.Pin
 }

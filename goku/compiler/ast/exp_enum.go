@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // EnumMacro represents usage of "#enum" operator as expression.
@@ -27,7 +27,7 @@ func (EnumMacro) Kind() exk.Kind {
 	return exk.EnumMacro
 }
 
-func (e EnumMacro) Span() srcmap.Span {
+func (e EnumMacro) Span() sm.Span {
 	return e.Name.Span()
 }
 

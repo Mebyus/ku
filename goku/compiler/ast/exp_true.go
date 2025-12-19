@@ -2,14 +2,14 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // True represents usage of "true" as expression.
 type True struct {
 	nodeOperand
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
 // Explicit interface implementation check.
@@ -19,8 +19,8 @@ func (True) Kind() exk.Kind {
 	return exk.True
 }
 
-func (t True) Span() srcmap.Span {
-	return srcmap.Span{Pin: t.Pin, Len: 4}
+func (t True) Span() sm.Span {
+	return sm.Span{Pin: t.Pin, Len: 4}
 }
 
 func (True) String() string {

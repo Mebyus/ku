@@ -2,13 +2,13 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/tsk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 type Bag struct {
 	Funs []BagFun
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
 var _ TypeSpec = Bag{}
@@ -17,8 +17,8 @@ func (Bag) Kind() tsk.Kind {
 	return tsk.Bag
 }
 
-func (b Bag) Span() srcmap.Span {
-	return srcmap.Span{Pin: b.Pin}
+func (b Bag) Span() sm.Span {
+	return sm.Span{Pin: b.Pin}
 }
 
 func (b Bag) String() string {

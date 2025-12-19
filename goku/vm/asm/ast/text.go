@@ -1,6 +1,6 @@
 package ast
 
-import "github.com/mebyus/ku/goku/compiler/srcmap"
+import "github.com/mebyus/ku/goku/compiler/sm"
 
 type Text struct {
 	Functions []Fun
@@ -12,5 +12,5 @@ type Text struct {
 // Entry represents entrypoint construct in program text.
 type Entry struct {
 	Name string
-	Pin  srcmap.Pin
+	Pin  sm.Pin
 }

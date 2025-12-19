@@ -5,8 +5,7 @@ import (
 
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/parser"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
-	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
+	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/compiler/typer/stg"
 )
 
@@ -14,7 +13,7 @@ func Walk(cfg WalkConfig, init ...QueueItem) (*Bundle, diag.Error) {
 	w := Walker{
 		WalkConfig: cfg,
 
-		pool: srcmap.New(),
+		pool: sm.New(),
 	}
 	w.Bundle.Pool = w.pool
 
@@ -50,7 +49,7 @@ type Walker struct {
 
 	WalkConfig
 
-	pool *srcmap.Pool
+	pool *sm.Pool
 }
 
 func (w *Walker) WalkFrom(init ...QueueItem) diag.Error {
@@ -97,7 +96,7 @@ func (w *Walker) AnalyzeUnit(item QueueItem) (*stg.Unit, diag.Error) {
 	if err != nil {
 		return nil, err
 	}
-	files, loadErr := w.pool.LoadDir(dir, &srcmap.DirScanParams{IncludeTestFiles: item.IncludeTestFiles})
+	files, loadErr := w.pool.LoadDir(dir, &sm.DirScanParams{IncludeTestFiles: item.IncludeTestFiles})
 	if loadErr != nil {
 		return nil, &diag.SimpleMessageError{
 			Text: fmt.Sprintf("load unit \"%s\": %s", item.Path, loadErr),
@@ -105,9 +104,9 @@ func (w *Walker) AnalyzeUnit(item QueueItem) (*stg.Unit, diag.Error) {
 		}
 	}
 
-	var imports []srcmap.ImportSite
+	var imports []sm.ImportSite
 	parsers := make([]*parser.Parser, 0, len(files))
-	pset := origin.NewSet()
+	pset := sm.NewPathSet()
 	for _, file := range files {
 		p := parser.FromText(file)
 		build, err := p.Build()
@@ -124,9 +123,9 @@ func (w *Walker) AnalyzeUnit(item QueueItem) (*stg.Unit, diag.Error) {
 
 		for _, block := range blocks {
 			for _, m := range block.Imports {
-				p := origin.Path{
+				p := sm.UnitPath{
 					Origin: block.Origin,
-					Import: m.String.Str,
+					Import: m.String.Val,
 				}
 				if p == path {
 					return nil, &diag.SimpleMessageError{
@@ -134,6 +133,7 @@ func (w *Walker) AnalyzeUnit(item QueueItem) (*stg.Unit, diag.Error) {
 						Text: fmt.Sprintf("unit \"%s\" imports itself", p),
 					}
 				}
+
 				if pset.Has(p) {
 					return nil, &diag.SimpleMessageError{
 						Pin:  m.String.Pin,
@@ -141,7 +141,8 @@ func (w *Walker) AnalyzeUnit(item QueueItem) (*stg.Unit, diag.Error) {
 					}
 				}
 				pset.Add(p)
-				imports = append(imports, srcmap.ImportSite{
+
+				imports = append(imports, sm.ImportSite{
 					Path: p,
 					Name: m.Name.Str,
 					Pin:  m.Name.Pin,
@@ -160,16 +161,16 @@ func (w *Walker) AnalyzeUnit(item QueueItem) (*stg.Unit, diag.Error) {
 }
 
 // Resolve returns system path to directory which contains unit source files.
-func (w *Walker) Resolve(path origin.Path) (string, diag.Error) {
+func (w *Walker) Resolve(path sm.UnitPath) (string, diag.Error) {
 	o := path.Origin
 	switch path.Origin {
 	case 0:
 		panic("empty path")
-	case origin.Std:
+	case sm.Std:
 		return w.Dir.Std + "/" + path.Import, nil
-	case origin.Pkg:
+	case sm.Pkg:
 		panic("not implemented")
-	case origin.Loc:
+	case sm.Loc:
 		return w.Dir.Loc + "/" + path.Import, nil
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) origin", o, o))

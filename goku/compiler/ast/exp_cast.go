@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // Cast represents a compile-time type cast of expression to another type.
@@ -24,7 +24,7 @@ func (Cast) Kind() exk.Kind {
 	return exk.Cast
 }
 
-func (c Cast) Span() srcmap.Span {
+func (c Cast) Span() sm.Span {
 	return c.Type.Span()
 }
 

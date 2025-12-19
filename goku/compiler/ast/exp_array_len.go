@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // ArrayLen represents a macro for compile-time calculation of array length.
@@ -23,7 +23,7 @@ func (ArrayLen) Kind() exk.Kind {
 	return exk.ArrayLen
 }
 
-func (l ArrayLen) Span() srcmap.Span {
+func (l ArrayLen) Span() sm.Span {
 	return l.Exp.Span()
 }
 

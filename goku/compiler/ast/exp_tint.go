@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // Tint represents a compile-time type case of expression.
@@ -24,7 +24,7 @@ func (Tint) Kind() exk.Kind {
 	return exk.Tint
 }
 
-func (t Tint) Span() srcmap.Span {
+func (t Tint) Span() sm.Span {
 	return t.Type.Span()
 }
 

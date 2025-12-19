@@ -7,7 +7,7 @@ import (
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/enums/sck"
 	"github.com/mebyus/ku/goku/compiler/enums/smk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/compiler/typer/stg"
 )
 
@@ -50,7 +50,7 @@ type Typer struct {
 
 	// Used for field and method name collision check on a struct.
 	// Map is cleared and reused between different symbols.
-	fields map[ /* field or method name */ string]srcmap.Pin
+	fields map[ /* field or method name */ string]sm.Pin
 
 	// Signature of current function or method being translated.
 	sig *stg.Signature
@@ -75,7 +75,7 @@ func Compile(c *stg.Context, unit *stg.Unit, texts []*ast.Text) diag.Error {
 		ctx:  c,
 		unit: unit,
 
-		fields:            make(map[string]srcmap.Pin),
+		fields:            make(map[string]sm.Pin),
 		methodsByReceiver: make(map[*stg.Symbol][]*stg.Symbol),
 	}
 	t.box.init(texts)
@@ -232,7 +232,7 @@ func (t *Typer) checkGenericBinds() diag.Error {
 	return nil
 }
 
-func (t *Typer) addImports(imports []srcmap.ImportSite) diag.Error {
+func (t *Typer) addImports(imports []sm.ImportSite) diag.Error {
 	for _, s := range imports {
 		err := t.addImport(s)
 		if err != nil {
@@ -342,7 +342,7 @@ func (t *Typer) addGenBinds(binds []ast.GenBind) diag.Error {
 	return nil
 }
 
-func (t *Typer) addImport(s srcmap.ImportSite) diag.Error {
+func (t *Typer) addImport(s sm.ImportSite) diag.Error {
 	unit := t.ctx.Map[s.Path]
 	if unit == nil {
 		panic("unit not found: impossible due to map construction")
@@ -506,7 +506,7 @@ func (t *Typer) addGenBind(bind ast.GenBind) diag.Error {
 	return nil
 }
 
-func errMultDef(name string, pin srcmap.Pin) diag.Error {
+func errMultDef(name string, pin sm.Pin) diag.Error {
 	return &diag.SimpleMessageError{
 		Pin:  pin,
 		Text: fmt.Sprintf("multiple definitions of symbol \"%s\"", name),

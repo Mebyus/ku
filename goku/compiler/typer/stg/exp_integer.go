@@ -3,13 +3,13 @@ package stg
 import (
 	"strconv"
 
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // Integer represents an integer constant (directly from source or evaluated)
 // which value is known at compile time.
 type Integer struct {
-	Pin srcmap.Pin
+	Pin sm.Pin
 
 	Val uint64
 
@@ -22,8 +22,8 @@ func (n Integer) Type() *Type {
 	return n.typ
 }
 
-func (n Integer) Span() srcmap.Span {
-	return srcmap.Span{Pin: n.Pin}
+func (n Integer) Span() sm.Span {
+	return sm.Span{Pin: n.Pin}
 }
 
 func (n Integer) String() string {
@@ -50,7 +50,7 @@ func (n Integer) String() string {
 var _ Exp = Integer{}
 
 // MakeInteger create non-negative static unsized integer.
-func (x *TypeIndex) MakeInteger(pin srcmap.Pin, v uint64) Integer {
+func (x *TypeIndex) MakeInteger(pin sm.Pin, v uint64) Integer {
 	return Integer{
 		Pin: pin,
 		Val: v,
@@ -58,7 +58,7 @@ func (x *TypeIndex) MakeInteger(pin srcmap.Pin, v uint64) Integer {
 	}
 }
 
-func (x *TypeIndex) MakeNegInteger(pin srcmap.Pin, v uint64) Integer {
+func (x *TypeIndex) MakeNegInteger(pin sm.Pin, v uint64) Integer {
 	n := x.MakeInteger(pin, v)
 	if v != 0 {
 		n.Neg = true

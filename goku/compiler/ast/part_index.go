@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 type Index struct {
@@ -19,7 +19,7 @@ func (Index) Kind() exk.Kind {
 	return exk.Index
 }
 
-func (x Index) Span() srcmap.Span {
+func (x Index) Span() sm.Span {
 	return x.Exp.Span()
 }
 
@@ -43,7 +43,7 @@ func (DerefIndex) Kind() exk.Kind {
 	return exk.DerefIndex
 }
 
-func (x DerefIndex) Span() srcmap.Span {
+func (x DerefIndex) Span() sm.Span {
 	return x.Exp.Span()
 }
 

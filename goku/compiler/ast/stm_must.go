@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/stk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // Formal definition:
@@ -19,7 +19,7 @@ func (Must) Kind() stk.Kind {
 	return stk.Must
 }
 
-func (m Must) Span() srcmap.Span {
+func (m Must) Span() sm.Span {
 	return m.Exp.Span()
 }
 
@@ -43,7 +43,7 @@ func (StaticMust) Kind() stk.Kind {
 	return stk.StaticMust
 }
 
-func (m StaticMust) Span() srcmap.Span {
+func (m StaticMust) Span() sm.Span {
 	return m.Exp.Span()
 }
 
@@ -67,7 +67,7 @@ func (Test) Kind() stk.Kind {
 	return stk.Test
 }
 
-func (t Test) Span() srcmap.Span {
+func (t Test) Span() sm.Span {
 	return t.Exp.Span()
 }
 

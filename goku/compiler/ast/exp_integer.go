@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // IntKind indicates integer literal kind.
@@ -32,7 +32,7 @@ type Integer struct {
 	// Integer value represented by token.
 	Val uint64
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 
 	// Auxiliary information about the token.
 	Aux uint32
@@ -45,8 +45,8 @@ func (Integer) Kind() exk.Kind {
 	return exk.Integer
 }
 
-func (n Integer) Span() srcmap.Span {
-	return srcmap.Span{Pin: n.Pin, Len: uint32(len(n.String()))}
+func (n Integer) Span() sm.Span {
+	return sm.Span{Pin: n.Pin, Len: uint32(len(n.String()))}
 }
 
 func (n Integer) String() string {

@@ -1,6 +1,8 @@
 package ast
 
-import "github.com/mebyus/ku/goku/compiler/srcmap/origin"
+import (
+	"github.com/mebyus/ku/goku/compiler/sm"
+)
 
 func (g *Printer) ImportBlocks(blocks []ImportBlock) {
 	if len(blocks) == 0 {
@@ -21,7 +23,7 @@ func (g *Printer) ImportBlocks(blocks []ImportBlock) {
 
 func (g *Printer) ImportBlock(block ImportBlock) {
 	g.puts("import ")
-	if block.Origin != origin.Loc {
+	if block.Origin != sm.Loc {
 		g.puts(block.Origin.String())
 		g.space()
 	}
@@ -39,7 +41,7 @@ func (g *Printer) ImportBlock(block ImportBlock) {
 		g.indent()
 		g.puts(i.Name.Str)
 		g.puts(" -> \"")
-		g.puts(i.String.Str)
+		g.puts(i.String.Val)
 		g.puts("\"")
 		g.nl()
 	}

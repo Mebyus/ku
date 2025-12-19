@@ -2,7 +2,7 @@ package tokens
 
 import (
 	"github.com/mebyus/ku/goku/compiler/baselex"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 type Token struct {
@@ -22,7 +22,7 @@ type Token struct {
 	//	Illegal:	error code (always not 0)
 	Val uint64
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 
 	Kind Kind
 

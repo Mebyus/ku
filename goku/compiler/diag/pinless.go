@@ -3,7 +3,7 @@ package diag
 import (
 	"io"
 
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 type PinlessError struct {
@@ -16,7 +16,7 @@ func (e *PinlessError) Error() string {
 	return e.Text
 }
 
-func (e *PinlessError) Render(w io.Writer, m srcmap.PinMap) error {
+func (e *PinlessError) Render(w io.Writer, m sm.PinMap) error {
 	_, err := io.WriteString(w, e.Text)
 	return err
 }

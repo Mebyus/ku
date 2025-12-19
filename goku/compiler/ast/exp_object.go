@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // Object represents usage of object literal as expression.
@@ -15,7 +15,7 @@ type Object struct {
 
 	Fields []ObjField
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
 // Explicit interface implementation check.
@@ -25,8 +25,8 @@ func (Object) Kind() exk.Kind {
 	return exk.Object
 }
 
-func (o Object) Span() srcmap.Span {
-	return srcmap.Span{Pin: o.Pin}
+func (o Object) Span() sm.Span {
+	return sm.Span{Pin: o.Pin}
 }
 
 func (o Object) String() string {

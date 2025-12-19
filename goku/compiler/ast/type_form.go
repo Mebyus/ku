@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/tsk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // Form represents form type specifier.
@@ -21,8 +21,8 @@ func (Form) Kind() tsk.Kind {
 	return tsk.Form
 }
 
-func (f Form) Span() srcmap.Span {
-	return srcmap.Span{Pin: f.Fields[0].Name.Pin}
+func (f Form) Span() sm.Span {
+	return sm.Span{Pin: f.Fields[0].Name.Pin}
 }
 
 func (f Form) String() string {

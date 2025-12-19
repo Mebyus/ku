@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 type Chain struct {
@@ -20,14 +20,14 @@ func (Chain) Kind() exk.Kind {
 	return exk.Chain
 }
 
-func (c Chain) TailSpan() srcmap.Span {
+func (c Chain) TailSpan() sm.Span {
 	if len(c.Parts) == 0 {
 		return c.Span()
 	}
 	return c.Parts[len(c.Parts)-1].Span()
 }
 
-func (c Chain) Span() srcmap.Span {
+func (c Chain) Span() sm.Span {
 	return c.Start.Span()
 }
 

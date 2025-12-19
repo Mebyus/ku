@@ -1,11 +1,11 @@
 package stg
 
-import "github.com/mebyus/ku/goku/compiler/srcmap"
+import "github.com/mebyus/ku/goku/compiler/sm"
 
 // String represents a string constant (directly from source or evaluated)
 // which value is known at compile time.
 type String struct {
-	Pin srcmap.Pin
+	Pin sm.Pin
 
 	Val string
 
@@ -16,8 +16,8 @@ func (s String) Type() *Type {
 	return s.typ
 }
 
-func (s String) Span() srcmap.Span {
-	return srcmap.Span{Pin: s.Pin}
+func (s String) Span() sm.Span {
+	return sm.Span{Pin: s.Pin}
 }
 
 func (s String) String() string {
@@ -32,7 +32,7 @@ func (s String) String() string {
 var _ Exp = String{}
 
 // MakeInteger create non-negative static unsized integer.
-func (x *TypeIndex) MakeString(pin srcmap.Pin, v string) String {
+func (x *TypeIndex) MakeString(pin sm.Pin, v string) String {
 	return String{
 		Pin: pin,
 		Val: v,

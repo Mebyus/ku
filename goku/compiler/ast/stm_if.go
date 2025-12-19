@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/stk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // If represents if-else statement.
@@ -37,7 +37,7 @@ func (If) Kind() stk.Kind {
 	return stk.If
 }
 
-func (i If) Span() srcmap.Span {
+func (i If) Span() sm.Span {
 	return i.If.Exp.Span()
 }
 
@@ -62,7 +62,7 @@ func (StaticIf) Kind() stk.Kind {
 	return stk.StaticIf
 }
 
-func (i StaticIf) Span() srcmap.Span {
+func (i StaticIf) Span() sm.Span {
 	return i.If.Exp.Span()
 }
 

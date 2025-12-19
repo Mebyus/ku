@@ -6,7 +6,7 @@ import (
 
 	"github.com/mebyus/ku/goku/butler"
 	"github.com/mebyus/ku/goku/compiler/diag"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/kub/ast"
 	"github.com/mebyus/ku/goku/kub/parser"
 )
@@ -50,7 +50,7 @@ func exec(r *butler.Butler, files []string) error {
 }
 
 func parseUnit(path string) error {
-	pool := srcmap.New()
+	pool := sm.New()
 	text, err := pool.Load(path)
 	if err != nil {
 		return err
@@ -66,7 +66,7 @@ func parseUnit(path string) error {
 }
 
 func parsePkg(path string) error {
-	pool := srcmap.New()
+	pool := sm.New()
 	text, err := pool.Load(path)
 	if err != nil {
 		return err

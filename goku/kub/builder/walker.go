@@ -5,8 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/mebyus/ku/goku/compiler/diag"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
-	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
+	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/kub/eval"
 	"github.com/mebyus/ku/goku/kub/parser"
 )
@@ -26,18 +25,18 @@ type Walker struct {
 	*BuildConfig
 }
 
-func (w *Walker) WalkFrom(items ...srcmap.QueueItem) ([]*srcmap.Unit, error) {
+func (w *Walker) WalkFrom(items ...sm.QueueItem) ([]*sm.Unit, error) {
 	if len(items) == 0 {
 		panic("no init items")
 	}
 
-	q := srcmap.NewUnitQueue()
+	q := sm.NewUnitQueue()
 	for _, item := range items {
 		q.Add(item)
 	}
 
 	for {
-		var item srcmap.QueueItem
+		var item sm.QueueItem
 		ok := q.Next(&item)
 		if !ok {
 			break
@@ -54,7 +53,7 @@ func (w *Walker) WalkFrom(items ...srcmap.QueueItem) ([]*srcmap.Unit, error) {
 	return q.Units(), nil
 }
 
-func (w *Walker) loadUnit(path origin.Path) (*srcmap.Unit, error) {
+func (w *Walker) loadUnit(path sm.UnitPath) (*sm.Unit, error) {
 	p := w.resolveUnitPath(path)
 	unit, err := loadUnit(w.Pool, w.Env, p)
 	if err != nil {
@@ -66,22 +65,22 @@ func (w *Walker) loadUnit(path origin.Path) (*srcmap.Unit, error) {
 }
 
 // Transforms unit path to directory path where unit is stored.
-func (w *Walker) resolveUnitPath(path origin.Path) string {
+func (w *Walker) resolveUnitPath(path sm.UnitPath) string {
 	switch path.Origin {
 	case 0:
 		panic("unspecified origin")
-	case origin.Std:
+	case sm.Std:
 		return filepath.Join(w.RootDir, "src/std", path.Import)
-	case origin.Loc:
+	case sm.Loc:
 		return filepath.Join(w.UnitDir, path.Import)
-	case origin.Main:
+	case sm.Main:
 		return filepath.Join(w.MainDir, path.Import)
 	default:
 		panic(fmt.Sprintf("unexpected origin \"%s\" (=%d)", path.Origin, path.Origin))
 	}
 }
 
-func loadUnit(pool *srcmap.Pool, env *eval.Env, path string) (*srcmap.Unit, error) {
+func loadUnit(pool *sm.Pool, env *eval.Env, path string) (*sm.Unit, error) {
 	text, err := pool.Load(filepath.Join(path, "unit.kub"))
 	if err != nil {
 		return nil, err
@@ -104,7 +103,7 @@ func loadUnit(pool *srcmap.Pool, env *eval.Env, path string) (*srcmap.Unit, erro
 	if err != nil {
 		return nil, err
 	}
-	return &srcmap.Unit{
+	return &sm.Unit{
 		Texts:   texts,
 		Imports: u.Imports,
 	}, nil

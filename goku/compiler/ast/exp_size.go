@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // Size represents a compile-time size query of type (or expression value type).
@@ -24,7 +24,7 @@ func (Size) Kind() exk.Kind {
 	return exk.Size
 }
 
-func (s Size) Span() srcmap.Span {
+func (s Size) Span() sm.Span {
 	return s.Exp.Span()
 }
 

@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/tsk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // Pointer represents pointer type specifier.
@@ -21,7 +21,7 @@ func (Pointer) Kind() tsk.Kind {
 	return tsk.Pointer
 }
 
-func (p Pointer) Span() srcmap.Span {
+func (p Pointer) Span() sm.Span {
 	return p.Type.Span()
 }
 
@@ -47,7 +47,7 @@ func (Ref) Kind() tsk.Kind {
 	return tsk.Ref
 }
 
-func (p Ref) Span() srcmap.Span {
+func (p Ref) Span() sm.Span {
 	return p.Type.Span()
 }
 
@@ -63,7 +63,7 @@ func (p Ref) String() string {
 //
 //	VoidPointer -> "*" "void"
 type VoidPointer struct {
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
 var _ TypeSpec = VoidPointer{}
@@ -72,8 +72,8 @@ func (VoidPointer) Kind() tsk.Kind {
 	return tsk.VoidPointer
 }
 
-func (p VoidPointer) Span() srcmap.Span {
-	return srcmap.Span{Pin: p.Pin}
+func (p VoidPointer) Span() sm.Span {
+	return sm.Span{Pin: p.Pin}
 }
 
 func (p VoidPointer) String() string {
@@ -86,7 +86,7 @@ func (p VoidPointer) String() string {
 //
 //	VoidRef => "&" "void"
 type VoidRef struct {
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
 var _ TypeSpec = VoidRef{}
@@ -95,8 +95,8 @@ func (VoidRef) Kind() tsk.Kind {
 	return tsk.VoidRef
 }
 
-func (p VoidRef) Span() srcmap.Span {
-	return srcmap.Span{Pin: p.Pin}
+func (p VoidRef) Span() sm.Span {
+	return sm.Span{Pin: p.Pin}
 }
 
 func (p VoidRef) String() string {
@@ -119,7 +119,7 @@ func (ArrayPointer) Kind() tsk.Kind {
 	return tsk.ArrayPointer
 }
 
-func (p ArrayPointer) Span() srcmap.Span {
+func (p ArrayPointer) Span() sm.Span {
 	return p.Type.Span()
 }
 
@@ -145,7 +145,7 @@ func (ArrayRef) Kind() tsk.Kind {
 	return tsk.ArrayRef
 }
 
-func (p ArrayRef) Span() srcmap.Span {
+func (p ArrayRef) Span() sm.Span {
 	return p.Type.Span()
 }
 

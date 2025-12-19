@@ -4,12 +4,12 @@ import (
 	"cmp"
 	"slices"
 
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/kub/eval"
 )
 
 type State struct {
-	Map srcmap.PinMap
+	Map sm.PinMap
 
 	// Maps type name to its id.
 	types NameBook

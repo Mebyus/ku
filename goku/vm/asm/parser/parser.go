@@ -2,7 +2,7 @@ package parser
 
 import (
 	"github.com/mebyus/ku/goku/compiler/diag"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/vm/asm/ast"
 	"github.com/mebyus/ku/goku/vm/lexer"
 	"github.com/mebyus/ku/goku/vm/tokens"
@@ -25,7 +25,7 @@ func (p *Parser) Text() (*ast.Text, diag.Error) {
 	return &p.text, nil
 }
 
-func FromText(text *srcmap.Text) *Parser {
+func FromText(text *sm.Text) *Parser {
 	p := Parser{lx: lexer.FromText(text)}
 	p.init()
 	return &p

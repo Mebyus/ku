@@ -13,8 +13,7 @@ import (
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/enums/bk"
 	"github.com/mebyus/ku/goku/compiler/enums/bm"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
-	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
+	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/kub/eval"
 	"github.com/mebyus/ku/goku/kub/parser"
 )
@@ -115,7 +114,7 @@ func BuildModule(config *BuildModuleConfig) error {
 		panic(err)
 	}
 
-	pool := srcmap.New()
+	pool := sm.New()
 	pkg, err := loadPackageFromFile(pool, config.PackageFilePath)
 	if err != nil {
 		return err
@@ -150,10 +149,10 @@ func BuildModule(config *BuildModuleConfig) error {
 			UnitDir: pkg.UnitDir,
 		},
 	},
-		codegenOutPath, []srcmap.QueueItem{{
-			Path: origin.Path{
+		codegenOutPath, []sm.QueueItem{{
+			Path: sm.UnitPath{
 				Import: mod.Main,
-				Origin: origin.Main,
+				Origin: sm.Main,
 			},
 		}},
 	)
@@ -175,7 +174,7 @@ func BuildModule(config *BuildModuleConfig) error {
 	return cc.CompileExe(exePath, codegenOutPath, config.BuildKind)
 }
 
-func buildObjectFromUnits(config *BuildModuleConfig, pool *srcmap.Pool, resolve ResolveConfig, units []string) error {
+func buildObjectFromUnits(config *BuildModuleConfig, pool *sm.Pool, resolve ResolveConfig, units []string) error {
 	name := config.ModuleName
 	codegenOutPath := config.getCodegenOutPath(name)
 	err := mkdirForFile(codegenOutPath)
@@ -214,7 +213,7 @@ func BuildAndRunModule(config *BuildAndRunModuleConfig) error {
 		panic(err)
 	}
 
-	pool := srcmap.New()
+	pool := sm.New()
 	pkg, err := loadPackageFromFile(pool, config.PackageFilePath)
 	if err != nil {
 		return err
@@ -245,10 +244,10 @@ func BuildAndRunModule(config *BuildAndRunModuleConfig) error {
 			UnitDir: pkg.UnitDir,
 		},
 	},
-		codegenOutPath, []srcmap.QueueItem{{
-			Path: origin.Path{
+		codegenOutPath, []sm.QueueItem{{
+			Path: sm.UnitPath{
 				Import: mod.Main,
-				Origin: origin.Main,
+				Origin: sm.Main,
 			},
 		}},
 	)
@@ -277,7 +276,7 @@ func TestModule(config *TestModuleConfig) error {
 		panic(err)
 	}
 
-	pool := srcmap.New()
+	pool := sm.New()
 	pkg, err := loadPackageFromFile(pool, config.PackageFilePath)
 	if err != nil {
 		return err
@@ -323,15 +322,15 @@ func TestModule(config *TestModuleConfig) error {
 	return runTestExecutable(testExePath)
 }
 
-func makeQueueItems(ss []string) []srcmap.QueueItem {
+func makeQueueItems(ss []string) []sm.QueueItem {
 	if len(ss) == 0 {
 		return nil
 	}
 
-	items := make([]srcmap.QueueItem, 0, len(ss))
+	items := make([]sm.QueueItem, 0, len(ss))
 	for _, s := range ss {
-		items = append(items, srcmap.QueueItem{
-			Path: origin.Local(s),
+		items = append(items, sm.QueueItem{
+			Path: sm.Local(s),
 			Pin:  0, // TODO: we should bring pins from parsed package file
 		})
 	}
@@ -347,7 +346,7 @@ func getPackageModule(pkg *eval.Package, name string) *eval.Module {
 	return nil
 }
 
-func loadPackageFromFile(pool *srcmap.Pool, path string) (*eval.Package, error) {
+func loadPackageFromFile(pool *sm.Pool, path string) (*eval.Package, error) {
 	text, err := pool.Load(path)
 	if err != nil {
 		return nil, err

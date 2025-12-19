@@ -6,8 +6,7 @@ import (
 	"github.com/mebyus/ku/goku/compiler/ast"
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/parser"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
-	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
+	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/compiler/typer"
 	"github.com/mebyus/ku/goku/compiler/typer/stg"
 	"github.com/mebyus/ku/goku/graphs"
@@ -33,7 +32,7 @@ type Bundle struct {
 	Main *stg.Unit
 
 	// Contains all source files discovered during uwalk phase.
-	Pool *srcmap.Pool
+	Pool *sm.Pool
 }
 
 func (b *Bundle) GetUnitParsers(unit *stg.Unit) ParserSet {
@@ -79,7 +78,7 @@ func ParseTexts(s ParserSet) ([]*ast.Text, diag.Error) {
 
 // Fills Unit.Imports.Units according to import paths.
 func (b *Bundle) mapGraphNodes() {
-	m := make(map[origin.Path]*stg.Unit, len(b.Units))
+	m := make(map[sm.UnitPath]*stg.Unit, len(b.Units))
 	b.Graph.Nodes = make([]graphs.Node, len(b.Units))
 	b.Graph.Rank = make([]uint32, len(b.Units))
 	b.Context.Map = m
@@ -112,12 +111,12 @@ func (b *Bundle) mapGraphNodes() {
 	}
 }
 
-func convertImportCycle(c *graphs.Cycle, units []*stg.Unit) []srcmap.ImportSite {
+func convertImportCycle(c *graphs.Cycle, units []*stg.Unit) []sm.ImportSite {
 	if len(c.Nodes) < 2 {
 		panic("bad cycle data")
 	}
 
-	sites := make([]srcmap.ImportSite, 0, len(c.Nodes))
+	sites := make([]sm.ImportSite, 0, len(c.Nodes))
 	for i := 0; i < len(c.Nodes)-1; i += 1 {
 		j := c.Nodes[i]
 		k := c.Nodes[i+1]

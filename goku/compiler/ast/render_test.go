@@ -9,7 +9,7 @@ import (
 	"github.com/mebyus/ku/goku/compiler/enums/aok"
 	"github.com/mebyus/ku/goku/compiler/enums/bok"
 	"github.com/mebyus/ku/goku/compiler/enums/uok"
-	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 type RenderTestCase struct {
@@ -202,14 +202,14 @@ func text7() *Text {
 func text8() *Text {
 	t := New()
 	t.ImportBlocks = []ImportBlock{
-		importBlock(origin.Std,
+		importBlock(sm.Std,
 			imp("mem", "mem"),
 			imp("json", "json"),
 		),
-		importBlock(origin.Pkg,
+		importBlock(sm.Pkg,
 			imp("pk", "another/person/package"),
 		),
-		importBlock(origin.Loc,
+		importBlock(sm.Loc,
 			imp("bar", "foo/bar"),
 			imp("hello", "example/hello"),
 		),
@@ -271,7 +271,7 @@ func text12() *Text {
 		),
 	)
 	t.ImportBlocks = []ImportBlock{
-		importBlock(origin.Std,
+		importBlock(sm.Std,
 			imp("win", "os/windows"),
 		),
 	}
@@ -303,7 +303,7 @@ func text13() *Text {
 func text14() *Text {
 	t := New()
 	t.ImportBlocks = []ImportBlock{
-		importBlock(origin.Std,
+		importBlock(sm.Std,
 			imp("mem", "mem"),
 		),
 	}
@@ -578,14 +578,14 @@ func unary(op uok.Kind, exp Exp) Unary {
 func imp(name string, s string) Import {
 	return Import{
 		Name:   word(name),
-		String: ImportString{Str: s},
+		String: ImportString{Val: s},
 	}
 }
 
-func importBlock(o origin.Origin, imports ...Import) ImportBlock {
+func importBlock(origin sm.Origin, imports ...Import) ImportBlock {
 	return ImportBlock{
 		Imports: imports,
-		Origin:  o,
+		Origin:  origin,
 	}
 }
 

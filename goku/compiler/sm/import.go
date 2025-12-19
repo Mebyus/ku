@@ -1,18 +1,14 @@
-package srcmap
-
-import (
-	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
-)
+package sm
 
 type Import struct {
-	Path origin.Path
+	Path UnitPath
 	Pin  Pin
 }
 
 // ImportSite represents a single unit import inside an import block.
 type ImportSite struct {
 	// Unit path of imported unit.
-	Path origin.Path
+	Path UnitPath
 
 	// Unit is imported under this name.
 	Name string
@@ -29,7 +25,7 @@ func CheckUniqueImports(ss []Import) bool {
 		return ss[0] != ss[1]
 	}
 
-	set := make(map[origin.Path]struct{}, len(ss))
+	set := make(map[UnitPath]struct{}, len(ss))
 	for _, s := range ss {
 		_, ok := set[s.Path]
 		if ok {
@@ -49,12 +45,12 @@ type Unit struct {
 	Imports []Import
 
 	// Contains unit import path under which this unit is known to import graph.
-	Path origin.Path
+	Path UnitPath
 }
 
 type QueueItem struct {
 	// Path to unit inside the queue.
-	Path origin.Path
+	Path UnitPath
 
 	// Place where unit with this path is imported.
 	//
@@ -74,12 +70,12 @@ type UnitQueue struct {
 	units []*Unit
 
 	// Set which contains paths of already visited units.
-	visited map[origin.Path]struct{}
+	visited map[UnitPath]struct{}
 }
 
 func NewUnitQueue() *UnitQueue {
 	return &UnitQueue{
-		visited: make(map[origin.Path]struct{}),
+		visited: make(map[UnitPath]struct{}),
 	}
 }
 

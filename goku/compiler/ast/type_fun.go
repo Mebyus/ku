@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/tsk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // FunType represents function type specifier.
@@ -13,7 +13,7 @@ import (
 type FunType struct {
 	Signature
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
 var _ TypeSpec = FunType{}
@@ -22,8 +22,8 @@ func (FunType) Kind() tsk.Kind {
 	return tsk.Fun
 }
 
-func (f FunType) Span() srcmap.Span {
-	return srcmap.Span{Pin: f.Pin}
+func (f FunType) Span() sm.Span {
+	return sm.Span{Pin: f.Pin}
 }
 
 func (f FunType) String() string {

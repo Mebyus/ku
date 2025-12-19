@@ -7,7 +7,7 @@ import (
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/enums/bok"
 	"github.com/mebyus/ku/goku/compiler/enums/uok"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 type Value interface {
@@ -25,7 +25,7 @@ type Integer struct {
 
 	Val uint64
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 
 	// True for negative integers.
 	Neg bool
@@ -35,13 +35,13 @@ type String struct {
 	nodeValue
 
 	Val string
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
 type Boolean struct {
 	nodeValue
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 	Val bool
 }
 

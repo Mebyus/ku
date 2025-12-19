@@ -2,7 +2,7 @@ package builder
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/bk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 type CompileConfig struct {
@@ -24,7 +24,7 @@ type CompileConfig struct {
 }
 
 // CompileTexts compile one or more Ku or C source text into one object file.
-func CompileTexts(c *CompileConfig, texts []*srcmap.Text) error {
+func CompileTexts(c *CompileConfig, texts []*sm.Text) error {
 	if len(texts) == 0 {
 		panic("no texts")
 	}

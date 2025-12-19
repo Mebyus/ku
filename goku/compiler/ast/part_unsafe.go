@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // Unsafe represents chain part which selects a name from unsafe scope.
@@ -15,7 +15,7 @@ type Unsafe struct {
 
 	Name string
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
 // Explicit interface implementation check.
@@ -25,8 +25,8 @@ func (Unsafe) Kind() exk.Kind {
 	return exk.Deref
 }
 
-func (u Unsafe) Span() srcmap.Span {
-	return srcmap.Span{Pin: u.Pin, Len: uint32(len(u.Name)) + 8}
+func (u Unsafe) Span() sm.Span {
+	return sm.Span{Pin: u.Pin, Len: uint32(len(u.Name)) + 8}
 }
 
 func (u Unsafe) String() string {

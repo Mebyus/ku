@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // TypeId represents usage of "#typeid" operator as expression.
@@ -24,7 +24,7 @@ func (TypeId) Kind() exk.Kind {
 	return exk.TypeId
 }
 
-func (t TypeId) Span() srcmap.Span {
+func (t TypeId) Span() sm.Span {
 	return t.Name.Span()
 }
 

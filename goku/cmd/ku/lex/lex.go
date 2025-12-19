@@ -6,7 +6,7 @@ import (
 
 	"github.com/mebyus/ku/goku/butler"
 	"github.com/mebyus/ku/goku/compiler/lexer"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 var Butler = &butler.Butler{
@@ -26,7 +26,7 @@ func exec(r *butler.Butler, files []string) error {
 }
 
 func lex(path string) error {
-	pool := srcmap.New()
+	pool := sm.New()
 	text, err := pool.Load(path)
 	if err != nil {
 		return err

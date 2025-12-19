@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // BuildQuery represents compile-time query of build variable.
@@ -14,7 +14,7 @@ type BuildQuery struct {
 	nodeOperand
 
 	Name string
-	Pin  srcmap.Pin
+	Pin  sm.Pin
 }
 
 // Explicit interface implementation check.
@@ -24,8 +24,8 @@ func (BuildQuery) Kind() exk.Kind {
 	return exk.BuildQuery
 }
 
-func (q BuildQuery) Span() srcmap.Span {
-	return srcmap.Span{Pin: q.Pin, Len: uint32(len(q.Name))}
+func (q BuildQuery) Span() sm.Span {
+	return sm.Span{Pin: q.Pin, Len: uint32(len(q.Name))}
 }
 
 func (q BuildQuery) String() string {

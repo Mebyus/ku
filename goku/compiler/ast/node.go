@@ -5,12 +5,12 @@ import (
 	"github.com/mebyus/ku/goku/compiler/enums/stk"
 	"github.com/mebyus/ku/goku/compiler/enums/tnk"
 	"github.com/mebyus/ku/goku/compiler/enums/tsk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // Node common interface for any node inside a tree.
 type Node interface {
-	Span() srcmap.Span
+	Span() sm.Span
 	String() string
 }
 
@@ -82,11 +82,11 @@ type Word struct {
 	// String that constitues the word.
 	Str string
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
-func (w Word) Span() srcmap.Span {
-	return srcmap.Span{Pin: w.Pin, Len: uint32(len(w.Str))}
+func (w Word) Span() sm.Span {
+	return sm.Span{Pin: w.Pin, Len: uint32(len(w.Str))}
 }
 
 // Traits container object for passing around node attributes and properties.
@@ -104,7 +104,7 @@ type Traits struct {
 type Prop struct {
 	Exp  Exp
 	Name string
-	Pin  srcmap.Pin
+	Pin  sm.Pin
 }
 
 // Embed this to quickly implement _exp() discriminator from Exp interface.

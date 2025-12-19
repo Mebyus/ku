@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/tsk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // Span represents chunk type specifier.
@@ -21,7 +21,7 @@ func (Span) Kind() tsk.Kind {
 	return tsk.Span
 }
 
-func (c Span) Span() srcmap.Span {
+func (c Span) Span() sm.Span {
 	return c.Type.Span()
 }
 

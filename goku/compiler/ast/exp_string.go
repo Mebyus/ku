@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 type String struct {
@@ -11,7 +11,7 @@ type String struct {
 	// String literal value represented by token.
 	Val string
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
 // Explicit interface implementation check.
@@ -21,8 +21,8 @@ func (String) Kind() exk.Kind {
 	return exk.String
 }
 
-func (s String) Span() srcmap.Span {
-	return srcmap.Span{Pin: s.Pin, Len: uint32(len(s.Val)) + 2}
+func (s String) Span() sm.Span {
+	return sm.Span{Pin: s.Pin, Len: uint32(len(s.Val)) + 2}
 }
 
 func (s String) String() string {

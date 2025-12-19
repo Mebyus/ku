@@ -1,4 +1,4 @@
-package srcmap
+package sm
 
 import (
 	"io"

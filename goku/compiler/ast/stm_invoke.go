@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/stk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // Invoke represents a call expression statement.
@@ -20,7 +20,7 @@ func (Invoke) Kind() stk.Kind {
 	return stk.Invoke
 }
 
-func (i Invoke) Span() srcmap.Span {
+func (i Invoke) Span() sm.Span {
 	return i.Call.Span()
 }
 

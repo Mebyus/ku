@@ -9,8 +9,7 @@ import (
 	"github.com/mebyus/ku/goku/compiler/enums/bk"
 	"github.com/mebyus/ku/goku/compiler/enums/bm"
 	"github.com/mebyus/ku/goku/compiler/parser"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
-	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
+	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/graphs"
 	"github.com/mebyus/ku/goku/kub/eval"
 	"github.com/mebyus/ku/goku/kub/genc"
@@ -19,7 +18,7 @@ import (
 type BuildConfig struct {
 	ResolveConfig
 
-	Pool *srcmap.Pool
+	Pool *sm.Pool
 
 	Env *eval.Env
 
@@ -28,7 +27,7 @@ type BuildConfig struct {
 	BuildMode bm.Mode
 }
 
-func genUnitsToFile(config *BuildConfig, out string, items []srcmap.QueueItem) error {
+func genUnitsToFile(config *BuildConfig, out string, items []sm.QueueItem) error {
 	genOut, err := os.Create(out)
 	if err != nil {
 		return err
@@ -49,7 +48,7 @@ func populateEnv(config *BuildConfig) {
 }
 
 // Generate C code for specified units (by their paths in items).
-func genUnits(config *BuildConfig, out io.Writer, items []srcmap.QueueItem) error {
+func genUnits(config *BuildConfig, out io.Writer, items []sm.QueueItem) error {
 	populateEnv(config)
 
 	walker := Walker{
@@ -60,7 +59,7 @@ func genUnits(config *BuildConfig, out io.Writer, items []srcmap.QueueItem) erro
 		return err
 	}
 
-	m := make(map[origin.Path]uint32, len(units))
+	m := make(map[sm.UnitPath]uint32, len(units))
 	for i, u := range units {
 		m[u.Path] = uint32(i)
 	}
@@ -98,7 +97,7 @@ func genUnits(config *BuildConfig, out io.Writer, items []srcmap.QueueItem) erro
 		return fmt.Errorf("import cycle: %v", cycle.Nodes)
 	}
 
-	var texts []*srcmap.Text
+	var texts []*sm.Text
 	for _, c := range g.Cohorts {
 		for _, i := range c {
 			u := units[i]
@@ -109,7 +108,7 @@ func genUnits(config *BuildConfig, out io.Writer, items []srcmap.QueueItem) erro
 	return genTexts(config, out, texts)
 }
 
-func genTexts(c *BuildConfig, out io.Writer, texts []*srcmap.Text) error {
+func genTexts(c *BuildConfig, out io.Writer, texts []*sm.Text) error {
 	g := genc.Gen{State: &genc.State{
 		Map:   c.Pool,
 		Debug: c.BuildKind == bk.Debug,

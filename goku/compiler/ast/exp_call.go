@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // Call represents an expression of calling something.
@@ -22,7 +22,7 @@ func (Call) Kind() exk.Kind {
 	return exk.Call
 }
 
-func (c Call) Span() srcmap.Span {
+func (c Call) Span() sm.Span {
 	return c.Chain.TailSpan()
 }
 

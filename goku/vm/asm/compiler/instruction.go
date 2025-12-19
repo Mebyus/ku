@@ -4,13 +4,13 @@ import (
 	"fmt"
 
 	"github.com/mebyus/ku/goku/compiler/diag"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/vm/asm/ast"
 	"github.com/mebyus/ku/goku/vm/ir"
 	"github.com/mebyus/ku/goku/vm/opc"
 )
 
-func wrongOperandsNumber(pin srcmap.Pin, got int, want string) diag.Error {
+func wrongOperandsNumber(pin sm.Pin, got int, want string) diag.Error {
 	return &diag.SimpleMessageError{
 		Pin:  pin,
 		Text: fmt.Sprintf("wrong number of operands: got %d, want %s", got, want),

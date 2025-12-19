@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 func TestWalk(t *testing.T) {
@@ -40,7 +40,7 @@ func TestWalk(t *testing.T) {
 			var inits []QueueItem
 			for _, entry := range entries {
 				inits = append(inits, QueueItem{
-					Path: origin.Local(filepath.Join(entname, entry.Name())),
+					Path: sm.Local(filepath.Join(entname, entry.Name())),
 				})
 			}
 

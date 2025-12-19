@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/mebyus/ku/goku/compiler/diag"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/vm/asm/ast"
 	"github.com/mebyus/ku/goku/vm/opc"
 	"github.com/mebyus/ku/goku/vm/tokens"
@@ -162,14 +162,14 @@ func (p *Parser) hexInteger() (ast.Integer, diag.Error) {
 	}, nil
 }
 
-func unknownRegister(pin srcmap.Pin, s string) diag.Error {
+func unknownRegister(pin sm.Pin, s string) diag.Error {
 	return &diag.SimpleMessageError{
 		Pin:  pin,
 		Text: fmt.Sprintf("unknown register \"%s\"", s),
 	}
 }
 
-func parseRegisterName(pin srcmap.Pin, s string) (opc.Register, diag.Error) {
+func parseRegisterName(pin sm.Pin, s string) (opc.Register, diag.Error) {
 	switch s {
 	case "sp":
 		return opc.RegFP, nil

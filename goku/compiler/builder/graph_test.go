@@ -4,8 +4,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/mebyus/ku/goku/compiler/srcmap"
-	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
+	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/compiler/typer/stg"
 	"github.com/mebyus/ku/goku/graphs"
 )
@@ -23,13 +22,13 @@ type GraphTestCase struct {
 	Name string
 }
 
-func imports(list ...string) []srcmap.ImportSite {
+func imports(list ...string) []sm.ImportSite {
 	if len(list) == 0 {
 		return nil
 	}
-	imports := make([]srcmap.ImportSite, 0, len(list))
+	imports := make([]sm.ImportSite, 0, len(list))
 	for _, s := range list {
-		imports = append(imports, srcmap.ImportSite{Path: origin.Local(s)})
+		imports = append(imports, sm.ImportSite{Path: sm.Local(s)})
 	}
 	stg.SortImports(imports)
 	return imports
@@ -37,7 +36,7 @@ func imports(list ...string) []srcmap.ImportSite {
 
 func unit(p string, list ...string) *stg.Unit {
 	return &stg.Unit{
-		Path:    origin.Local(p),
+		Path:    sm.Local(p),
 		Imports: imports(list...),
 	}
 }

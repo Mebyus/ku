@@ -7,7 +7,7 @@ import (
 
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/enums/bk"
-	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // Phase specifies build or compilation phase.
@@ -158,7 +158,7 @@ func build(c *Config) error {
 			Loc: c.SourceDir,
 		},
 	}, QueueItem{
-		Path: origin.Local(c.Unit),
+		Path: sm.Local(c.Unit),
 	})
 	if err != nil {
 		return diag.Format(bundle.Pool, err)

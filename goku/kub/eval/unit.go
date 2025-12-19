@@ -5,19 +5,18 @@ import (
 
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/enums/bm"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
-	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
+	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/kub/ast"
 )
 
 // Unit represents result of evaluating unit build script.
 type Unit struct {
-	Imports  []srcmap.Import
+	Imports  []sm.Import
 	Includes []string
 }
 
 func (u *Unit) valid() diag.Error {
-	if !srcmap.CheckUniqueImports(u.Imports) {
+	if !sm.CheckUniqueImports(u.Imports) {
 		return &diag.PinlessError{Text: fmt.Sprintf("non-unique imports %v", u.Imports)}
 	}
 	if !checkUnique(u.Includes) {
@@ -62,8 +61,8 @@ func (r *Interpreter) dir(dir ast.Dir) diag.Error {
 		if d.Val == "" {
 			panic("empty import path")
 		}
-		r.unit.Imports = append(r.unit.Imports, srcmap.Import{
-			Path: origin.Path{
+		r.unit.Imports = append(r.unit.Imports, sm.Import{
+			Path: sm.UnitPath{
 				Import: d.Val,
 				Origin: d.Origin,
 			},
@@ -71,8 +70,8 @@ func (r *Interpreter) dir(dir ast.Dir) diag.Error {
 		})
 	case ast.ImportBlock:
 		for _, m := range d.Imports {
-			r.unit.Imports = append(r.unit.Imports, srcmap.Import{
-				Path: origin.Path{
+			r.unit.Imports = append(r.unit.Imports, sm.Import{
+				Path: sm.UnitPath{
 					Import: m.Val,
 					Origin: d.Origin,
 				},

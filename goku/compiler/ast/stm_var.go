@@ -3,7 +3,7 @@ package ast
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/stk"
 	"github.com/mebyus/ku/goku/compiler/enums/tnk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // TopVar represents top level variable definition.
@@ -46,7 +46,7 @@ func (Var) Kind() stk.Kind {
 	return stk.Var
 }
 
-func (v Var) Span() srcmap.Span {
+func (v Var) Span() sm.Span {
 	return v.Name.Span()
 }
 

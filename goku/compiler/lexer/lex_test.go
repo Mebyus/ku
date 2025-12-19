@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/compiler/token"
 )
 
@@ -26,7 +26,7 @@ func TestLex(t *testing.T) {
 		}
 	}
 
-	pool := srcmap.New()
+	pool := sm.New()
 	for _, file := range files {
 		path := filepath.Join("testdata", file)
 		text, err := pool.Load(path)

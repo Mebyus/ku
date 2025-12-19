@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/stk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // Formal definition:
@@ -11,7 +11,7 @@ import (
 type Panic struct {
 	Msg string
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
 var _ Statement = Panic{}
@@ -20,8 +20,8 @@ func (Panic) Kind() stk.Kind {
 	return stk.Panic
 }
 
-func (p Panic) Span() srcmap.Span {
-	return srcmap.Span{Pin: p.Pin}
+func (p Panic) Span() sm.Span {
+	return sm.Span{Pin: p.Pin}
 }
 
 func (p Panic) String() string {

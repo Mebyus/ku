@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/stk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // JumpNext represents jump to next loop iteration (continue) statement.
@@ -11,7 +11,7 @@ import (
 //
 //	JumpNext => "jump" "@.next";
 type JumpNext struct {
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
 var _ Statement = JumpNext{}
@@ -20,8 +20,8 @@ func (JumpNext) Kind() stk.Kind {
 	return stk.JumpNext
 }
 
-func (j JumpNext) Span() srcmap.Span {
-	return srcmap.Span{Pin: j.Pin}
+func (j JumpNext) Span() sm.Span {
+	return sm.Span{Pin: j.Pin}
 }
 
 func (j JumpNext) String() string {
@@ -36,7 +36,7 @@ func (j JumpNext) String() string {
 //
 //	JumpOut => "jump" "@.out";
 type JumpOut struct {
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
 var _ Statement = JumpOut{}
@@ -45,8 +45,8 @@ func (JumpOut) Kind() stk.Kind {
 	return stk.JumpOut
 }
 
-func (j JumpOut) Span() srcmap.Span {
-	return srcmap.Span{Pin: j.Pin}
+func (j JumpOut) Span() sm.Span {
+	return sm.Span{Pin: j.Pin}
 }
 
 func (j JumpOut) String() string {

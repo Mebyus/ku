@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // EnvQuery represents compile-time query of env variable or constant.
@@ -14,7 +14,7 @@ type EnvQuery struct {
 	nodeOperand
 
 	Name string
-	Pin  srcmap.Pin
+	Pin  sm.Pin
 }
 
 // Explicit interface implementation check.
@@ -24,8 +24,8 @@ func (EnvQuery) Kind() exk.Kind {
 	return exk.EnvQuery
 }
 
-func (q EnvQuery) Span() srcmap.Span {
-	return srcmap.Span{Pin: q.Pin, Len: uint32(len(q.Name))}
+func (q EnvQuery) Span() sm.Span {
+	return sm.Span{Pin: q.Pin, Len: uint32(len(q.Name))}
 }
 
 func (q EnvQuery) String() string {

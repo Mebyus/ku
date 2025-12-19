@@ -3,7 +3,7 @@ package lexer
 import (
 	"io"
 
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/kub/token"
 )
 
@@ -48,7 +48,7 @@ func (p *Parrot) Lex() token.Token {
 	return tok
 }
 
-func Render(w io.Writer, s Stream, m srcmap.PinMap) error {
+func Render(w io.Writer, s Stream, m sm.PinMap) error {
 	for {
 		tok := s.Lex()
 		_, err := io.WriteString(w, token.FormatTokenLine(m, tok))

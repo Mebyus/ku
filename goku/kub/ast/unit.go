@@ -1,8 +1,7 @@
 package ast
 
 import (
-	"github.com/mebyus/ku/goku/compiler/srcmap"
-	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // Dir represents unit build directive.
@@ -23,9 +22,9 @@ type Import struct {
 	// String literal value represented by token.
 	Val string
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 
-	Origin origin.Origin
+	Origin sm.Origin
 }
 
 type ImportBlock struct {
@@ -33,11 +32,11 @@ type ImportBlock struct {
 
 	Imports []ImportString
 
-	Origin origin.Origin
+	Origin sm.Origin
 }
 
 type ImportString struct {
-	Pin srcmap.Pin
+	Pin sm.Pin
 	Val string
 }
 
@@ -47,13 +46,13 @@ type Include struct {
 	// String literal value represented by token.
 	Val string
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
 type Block struct {
 	Dirs []Dir
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
 type Test struct {

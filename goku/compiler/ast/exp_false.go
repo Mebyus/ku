@@ -2,14 +2,14 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // False represents usage of "false" as expression.
 type False struct {
 	nodeOperand
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
 // Explicit interface implementation check.
@@ -19,8 +19,8 @@ func (False) Kind() exk.Kind {
 	return exk.False
 }
 
-func (f False) Span() srcmap.Span {
-	return srcmap.Span{Pin: f.Pin, Len: 5}
+func (f False) Span() sm.Span {
+	return sm.Span{Pin: f.Pin, Len: 5}
 }
 
 func (False) String() string {

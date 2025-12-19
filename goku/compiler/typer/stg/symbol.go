@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mebyus/ku/goku/compiler/enums/smk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // Symbol. Symbols represent objects in source code which we can reference and
@@ -53,7 +53,7 @@ type Symbol struct {
 	Link string
 
 	// Source position of symbol origin (where this symbol was declared).
-	Pin srcmap.Pin
+	Pin sm.Pin
 
 	// Always not nil in a completed graph. Can be nil during tree graph.
 	Type *Type

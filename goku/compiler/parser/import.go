@@ -3,7 +3,7 @@ package parser
 import (
 	"github.com/mebyus/ku/goku/compiler/ast"
 	"github.com/mebyus/ku/goku/compiler/diag"
-	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
+	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/compiler/token"
 )
 
@@ -54,13 +54,13 @@ func (p *Parser) ImportBlock() (ast.ImportBlock, diag.Error) {
 	}
 }
 
-func (p *Parser) Origin() (origin.Origin, diag.Error) {
+func (p *Parser) Origin() (sm.Origin, diag.Error) {
 	if p.peek.Kind != token.Word {
-		return origin.Loc, nil
+		return sm.Loc, nil
 	}
 	name := p.word()
 
-	origin, ok := origin.Parse(name.Str)
+	origin, ok := sm.ParseOrigin(name.Str)
 	if !ok {
 		return 0, &diag.UnknownOriginError{Name: name}
 	}
@@ -84,29 +84,17 @@ func (p *Parser) Import() (ast.Import, diag.Error) {
 	s := p.peek
 	p.advance() // skip import string
 
-	if s.Data == "" {
+	err := sm.CheckImportString(s.Data)
+	if err != nil {
 		return ast.Import{}, &diag.SimpleMessageError{
-			Text: "empty import string",
+			Text: err.Error(),
 			Pin:  s.Pin,
 		}
 	}
+
 	str := ast.ImportString{
 		Pin: s.Pin,
-		Str: s.Data, // TODO: check import string contents here, to report abnormal imports early
-
-		// example of abnormal import strings
-		//	""
-		//	"/"
-		//	" "
-		//	"\n"
-		//	"."
-		//	"a/"
-		//	"/a"
-		//	"a/b/"
-		//	"a//b"
-		//	"../a"
-		//	"a/ /b"
-		//	"a / b"
+		Val: s.Data,
 	}
 
 	return ast.Import{

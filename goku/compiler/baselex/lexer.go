@@ -1,13 +1,13 @@
 package baselex
 
 import (
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 type Lexer struct {
 	text []byte
 
-	mask srcmap.Pin
+	mask sm.Pin
 
 	// Byte offset into text.
 	pos uint32
@@ -18,13 +18,13 @@ type Lexer struct {
 	mark uint32
 }
 
-func (lx *Lexer) Init(text *srcmap.Text) {
+func (lx *Lexer) Init(text *sm.Text) {
 	lx.text = text.Data
-	lx.mask = srcmap.PinTextMask(text.ID)
+	lx.mask = sm.PinTextMask(text.ID)
 }
 
-func (lx *Lexer) Pin() srcmap.Pin {
-	return lx.mask | srcmap.Pin(lx.pos)
+func (lx *Lexer) Pin() sm.Pin {
+	return lx.mask | sm.Pin(lx.pos)
 }
 
 func (lx *Lexer) Eof() bool {

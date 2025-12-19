@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/tsk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // Union represents union type specifier.
@@ -14,7 +14,7 @@ type Union struct {
 	// Can be nil (if struct does not have fields).
 	Fields []Field
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
 var _ TypeSpec = Union{}
@@ -23,8 +23,8 @@ func (Union) Kind() tsk.Kind {
 	return tsk.Union
 }
 
-func (u Union) Span() srcmap.Span {
-	return srcmap.Span{Pin: u.Pin}
+func (u Union) Span() sm.Span {
+	return sm.Span{Pin: u.Pin}
 }
 
 func (u Union) String() string {

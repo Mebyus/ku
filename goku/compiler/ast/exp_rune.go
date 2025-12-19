@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 type Rune struct {
@@ -11,7 +11,7 @@ type Rune struct {
 	// Rune literal value represented by token.
 	Val uint64
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 }
 
 // Explicit interface implementation check.
@@ -21,8 +21,8 @@ func (Rune) Kind() exk.Kind {
 	return exk.Rune
 }
 
-func (r Rune) Span() srcmap.Span {
-	return srcmap.Span{Pin: r.Pin}
+func (r Rune) Span() sm.Span {
+	return sm.Span{Pin: r.Pin}
 }
 
 func (r Rune) String() string {

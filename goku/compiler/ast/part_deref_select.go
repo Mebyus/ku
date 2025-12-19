@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 type DerefSelect struct {
@@ -18,7 +18,7 @@ func (DerefSelect) Kind() exk.Kind {
 	return exk.DerefSelect
 }
 
-func (d DerefSelect) Span() srcmap.Span {
+func (d DerefSelect) Span() sm.Span {
 	return d.Name.Span()
 }
 

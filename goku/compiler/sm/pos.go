@@ -1,4 +1,5 @@
-package srcmap
+// package sm (Source Map)
+package sm
 
 import (
 	"fmt"

@@ -1,6 +1,6 @@
 package baselex
 
-import "github.com/mebyus/ku/goku/compiler/srcmap"
+import "github.com/mebyus/ku/goku/compiler/sm"
 
 type Token struct {
 	// Not empty only for tokens which do not have static literal.
@@ -19,7 +19,7 @@ type Token struct {
 	//	Illegal:	error code (always not 0)
 	Val uint64
 
-	Pin srcmap.Pin
+	Pin sm.Pin
 
 	Kind uint32
 

@@ -1,21 +1,20 @@
 package builder
 
 import (
-	"github.com/mebyus/ku/goku/compiler/srcmap"
-	"github.com/mebyus/ku/goku/compiler/srcmap/origin"
+	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/compiler/typer/stg"
 )
 
 type QueueItem struct {
 	// Path to unit inside the queue.
-	Path origin.Path
+	Path sm.UnitPath
 
 	// Place where unit with this path is imported.
 	//
 	// There may be more than one import place for a specific unit inside the
 	// whole program. This field tracks the first one we encounter during unit
 	// walk phase.
-	Pin srcmap.Pin
+	Pin sm.Pin
 
 	// If true, then test files should be loaded alongside unit source files.
 	IncludeTestFiles bool
@@ -31,12 +30,12 @@ type UnitQueue struct {
 	units []*stg.Unit
 
 	// Set which contains paths of already visited units.
-	visited map[origin.Path]struct{}
+	visited map[sm.UnitPath]struct{}
 }
 
 func NewUnitQueue() *UnitQueue {
 	return &UnitQueue{
-		visited: make(map[origin.Path]struct{}),
+		visited: make(map[sm.UnitPath]struct{}),
 	}
 }
 

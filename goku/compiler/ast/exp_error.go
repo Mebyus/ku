@@ -2,7 +2,7 @@ package ast
 
 import (
 	"github.com/mebyus/ku/goku/compiler/enums/exk"
-	"github.com/mebyus/ku/goku/compiler/srcmap"
+	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
 // ErrorId represents usage of "#error" operator as expression.
@@ -24,7 +24,7 @@ func (ErrorId) Kind() exk.Kind {
 	return exk.ErrorId
 }
 
-func (e ErrorId) Span() srcmap.Span {
+func (e ErrorId) Span() sm.Span {
 	return e.Name.Span()
 }
 
