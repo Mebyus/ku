@@ -75,7 +75,7 @@ const (
 	RightSquare // ]
 	LeftParen   // (
 	RightParen  // )
-	PairSquare   // []
+	PairSquare  // []
 
 	HashCurly  // #{
 	HashSquare // #[
