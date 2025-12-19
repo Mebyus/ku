@@ -30,16 +30,8 @@ func (t *Typer) inspectTypeSymbol(s *stg.Symbol) diag.Error {
 
 func (t *Typer) inspectCustomTypeSpec(spec ast.TypeSpec) diag.Error {
 	switch p := spec.(type) {
-	case ast.Void, ast.VoidPointer, ast.VoidRef:
+	case ast.Void:
 		return nil
-	case ast.TypeName:
-		return t.linkTypeName(p)
-	case ast.Span:
-		return t.linkChunk(p)
-	case ast.Pointer:
-		return t.linkPointer(p)
-	case ast.Array:
-		return t.linkArray(p)
 	case ast.Struct:
 		return t.inspectFields(p.Fields)
 	case ast.Bag:
@@ -47,40 +39,19 @@ func (t *Typer) inspectCustomTypeSpec(spec ast.TypeSpec) diag.Error {
 		return nil
 	case ast.Union:
 		return t.inspectFields(p.Fields)
-	default:
-		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier (%T)", p.Kind(), p.Kind(), p))
 	}
+
+	return t.inspectType(spec)
 }
 
 func (t *Typer) inspectFields(fields []ast.Field) diag.Error {
 	for _, f := range fields {
-		err := t.inspectField(f)
+		err := t.inspectType(f.Type)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-func (t *Typer) inspectField(field ast.Field) diag.Error {
-	switch p := field.Type.(type) {
-	case ast.TypeName:
-		return t.linkTypeName(p)
-	case ast.TypeFullName:
-		return t.inspectTypeFullName(p)
-	case ast.Pointer:
-		return t.linkPointer(p)
-	case ast.ArrayPointer:
-		return t.linkArrayPointer(p)
-	case ast.VoidPointer:
-		return nil
-	case ast.Array:
-		return t.linkArray(p)
-	case ast.Span:
-		return t.linkChunk(p)
-	default:
-		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier (%T)", p.Kind(), p.Kind(), p))
-	}
 }
 
 func (t *Typer) inspectTypeFullName(p ast.TypeFullName) diag.Error {
@@ -160,7 +131,7 @@ func (t *Typer) inspectTuple(p ast.Tuple) diag.Error {
 
 func (t *Typer) inspectType(spec ast.TypeSpec) diag.Error {
 	switch p := spec.(type) {
-	case ast.VoidPointer:
+	case ast.VoidPointer, ast.VoidRef:
 		return nil
 	case ast.TypeName:
 		return t.linkTypeName(p)
@@ -171,7 +142,7 @@ func (t *Typer) inspectType(spec ast.TypeSpec) diag.Error {
 	case ast.ArrayPointer:
 		return t.linkArrayPointer(p)
 	case ast.Span:
-		return t.linkChunk(p)
+		return t.linkSpan(p)
 	case ast.Array:
 		return t.linkArray(p)
 	default:
@@ -207,7 +178,7 @@ func (t *Typer) linkRef(p ast.Ref) diag.Error {
 	return err
 }
 
-func (t *Typer) linkChunk(c ast.Span) diag.Error {
+func (t *Typer) linkSpan(c ast.Span) diag.Error {
 	k := t.ins.indirect()
 	err := t.inspectType(c.Type)
 	t.ins.restore(k)

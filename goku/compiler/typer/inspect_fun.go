@@ -54,7 +54,7 @@ func (t *Typer) inspectResultType(spec ast.TypeSpec) diag.Error {
 	case ast.TypeName:
 		return t.linkTypeName(p)
 	case ast.Span:
-		return t.linkChunk(p)
+		return t.linkSpan(p)
 	case ast.Tuple:
 		return t.inspectTuple(p)
 	default:
@@ -89,7 +89,7 @@ func (t *Typer) inspectParam(param ast.Param) diag.Error {
 	case ast.Array:
 		return t.linkArray(p)
 	case ast.Span:
-		return t.linkChunk(p)
+		return t.linkSpan(p)
 	case ast.ArrayRef:
 		return t.linkArrayRef(p)
 	default:

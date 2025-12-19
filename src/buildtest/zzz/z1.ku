@@ -2,6 +2,10 @@ import {
     abc -> "buildtest/abc"
 }
 
+fun check(a: u32) -> () {
+    ret;
+}
+
 fun alter(t: &SomeType, x: Sized) {
     var a: AnotherType;
     var b: uint = 1 + a;
@@ -9,6 +13,8 @@ fun alter(t: &SomeType, x: Sized) {
         ret;
     }
 }
+
+// type Bool2 bool
 
 fun strip(s: str) -> str {
     ret s;
@@ -22,6 +28,8 @@ type error struct {
     id:  uint
     obj: *void
 }
+
+type str2 abc.String
 
 type SomeType struct {
     name: abc.String

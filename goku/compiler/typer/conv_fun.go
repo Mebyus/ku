@@ -7,6 +7,7 @@ import (
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/enums/sck"
 	"github.com/mebyus/ku/goku/compiler/enums/smk"
+	"github.com/mebyus/ku/goku/compiler/enums/tpk"
 	"github.com/mebyus/ku/goku/compiler/typer/stg"
 )
 
@@ -76,7 +77,9 @@ func (t *Typer) createFun(sname string, sig ast.Signature) (*stg.Fun, diag.Error
 		if err != nil {
 			return nil, err
 		}
-		def.Result = result
+		if result.Kind != tpk.Void {
+			def.Result = result
+		}
 	}
 
 	var params []*stg.Type

@@ -160,7 +160,44 @@ func (s *Scope) lookupTypeName(p ast.TypeName) (*Type, diag.Error) {
 }
 
 func (s *Scope) lookupTypeFullName(p ast.TypeFullName) (*Type, diag.Error) {
-	return nil, nil
+	iname := p.Import.Str
+	m := s.Lookup(iname)
+	if m == nil {
+		return nil, &diag.SimpleMessageError{
+			Pin:  p.Name.Pin,
+			Text: fmt.Sprintf("name \"%s\" refers to undefined symbol", iname),
+		}
+	}
+	if m.Kind != smk.Import {
+		return nil, &diag.SimpleMessageError{
+			Pin:  p.Name.Pin,
+			Text: fmt.Sprintf("name \"%s\" refers to %s, not an import", iname, m.Kind),
+		}
+	}
+
+	unit := m.Def.(*Unit)
+	name := p.Name.Str
+	symbol := unit.Scope.Lookup(name)
+	if symbol == nil {
+		return nil, &diag.SimpleMessageError{
+			Pin:  p.Name.Pin,
+			Text: fmt.Sprintf("name \"%s\" refers to undefined symbol", name), // TODO: error text with unit name
+		}
+	}
+	if symbol.Kind != smk.Type {
+		return nil, &diag.SimpleMessageError{
+			Pin:  p.Name.Pin,
+			Text: fmt.Sprintf("name \"%s\" refers to %s, not a type", name, s.Kind),
+		}
+	}
+	if !symbol.IsPublic() {
+		return nil, &diag.SimpleMessageError{
+			Pin:  p.Name.Pin,
+			Text: fmt.Sprintf("type \"%s\" is not public", name),
+		}
+	}
+
+	return symbol.Def.(*Type), nil
 }
 
 func (s *Scope) lookupArray(a ast.Array) (*Type, diag.Error) {
@@ -338,7 +375,7 @@ func (s *Scope) lookupStruct(p ast.Struct) (*Type, diag.Error) {
 
 func (s *Scope) lookupTuple(tuple ast.Tuple) (*Type, diag.Error) {
 	if len(tuple.Types) == 0 {
-		panic("empty tuple")
+		return s.Types.Known.Void, nil
 	}
 
 	types := make([]*Type, 0, len(tuple.Types))

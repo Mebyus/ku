@@ -26,6 +26,24 @@ func (t *Typer) convTypeSymbol(s *stg.Symbol) diag.Error {
 		return err
 	}
 
+	if typ.Kind == tpk.Boolean {
+		return &diag.SimpleMessageError{
+			Pin:  s.Pin,
+			Text: "custom boolean types are forbidden",
+		}
+	}
+
+	if typ.Kind == tpk.Custom {
+		// If custom type A is created upon another custom type B
+		// then we take base B's base type as A's base type.
+		//
+		//	A.Base = B.Base (not A.Base = B)
+		//
+		typ = typ.Def.(*stg.Custom).Type
+		if typ.Kind == tpk.Custom {
+			panic("custom type inside another custom type")
+		}
+	}
 	custom := &stg.Custom{
 		Symbol:  s,
 		Methods: methods,
