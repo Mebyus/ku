@@ -43,13 +43,13 @@ func (p *Parser) Method(traits ast.Traits) (ast.Method, diag.Error) {
 }
 
 func (p *Parser) Receiver() (ast.Receiver, diag.Error) {
-	if p.c.Kind != token.LeftParen {
+	if p.peek.Kind != token.LeftParen {
 		return ast.Receiver{}, p.unexpected()
 	}
 	p.advance() // skip "("
 
 	var kind ast.ReceiverKind
-	switch p.c.Kind {
+	switch p.peek.Kind {
 	case token.Asterisk:
 		p.advance() // skip "*"
 		kind = ast.ReceiverPtr
@@ -60,12 +60,12 @@ func (p *Parser) Receiver() (ast.Receiver, diag.Error) {
 		kind = ast.ReceiverVal
 	}
 
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return ast.Receiver{}, p.unexpected()
 	}
 	name := p.word()
 
-	if p.c.Kind != token.RightParen {
+	if p.peek.Kind != token.RightParen {
 		return ast.Receiver{}, p.unexpected()
 	}
 	p.advance() // skip ")"

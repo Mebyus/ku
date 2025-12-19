@@ -20,7 +20,7 @@ const (
 	Array
 	ArrayRef
 	ArrayPointer
-	Chunk
+	Span
 	Enum
 	Bag
 	Fun
@@ -42,7 +42,7 @@ var text = [...]string{
 	Array:        "array",
 	ArrayRef:     "ref.array",
 	ArrayPointer: "pointer.array",
-	Chunk:        "chunk",
+	Span:         "chunk",
 	Enum:         "enum",
 	Bag:          "bag",
 	Fun:          "fun",

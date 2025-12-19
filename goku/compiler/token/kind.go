@@ -75,6 +75,7 @@ const (
 	RightSquare // ]
 	LeftParen   // (
 	RightParen  // )
+	PairSquare   // []
 
 	HashCurly  // #{
 	HashSquare // #[
@@ -82,7 +83,6 @@ const (
 	Tweak        // .{
 	Insist       // .!
 	Chain        // .?
-	Chunk        // []
 	AutoLen      // [_]
 	ArrayPointer // [*]
 	ArrayRef     // [&]

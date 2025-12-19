@@ -18,13 +18,13 @@ func (p *Parser) topType(traits ast.Traits) diag.Error {
 func (p *Parser) Type(traits ast.Traits) (ast.Type, diag.Error) {
 	p.advance() // skip "type"
 
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return ast.Type{}, p.unexpected()
 	}
 	name := p.word()
 
 	var bags []ast.Word
-	if p.c.Kind == token.In {
+	if p.peek.Kind == token.In {
 		p.advance() // skip "in"
 		list, err := p.bagList()
 		if err != nil {
@@ -33,7 +33,7 @@ func (p *Parser) Type(traits ast.Traits) (ast.Type, diag.Error) {
 		bags = list
 	}
 
-	if p.c.Kind == token.RightArrow {
+	if p.peek.Kind == token.RightArrow {
 		// TODO: arrow in type definition is optional for now
 		// Remove it completely, after we fix source code in standard library.
 		p.advance() // skip "->"
@@ -61,19 +61,19 @@ func (p *Parser) Type(traits ast.Traits) (ast.Type, diag.Error) {
 //   - variable and constant definition
 //   - inside another type specifier
 func (p *Parser) TypeSpec() (ast.TypeSpec, diag.Error) {
-	switch p.c.Kind {
+	switch p.peek.Kind {
 	case token.Word:
-		if p.n.Kind == token.Period {
+		if p.next.Kind == token.Period {
 			return p.TypeFullName()
 		}
 		return p.TypeName(), nil
 	case token.Ampersand:
-		if p.n.Kind == token.Void {
+		if p.next.Kind == token.Void {
 			return p.AnyRef(), nil
 		}
 		return p.Ref()
 	case token.Asterisk:
-		if p.n.Kind == token.Void {
+		if p.next.Kind == token.Void {
 			return p.AnyPointer(), nil
 		}
 		return p.Pointer()
@@ -81,9 +81,13 @@ func (p *Parser) TypeSpec() (ast.TypeSpec, diag.Error) {
 		return p.ArrayPointer()
 	case token.ArrayRef:
 		return p.ArrayRef()
-	case token.Chunk:
-		return p.Chunk()
+	case token.PairSquare:
+		return p.Span()
 	case token.LeftSquare:
+		if p.next.Kind == token.RightSquare {
+			p.advance() // skip "["
+			return p.Span()
+		}
 		return p.Array()
 	case token.AutoLen:
 		return p.AutoLenArray()
@@ -100,7 +104,7 @@ func (p *Parser) TypeSpec() (ast.TypeSpec, diag.Error) {
 //
 // This variant includes tuples and forms.
 func (p *Parser) ResultTypeSpec() (ast.TypeSpec, diag.Error) {
-	if p.c.Kind == token.LeftParen {
+	if p.peek.Kind == token.LeftParen {
 		return p.TupleOrForm()
 	}
 	return p.TypeSpec()
@@ -111,9 +115,9 @@ func (p *Parser) ResultTypeSpec() (ast.TypeSpec, diag.Error) {
 // It includes all forms allowed in regular form as well those
 // only allowed in custom type definition.
 func (p *Parser) CustomTypeSpec() (ast.TypeSpec, diag.Error) {
-	switch p.c.Kind {
+	switch p.peek.Kind {
 	case token.Word:
-		if p.n.Kind == token.LeftCurly {
+		if p.next.Kind == token.LeftCurly {
 			return p.Enum()
 		}
 	case token.Union:
@@ -134,7 +138,7 @@ func (p *Parser) Array() (ast.Array, diag.Error) {
 		return ast.Array{}, err
 	}
 
-	if p.c.Kind != token.RightSquare {
+	if p.peek.Kind != token.RightSquare {
 		return ast.Array{}, p.unexpected()
 	}
 	p.advance() // skip "]"
@@ -183,15 +187,15 @@ func (p *Parser) ArrayRef() (ast.ArrayRef, diag.Error) {
 	return ast.ArrayRef{Type: t}, nil
 }
 
-func (p *Parser) Chunk() (ast.Chunk, diag.Error) {
+func (p *Parser) Span() (ast.Span, diag.Error) {
 	p.advance() // skip "[]"
 
 	t, err := p.TypeSpec()
 	if err != nil {
-		return ast.Chunk{}, err
+		return ast.Span{}, err
 	}
 
-	return ast.Chunk{Type: t}, nil
+	return ast.Span{Type: t}, nil
 }
 
 func (p *Parser) Pointer() (ast.Pointer, diag.Error) {
@@ -217,7 +221,7 @@ func (p *Parser) Ref() (ast.Ref, diag.Error) {
 }
 
 func (p *Parser) AnyPointer() ast.VoidPointer {
-	pin := p.c.Pin
+	pin := p.peek.Pin
 
 	p.advance() // skip "*"
 	p.advance() // skip "any"
@@ -226,7 +230,7 @@ func (p *Parser) AnyPointer() ast.VoidPointer {
 }
 
 func (p *Parser) AnyRef() ast.VoidRef {
-	pin := p.c.Pin
+	pin := p.peek.Pin
 
 	p.advance() // skip "&"
 	p.advance() // skip "any"
@@ -235,7 +239,7 @@ func (p *Parser) AnyRef() ast.VoidRef {
 }
 
 func (p *Parser) AnyType() ast.AnyType {
-	pin := p.c.Pin
+	pin := p.peek.Pin
 
 	p.advance() // skip "type"
 
@@ -246,7 +250,7 @@ func (p *Parser) TypeFullName() (ast.TypeFullName, diag.Error) {
 	iname := p.word()
 	p.advance() // skip "."
 
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return ast.TypeFullName{}, p.unexpected()
 	}
 	name := p.word()
@@ -263,27 +267,27 @@ func (p *Parser) TypeName() ast.TypeName {
 }
 
 func (p *Parser) bagList() ([]ast.Word, diag.Error) {
-	if p.c.Kind != token.LeftParen {
+	if p.peek.Kind != token.LeftParen {
 		return nil, p.unexpected()
 	}
 	p.advance() // skip "("
 
 	var list []ast.Word
 	for {
-		if p.c.Kind == token.RightParen {
+		if p.peek.Kind == token.RightParen {
 			p.advance() // skip ")"
 			return list, nil
 		}
 
-		if p.c.Kind != token.Word {
+		if p.peek.Kind != token.Word {
 			return nil, p.unexpected()
 		}
 		name := p.word()
 		list = append(list, name)
 
-		if p.c.Kind == token.Comma {
+		if p.peek.Kind == token.Comma {
 			p.advance() // skip ","
-		} else if p.c.Kind == token.RightParen {
+		} else if p.peek.Kind == token.RightParen {
 			// will be skipped at next iteration
 		} else {
 			return nil, p.unexpected()

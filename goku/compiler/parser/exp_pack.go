@@ -15,7 +15,7 @@ import (
 func (p *Parser) Pack() (ast.Exp, diag.Error) {
 	var list []ast.Exp
 	for {
-		if isPackEnd(p.c.Kind) {
+		if isPackEnd(p.peek.Kind) {
 			switch len(list) {
 			case 0:
 				return nil, p.unexpected()
@@ -32,9 +32,9 @@ func (p *Parser) Pack() (ast.Exp, diag.Error) {
 		}
 		list = append(list, exp)
 
-		if p.c.Kind == token.Comma {
+		if p.peek.Kind == token.Comma {
 			p.advance() // skip ","
-		} else if isPackEnd(p.c.Kind) {
+		} else if isPackEnd(p.peek.Kind) {
 			// will be skipped at next iteration
 		} else {
 			return nil, p.unexpected()
@@ -44,8 +44,8 @@ func (p *Parser) Pack() (ast.Exp, diag.Error) {
 
 // parses expression that can appear as pack element
 func (p *Parser) packExp() (ast.Exp, diag.Error) {
-	if p.c.Kind == token.Underscore {
-		pin := p.c.Pin
+	if p.peek.Kind == token.Underscore {
+		pin := p.peek.Pin
 		p.advance()
 		return ast.Blank{Pin: pin}, nil
 	}

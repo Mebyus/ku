@@ -22,11 +22,11 @@ func (p *Parser) pratt(power int) (ast.Exp, diag.Error) {
 	}
 
 	for {
-		k, ok := bok.FromToken(p.c.Kind)
+		k, ok := bok.FromToken(p.peek.Kind)
 		if !ok || k.Power() <= power {
 			return a, nil
 		}
-		op := ast.BinOp{Pin: p.c.Pin, Kind: k}
+		op := ast.BinOp{Pin: p.peek.Pin, Kind: k}
 		p.advance() // skip binary operator
 
 		b, err := p.pratt(k.Power())
@@ -39,12 +39,12 @@ func (p *Parser) pratt(power int) (ast.Exp, diag.Error) {
 }
 
 func (p *Parser) Primary() (ast.Exp, diag.Error) {
-	k, ok := uok.FromToken(p.c.Kind)
+	k, ok := uok.FromToken(p.peek.Kind)
 	if !ok {
 		return p.Operand()
 	}
 
-	op := ast.UnaryOp{Pin: p.c.Pin, Kind: k}
+	op := ast.UnaryOp{Pin: p.peek.Pin, Kind: k}
 	p.advance() // skip unary operator
 
 	exp, err := p.Primary()

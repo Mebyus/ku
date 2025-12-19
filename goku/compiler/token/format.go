@@ -71,7 +71,7 @@ var literal = [...]string{
 	BagSelect:      ".(",
 	Insist:         ".!",
 	Chain:          ".?",
-	Chunk:          "[]",
+	PairSquare:     "[]",
 	AutoLen:        "[_]",
 	ArrayPointer:   "[*]",
 	ArrayRef:       "[&]",

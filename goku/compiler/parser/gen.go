@@ -9,16 +9,16 @@ import (
 func (p *Parser) Gen(traits ast.Traits) diag.Error {
 	p.advance() // skip "gen"
 
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return p.unexpected()
 	}
 	name := p.word()
 
-	if p.c.Kind != token.LeftParen {
+	if p.peek.Kind != token.LeftParen {
 		return p.unexpected()
 	}
 
-	if p.n.Kind == token.Ellipsis {
+	if p.next.Kind == token.Ellipsis {
 		return p.genBind(traits, name)
 	}
 
@@ -28,7 +28,7 @@ func (p *Parser) Gen(traits ast.Traits) diag.Error {
 	}
 
 	var control *ast.Static
-	if p.c.Kind == token.HashCurly {
+	if p.peek.Kind == token.HashCurly {
 		block, err := p.Static()
 		if err != nil {
 			return err
@@ -48,7 +48,7 @@ func (p *Parser) genBind(traits ast.Traits, name ast.Word) diag.Error {
 	p.advance() // skip "("
 	p.advance() // skip "..."
 
-	if p.c.Kind != token.RightParen {
+	if p.peek.Kind != token.RightParen {
 		return p.unexpected()
 	}
 	p.advance() // skip ")"
@@ -66,14 +66,14 @@ func (p *Parser) genBind(traits ast.Traits, name ast.Word) diag.Error {
 }
 
 func (p *Parser) GenBlock() (ast.GenBlock, diag.Error) {
-	if p.c.Kind != token.LeftCurly {
+	if p.peek.Kind != token.LeftCurly {
 		return ast.GenBlock{}, p.unexpected()
 	}
 	p.advance() // skip "{"
 
 	var block ast.GenBlock
 	for {
-		if p.c.Kind == token.RightCurly {
+		if p.peek.Kind == token.RightCurly {
 			p.advance() // skip "}"
 			return block, nil
 		}
@@ -86,11 +86,11 @@ func (p *Parser) GenBlock() (ast.GenBlock, diag.Error) {
 }
 
 func (p *Parser) genNode(b *ast.GenBlock) diag.Error {
-	switch p.c.Kind {
+	switch p.peek.Kind {
 	case token.Type:
 		return p.genType(b)
 	case token.Fun:
-		if p.n.Kind == token.LeftParen {
+		if p.next.Kind == token.LeftParen {
 			return p.genMethod(b)
 		}
 		return p.genFun(b)

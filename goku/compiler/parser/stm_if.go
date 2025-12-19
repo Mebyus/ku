@@ -14,7 +14,7 @@ func (p *Parser) If() (ast.Statement, diag.Error) {
 		return nil, err
 	}
 
-	switch p.c.Kind {
+	switch p.peek.Kind {
 	case token.RightArrow, token.Else:
 		return p.Match(exp)
 	case token.LeftCurly:
@@ -30,7 +30,7 @@ func (p *Parser) If() (ast.Statement, diag.Error) {
 
 	var elseIfs []ast.IfClause
 	for {
-		if p.c.Kind == token.Else && p.n.Kind == token.If {
+		if p.peek.Kind == token.Else && p.next.Kind == token.If {
 			p.advance() // skip "else"
 		} else {
 			break
@@ -44,7 +44,7 @@ func (p *Parser) If() (ast.Statement, diag.Error) {
 	}
 
 	var elseBody *ast.Block
-	if p.c.Kind == token.Else {
+	if p.peek.Kind == token.Else {
 		p.advance() // skip "else"
 
 		var body ast.Block
@@ -72,7 +72,7 @@ func (p *Parser) ifClause() (ast.IfClause, diag.Error) {
 	if err != nil {
 		return ast.IfClause{}, err
 	}
-	if p.c.Kind != token.LeftCurly {
+	if p.peek.Kind != token.LeftCurly {
 		return ast.IfClause{}, p.unexpected()
 	}
 	body, err := p.Block()
@@ -94,7 +94,7 @@ func (p *Parser) StaticIf() (ast.StaticIf, diag.Error) {
 
 	var elseIfs []ast.IfClause
 	for {
-		if p.c.Kind == token.Else && p.n.Kind == token.If {
+		if p.peek.Kind == token.Else && p.next.Kind == token.If {
 			p.advance() // skip "else"
 		} else {
 			break
@@ -108,7 +108,7 @@ func (p *Parser) StaticIf() (ast.StaticIf, diag.Error) {
 	}
 
 	var elseBody *ast.Block
-	if p.c.Kind == token.Else {
+	if p.peek.Kind == token.Else {
 		p.advance() // skip "else"
 
 		var body ast.Block

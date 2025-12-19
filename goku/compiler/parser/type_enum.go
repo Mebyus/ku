@@ -13,7 +13,7 @@ func (p *Parser) Enum() (ast.Enum, diag.Error) {
 
 	var entries []ast.EnumEntry
 	for {
-		if p.c.Kind == token.RightCurly {
+		if p.peek.Kind == token.RightCurly {
 			p.advance() // skip "}"
 
 			return ast.Enum{
@@ -28,9 +28,9 @@ func (p *Parser) Enum() (ast.Enum, diag.Error) {
 		}
 		entries = append(entries, entry)
 
-		if p.c.Kind == token.Comma {
+		if p.peek.Kind == token.Comma {
 			p.advance() // skip ","
-		} else if p.c.Kind == token.RightCurly {
+		} else if p.peek.Kind == token.RightCurly {
 			// will be skipped at next iteration
 		} else {
 			return ast.Enum{}, p.unexpected()
@@ -39,12 +39,12 @@ func (p *Parser) Enum() (ast.Enum, diag.Error) {
 }
 
 func (p *Parser) EnumEntry() (ast.EnumEntry, diag.Error) {
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return ast.EnumEntry{}, p.unexpected()
 	}
 	name := p.word()
 
-	if p.c.Kind != token.Assign {
+	if p.peek.Kind != token.Assign {
 		// entry without explicitly assigned value
 		return ast.EnumEntry{Name: name}, nil
 	}

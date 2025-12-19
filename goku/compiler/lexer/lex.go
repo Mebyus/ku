@@ -421,7 +421,7 @@ func (lx *Lexer) other() token.Token {
 		return lx.oneByteToken(token.RightCurly)
 	case '[':
 		if lx.Next() == ']' {
-			return lx.twoBytesToken(token.Chunk)
+			return lx.twoBytesToken(token.PairSquare)
 		}
 		if lx.Next() == '_' {
 			pin := lx.Pin()

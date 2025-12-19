@@ -42,8 +42,8 @@ func (g *Printer) TypeSpec(typ TypeSpec) {
 		g.Tuple(t)
 	case Form:
 		g.Form(t)
-	case Chunk:
-		g.Chunk(t)
+	case Span:
+		g.Span(t)
 	case Array:
 		g.Array(t)
 	case Struct:
@@ -131,7 +131,7 @@ func (g *Printer) ArrayRef(r ArrayRef) {
 	g.TypeSpec(r.Type)
 }
 
-func (g *Printer) Chunk(c Chunk) {
+func (g *Printer) Span(c Span) {
 	g.puts("[]")
 	g.TypeSpec(c.Type)
 }

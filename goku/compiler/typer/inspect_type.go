@@ -32,7 +32,7 @@ func (t *Typer) inspectCustomTypeSpec(spec ast.TypeSpec) diag.Error {
 	switch p := spec.(type) {
 	case ast.TypeName:
 		return t.linkTypeName(p)
-	case ast.Chunk:
+	case ast.Span:
 		return t.linkChunk(p)
 	case ast.Pointer:
 		return t.linkPointer(p)
@@ -78,7 +78,7 @@ func (t *Typer) inspectStructField(field ast.Field) diag.Error {
 		return nil
 	case ast.Array:
 		return t.linkArray(p)
-	case ast.Chunk:
+	case ast.Span:
 		return t.linkChunk(p)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier (%T)", p.Kind(), p.Kind(), p))
@@ -172,7 +172,7 @@ func (t *Typer) inspectType(spec ast.TypeSpec) diag.Error {
 		return t.linkPointer(p)
 	case ast.ArrayPointer:
 		return t.linkArrayPointer(p)
-	case ast.Chunk:
+	case ast.Span:
 		return t.linkChunk(p)
 	case ast.Array:
 		return t.linkArray(p)
@@ -209,7 +209,7 @@ func (t *Typer) linkRef(p ast.Ref) diag.Error {
 	return err
 }
 
-func (t *Typer) linkChunk(c ast.Chunk) diag.Error {
+func (t *Typer) linkChunk(c ast.Span) diag.Error {
 	k := t.ins.indirect()
 	err := t.inspectType(c.Type)
 	t.ins.restore(k)

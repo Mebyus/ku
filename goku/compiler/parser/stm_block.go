@@ -7,7 +7,7 @@ import (
 )
 
 func (p *Parser) Statement() (ast.Statement, diag.Error) {
-	switch p.c.Kind {
+	switch p.peek.Kind {
 	case token.LeftCurly:
 		return p.Block()
 	case token.Const:
@@ -50,15 +50,15 @@ func (p *Parser) Statement() (ast.Statement, diag.Error) {
 }
 
 func (p *Parser) Block() (ast.Block, diag.Error) {
-	if p.c.Kind != token.LeftCurly {
+	if p.peek.Kind != token.LeftCurly {
 		return ast.Block{}, p.unexpected()
 	}
-	pin := p.c.Pin
+	pin := p.peek.Pin
 	p.advance() // skip "{"
 
 	var nodes []ast.Statement
 	for {
-		if p.c.Kind == token.RightCurly {
+		if p.peek.Kind == token.RightCurly {
 			p.advance() // skip "}"
 			return ast.Block{
 				Pin:   pin,
@@ -75,15 +75,15 @@ func (p *Parser) Block() (ast.Block, diag.Error) {
 }
 
 func (p *Parser) Static() (ast.Static, diag.Error) {
-	if p.c.Kind != token.HashCurly {
+	if p.peek.Kind != token.HashCurly {
 		return ast.Static{}, p.unexpected()
 	}
-	pin := p.c.Pin
+	pin := p.peek.Pin
 	p.advance() // skip "#{"
 
 	var nodes []ast.Statement
 	for {
-		if p.c.Kind == token.RightCurly {
+		if p.peek.Kind == token.RightCurly {
 			p.advance() // skip "}"
 			return ast.Static{
 				Pin:   pin,
@@ -102,7 +102,7 @@ func (p *Parser) Static() (ast.Static, diag.Error) {
 func (p *Parser) Debug() (ast.Debug, diag.Error) {
 	p.advance() // skip "#debug"
 
-	if p.c.Kind != token.LeftCurly {
+	if p.peek.Kind != token.LeftCurly {
 		return ast.Debug{}, p.unexpected()
 	}
 

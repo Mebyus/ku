@@ -10,7 +10,7 @@ import (
 
 func (p *Parser) gatherProps() diag.Error {
 	for {
-		if p.c.Kind != token.HashSquare {
+		if p.peek.Kind != token.HashSquare {
 			return nil
 		}
 
@@ -27,7 +27,7 @@ func (p *Parser) PropsBlock() ([]ast.Prop, diag.Error) {
 
 	var props []ast.Prop
 	for {
-		if p.c.Kind == token.RightSquare {
+		if p.peek.Kind == token.RightSquare {
 			p.advance() // skip "]"
 			return props, nil
 		}
@@ -41,13 +41,13 @@ func (p *Parser) PropsBlock() ([]ast.Prop, diag.Error) {
 }
 
 func (p *Parser) prop() (ast.Prop, diag.Error) {
-	pin := p.c.Pin
+	pin := p.peek.Pin
 	name, err := p.propName()
 	if err != nil {
 		return ast.Prop{}, err
 	}
 
-	if p.c.Kind != token.Assign {
+	if p.peek.Kind != token.Assign {
 		return ast.Prop{}, p.unexpected()
 	}
 	p.advance() // skip "="
@@ -57,7 +57,7 @@ func (p *Parser) prop() (ast.Prop, diag.Error) {
 		return ast.Prop{}, err
 	}
 
-	if p.c.Kind != token.Semicolon {
+	if p.peek.Kind != token.Semicolon {
 		return ast.Prop{}, p.unexpected()
 	}
 	p.advance() // skip ";"
@@ -71,7 +71,7 @@ func (p *Parser) prop() (ast.Prop, diag.Error) {
 
 func (p *Parser) propName() (string, diag.Error) {
 	var parts []string
-	part, ok := getPropNamePart(&p.c)
+	part, ok := getPropNamePart(&p.peek)
 	if !ok {
 		return "", p.unexpected()
 	}
@@ -79,12 +79,12 @@ func (p *Parser) propName() (string, diag.Error) {
 	parts = append(parts, part)
 
 	for {
-		if p.c.Kind != token.Period {
+		if p.peek.Kind != token.Period {
 			return strings.Join(parts, "."), nil
 		}
 		p.advance() // skip "."
 
-		part, ok := getPropNamePart(&p.c)
+		part, ok := getPropNamePart(&p.peek)
 		if !ok {
 			return "", p.unexpected()
 		}

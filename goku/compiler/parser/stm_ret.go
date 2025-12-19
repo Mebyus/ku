@@ -7,11 +7,11 @@ import (
 )
 
 func (p *Parser) Ret() (ast.Ret, diag.Error) {
-	pin := p.c.Pin
+	pin := p.peek.Pin
 
 	p.advance() // skip "ret"
 
-	if p.c.Kind == token.Semicolon {
+	if p.peek.Kind == token.Semicolon {
 		p.advance() // skip ";"
 		return ast.Ret{Pin: pin}, nil
 	}
@@ -20,7 +20,7 @@ func (p *Parser) Ret() (ast.Ret, diag.Error) {
 	if err != nil {
 		return ast.Ret{}, err
 	}
-	if p.c.Kind != token.Semicolon {
+	if p.peek.Kind != token.Semicolon {
 		return ast.Ret{}, p.unexpected()
 	}
 	p.advance() // skip ";"

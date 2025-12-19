@@ -7,7 +7,7 @@ import (
 )
 
 func (p *Parser) Lookup() (ast.Lookup, diag.Error) {
-	pin := p.c.Pin
+	pin := p.peek.Pin
 	p.advance() // skip "#lookup"
 
 	exp, err := p.Exp()
@@ -15,7 +15,7 @@ func (p *Parser) Lookup() (ast.Lookup, diag.Error) {
 		return ast.Lookup{}, err
 	}
 
-	if p.c.Kind != token.Semicolon {
+	if p.peek.Kind != token.Semicolon {
 		return ast.Lookup{}, p.unexpected()
 	}
 	p.advance() // skip ";"

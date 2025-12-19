@@ -8,7 +8,7 @@ import (
 
 // Build parses build block from source text. Returns nil if there is no build block.
 func (p *Parser) Build() (*ast.Build, diag.Error) {
-	if p.c.Kind != token.Build {
+	if p.peek.Kind != token.Build {
 		return nil, nil
 	}
 

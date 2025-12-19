@@ -21,12 +21,12 @@ func (p *Parser) topVar(traits ast.Traits) diag.Error {
 
 func (p *Parser) Var() (ast.Var, diag.Error) {
 	p.advance() // skip "var"
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return ast.Var{}, p.unexpected()
 	}
 	name := p.word()
 
-	if p.c.Kind != token.Colon {
+	if p.peek.Kind != token.Colon {
 		return ast.Var{}, p.unexpected()
 	}
 	p.advance() // skip ":"
@@ -36,7 +36,7 @@ func (p *Parser) Var() (ast.Var, diag.Error) {
 		return ast.Var{}, err
 	}
 
-	if p.c.Kind == token.Semicolon {
+	if p.peek.Kind == token.Semicolon {
 		// empty init expression
 
 		p.advance() // skip ";"
@@ -46,7 +46,7 @@ func (p *Parser) Var() (ast.Var, diag.Error) {
 		}, nil
 	}
 
-	if p.c.Kind != token.Assign {
+	if p.peek.Kind != token.Assign {
 		return ast.Var{}, p.unexpected()
 	}
 	p.advance() // skip "="
@@ -56,7 +56,7 @@ func (p *Parser) Var() (ast.Var, diag.Error) {
 		return ast.Var{}, err
 	}
 
-	if p.c.Kind != token.Semicolon {
+	if p.peek.Kind != token.Semicolon {
 		return ast.Var{}, p.unexpected()
 	}
 	p.advance() // consume ";"

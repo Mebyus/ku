@@ -8,7 +8,7 @@ import (
 
 func (p *Parser) parse() diag.Error {
 	for {
-		if p.c.Kind == token.EOF {
+		if p.peek.Kind == token.EOF {
 			return nil
 		}
 
@@ -25,16 +25,16 @@ func (p *Parser) top() diag.Error {
 		return err
 	}
 	traits := ast.Traits{Props: p.takeProps()}
-	if p.c.Kind == token.Pub {
+	if p.peek.Kind == token.Pub {
 		traits.Pub = true
 		p.advance() // skip "pub"
 	}
 
-	switch p.c.Kind {
+	switch p.peek.Kind {
 	case token.Type:
 		return p.topType(traits)
 	case token.Fun:
-		if p.n.Kind == token.LeftParen {
+		if p.next.Kind == token.LeftParen {
 			return p.topMethod(traits)
 		}
 		return p.topFun(traits)
@@ -62,8 +62,8 @@ func (p *Parser) top() diag.Error {
 // Consume and then return a word.
 func (p *Parser) word() ast.Word {
 	word := ast.Word{
-		Pin: p.c.Pin,
-		Str: p.c.Data,
+		Pin: p.peek.Pin,
+		Str: p.peek.Data,
 	}
 	p.advance()
 	return word

@@ -42,7 +42,7 @@ func (g *Gen) TypeSpec(spec ast.TypeSpec) {
 		panic("not supported")
 	case ast.Form:
 		panic("not supported")
-	case ast.Chunk:
+	case ast.Span:
 		g.Chunk(s)
 	case ast.Array:
 		panic("not implemented")
@@ -107,7 +107,7 @@ func (g *Gen) ArrayRef(r ast.ArrayRef) {
 	g.putb('*')
 }
 
-func (g *Gen) Chunk(c ast.Chunk) {
+func (g *Gen) Chunk(c ast.Span) {
 	t, ok := c.Type.(ast.TypeName)
 	if !ok {
 		panic("not implemented")

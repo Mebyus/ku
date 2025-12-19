@@ -16,15 +16,15 @@ func (p *Parser) AssignOrInvoke() (ast.Statement, diag.Error) {
 		return nil, err
 	}
 
-	if p.c.Kind == token.Semicolon {
+	if p.peek.Kind == token.Semicolon {
 		return p.invoke(pack)
 	}
 
-	k, ok := aok.FromToken(p.c.Kind)
+	k, ok := aok.FromToken(p.peek.Kind)
 	if !ok {
 		return nil, p.unexpected()
 	}
-	op := ast.AssignOp{Pin: p.c.Pin, Kind: k}
+	op := ast.AssignOp{Pin: p.peek.Pin, Kind: k}
 	p.advance() // skip assign operator
 
 	value, err := p.Pack()
@@ -32,7 +32,7 @@ func (p *Parser) AssignOrInvoke() (ast.Statement, diag.Error) {
 		return nil, err
 	}
 
-	if p.c.Kind != token.Semicolon {
+	if p.peek.Kind != token.Semicolon {
 		return nil, p.unexpected()
 	}
 	p.advance() // skip ";"

@@ -9,12 +9,12 @@ import (
 func (p *Parser) RegBag() diag.Error {
 	p.advance() // skip "bag"
 
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return p.unexpected()
 	}
 	name := p.word()
 
-	if p.c.Kind != token.Colon {
+	if p.peek.Kind != token.Colon {
 		return p.unexpected()
 	}
 	p.advance() // skip ":"
@@ -24,12 +24,12 @@ func (p *Parser) RegBag() diag.Error {
 		return err
 	}
 
-	if p.c.Kind != token.RightArrow {
+	if p.peek.Kind != token.RightArrow {
 		return p.unexpected()
 	}
 	p.advance() // skip "=>"
 
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return p.unexpected()
 	}
 	bag := p.word()
@@ -50,34 +50,34 @@ func (p *Parser) RegBag() diag.Error {
 }
 
 func (p *Parser) bagTab() ([]ast.BagTabField, diag.Error) {
-	if p.c.Kind != token.LeftCurly {
+	if p.peek.Kind != token.LeftCurly {
 		return nil, p.unexpected()
 	}
 	p.advance() // skip "{"
 
 	var tab []ast.BagTabField
 	for {
-		if p.c.Kind == token.RightCurly {
+		if p.peek.Kind == token.RightCurly {
 			p.advance() // skip "}"
 			return tab, nil
 		}
 
-		if p.c.Kind != token.Word {
+		if p.peek.Kind != token.Word {
 			return nil, p.unexpected()
 		}
 		name := p.word()
 
-		if p.c.Kind != token.Colon {
+		if p.peek.Kind != token.Colon {
 			return nil, p.unexpected()
 		}
 		p.advance() // skip ":"
 
-		if p.c.Kind != token.Word {
+		if p.peek.Kind != token.Word {
 			return nil, p.unexpected()
 		}
 		fun := p.word()
 
-		if p.c.Kind != token.Comma {
+		if p.peek.Kind != token.Comma {
 			return nil, p.unexpected()
 		}
 		p.advance() // skip ","

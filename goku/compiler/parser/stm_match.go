@@ -9,7 +9,7 @@ import (
 func (p *Parser) Match(exp ast.Exp) (ast.Match, diag.Error) {
 	m := ast.Match{Exp: exp}
 	for {
-		switch p.c.Kind {
+		switch p.peek.Kind {
 		case token.RightArrow:
 			c, err := p.matchCase()
 			if err != nil {
@@ -40,7 +40,7 @@ func (p *Parser) matchCase() (ast.MatchCase, diag.Error) {
 	}
 	if len(list) == 0 {
 		return ast.MatchCase{}, &diag.SimpleMessageError{
-			Pin:  p.c.Pin,
+			Pin:  p.peek.Pin,
 			Text: "case with no expressions",
 		}
 	}
@@ -59,7 +59,7 @@ func (p *Parser) matchCase() (ast.MatchCase, diag.Error) {
 func (p *Parser) ExpList() ([]ast.Exp, diag.Error) {
 	var list []ast.Exp
 	for {
-		if p.c.Kind == token.LeftCurly {
+		if p.peek.Kind == token.LeftCurly {
 			return list, nil
 		}
 
@@ -69,9 +69,9 @@ func (p *Parser) ExpList() ([]ast.Exp, diag.Error) {
 		}
 		list = append(list, exp)
 
-		if p.c.Kind == token.Comma {
+		if p.peek.Kind == token.Comma {
 			p.advance() // skip ","
-		} else if p.c.Kind == token.LeftCurly {
+		} else if p.peek.Kind == token.LeftCurly {
 			// will cause return at next iteration
 		} else {
 			return nil, p.unexpected()

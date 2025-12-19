@@ -8,10 +8,10 @@ import (
 )
 
 func (p *Parser) TupleOrForm() (ast.TypeSpec, diag.Error) {
-	pin := p.c.Pin
+	pin := p.peek.Pin
 	p.advance() // skip "("
 
-	if p.c.Kind == token.Word && p.n.Kind == token.Colon {
+	if p.peek.Kind == token.Word && p.next.Kind == token.Colon {
 		return p.form()
 	}
 
@@ -21,7 +21,7 @@ func (p *Parser) TupleOrForm() (ast.TypeSpec, diag.Error) {
 func (p *Parser) tuple(pin srcmap.Pin) (ast.Tuple, diag.Error) {
 	var types []ast.TypeSpec
 	for {
-		if p.c.Kind == token.RightParen {
+		if p.peek.Kind == token.RightParen {
 			p.advance() // skip ")"
 			return ast.Tuple{
 				Pin:   pin,
@@ -35,9 +35,9 @@ func (p *Parser) tuple(pin srcmap.Pin) (ast.Tuple, diag.Error) {
 		}
 		types = append(types, typ)
 
-		if p.c.Kind == token.Comma {
+		if p.peek.Kind == token.Comma {
 			p.advance() // skip ","
-		} else if p.c.Kind == token.RightParen {
+		} else if p.peek.Kind == token.RightParen {
 			// will be skipped at next iteration
 		} else {
 			return ast.Tuple{}, p.unexpected()
@@ -48,7 +48,7 @@ func (p *Parser) tuple(pin srcmap.Pin) (ast.Tuple, diag.Error) {
 func (p *Parser) form() (ast.Form, diag.Error) {
 	var fields []ast.Field
 	for {
-		if p.c.Kind == token.RightParen {
+		if p.peek.Kind == token.RightParen {
 			p.advance() // skip ")"
 			return ast.Form{Fields: fields}, nil
 		}
@@ -59,9 +59,9 @@ func (p *Parser) form() (ast.Form, diag.Error) {
 		}
 		fields = append(fields, field)
 
-		if p.c.Kind == token.Comma {
+		if p.peek.Kind == token.Comma {
 			p.advance() // skip ","
-		} else if p.c.Kind == token.RightParen {
+		} else if p.peek.Kind == token.RightParen {
 			// will be skipped at next iteration
 		} else {
 			return ast.Form{}, p.unexpected()

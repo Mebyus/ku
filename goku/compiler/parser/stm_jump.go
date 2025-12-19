@@ -7,11 +7,11 @@ import (
 )
 
 func (p *Parser) Jump() (ast.Statement, diag.Error) {
-	pin := p.c.Pin
+	pin := p.peek.Pin
 	p.advance() // skip "jump"
 
 	var s ast.Statement
-	switch p.c.Kind {
+	switch p.peek.Kind {
 	case token.LabelNext:
 		p.advance() // skip "@.next"
 		s = ast.JumpNext{Pin: pin}
@@ -22,7 +22,7 @@ func (p *Parser) Jump() (ast.Statement, diag.Error) {
 		return nil, p.unexpected()
 	}
 
-	if p.c.Kind != token.Semicolon {
+	if p.peek.Kind != token.Semicolon {
 		return nil, p.unexpected()
 	}
 	p.advance() // skip ";"

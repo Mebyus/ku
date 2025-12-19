@@ -9,9 +9,9 @@ import (
 )
 
 func (p *Parser) Operand() (ast.Operand, diag.Error) {
-	switch p.c.Kind {
+	switch p.peek.Kind {
 	case token.BinInteger:
-		tok := p.c
+		tok := p.peek
 		p.advance()
 		return ast.Integer{
 			Pin: tok.Pin,
@@ -19,7 +19,7 @@ func (p *Parser) Operand() (ast.Operand, diag.Error) {
 			Aux: uint32(ast.IntBin),
 		}, nil
 	case token.OctInteger:
-		tok := p.c
+		tok := p.peek
 		p.advance()
 		return ast.Integer{
 			Pin: tok.Pin,
@@ -27,7 +27,7 @@ func (p *Parser) Operand() (ast.Operand, diag.Error) {
 			Aux: uint32(ast.IntOct),
 		}, nil
 	case token.DecInteger:
-		tok := p.c
+		tok := p.peek
 		p.advance()
 		return ast.Integer{
 			Pin: tok.Pin,
@@ -35,7 +35,7 @@ func (p *Parser) Operand() (ast.Operand, diag.Error) {
 			Aux: uint32(ast.IntDec),
 		}, nil
 	case token.HexInteger:
-		tok := p.c
+		tok := p.peek
 		p.advance()
 		return ast.Integer{
 			Pin: tok.Pin,
@@ -43,36 +43,36 @@ func (p *Parser) Operand() (ast.Operand, diag.Error) {
 			Aux: uint32(ast.IntHex),
 		}, nil
 	case token.DecFloat:
-		tok := p.c
+		tok := p.peek
 		p.advance()
 		return ast.Float{
 			Pin: tok.Pin,
 			Val: tok.Data,
 		}, nil
 	case token.String:
-		tok := p.c
+		tok := p.peek
 		p.advance() // skip string
 		return ast.String{
 			Val: tok.Data,
 			Pin: tok.Pin,
 		}, nil
 	case token.Rune:
-		tok := p.c
+		tok := p.peek
 		p.advance() // skip rune
 		return ast.Rune{
 			Val: tok.Val,
 			Pin: tok.Pin,
 		}, nil
 	case token.True:
-		pin := p.c.Pin
+		pin := p.peek.Pin
 		p.advance() // skip "true"
 		return ast.True{Pin: pin}, nil
 	case token.False:
-		pin := p.c.Pin
+		pin := p.peek.Pin
 		p.advance() // skip "false"
 		return ast.False{Pin: pin}, nil
 	case token.Nil:
-		pin := p.c.Pin
+		pin := p.peek.Pin
 		p.advance() // skip "nil"
 		return ast.Nil{Pin: pin}, nil
 	case token.TypeId:
@@ -101,7 +101,7 @@ func (p *Parser) Operand() (ast.Operand, diag.Error) {
 		return p.Chain()
 	case token.LeftParen:
 		return p.Paren()
-	case token.LeftSquare, token.Chunk:
+	case token.LeftSquare, token.PairSquare:
 		return p.List()
 	// case token.Chunk:
 	// 	return p.chunkStartOperand()
@@ -118,7 +118,7 @@ func (p *Parser) Paren() (ast.Paren, diag.Error) {
 	if err != nil {
 		return ast.Paren{}, err
 	}
-	if p.c.Kind != token.RightParen {
+	if p.peek.Kind != token.RightParen {
 		return ast.Paren{}, err
 	}
 	p.advance() // skip ")"
@@ -127,7 +127,7 @@ func (p *Parser) Paren() (ast.Paren, diag.Error) {
 
 func (p *Parser) Chain() (ast.Operand, diag.Error) {
 	var chain ast.Chain
-	switch p.c.Kind {
+	switch p.peek.Kind {
 	case token.Word:
 		start := p.word()
 		chain = ast.Chain{Start: start}
@@ -151,7 +151,7 @@ func (p *Parser) Chain() (ast.Operand, diag.Error) {
 		var err diag.Error
 		var part ast.Part
 
-		switch p.c.Kind {
+		switch p.peek.Kind {
 		case token.LeftParen:
 			return p.call(chain)
 		case token.Tweak:
@@ -159,7 +159,7 @@ func (p *Parser) Chain() (ast.Operand, diag.Error) {
 		case token.Period:
 			p.advance() // skip "."
 
-			switch p.c.Kind {
+			switch p.peek.Kind {
 			case token.Test:
 				part, err = p.SelectTest()
 			case token.Unsafe:
@@ -215,10 +215,10 @@ func (p *Parser) getRef(chain ast.Chain) ast.GetRef {
 }
 
 func (p *Parser) DotName() (ast.DotName, diag.Error) {
-	pin := p.c.Pin
+	pin := p.peek.Pin
 	p.advance() // skip "."
 
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return ast.DotName{}, p.unexpected()
 	}
 	name := p.word()
@@ -230,7 +230,7 @@ func (p *Parser) DotName() (ast.DotName, diag.Error) {
 }
 
 func (p *Parser) Deref() ast.Deref {
-	pin := p.c.Pin
+	pin := p.peek.Pin
 	p.advance() // skip ".*"
 	return ast.Deref{Pin: pin}
 }
@@ -238,7 +238,7 @@ func (p *Parser) Deref() ast.Deref {
 func (p *Parser) DerefSelect() (ast.DerefSelect, diag.Error) {
 	p.advance() // skip ".*."
 
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return ast.DerefSelect{}, p.unexpected()
 	}
 	name := p.word()
@@ -253,7 +253,7 @@ func (p *Parser) DerefIndex() (ast.DerefIndex, diag.Error) {
 	if err != nil {
 		return ast.DerefIndex{}, err
 	}
-	if p.c.Kind != token.RightSquare {
+	if p.peek.Kind != token.RightSquare {
 		return ast.DerefIndex{}, p.unexpected()
 	}
 	p.advance() // skip "]"
@@ -269,12 +269,12 @@ func (p *Parser) Select() ast.Select {
 func (p *Parser) SelectTest() (ast.SelectTest, diag.Error) {
 	p.advance() // skip "test"
 
-	if p.c.Kind != token.Period {
+	if p.peek.Kind != token.Period {
 		return ast.SelectTest{}, p.unexpected()
 	}
 	p.advance() // skip "."
 
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return ast.SelectTest{}, p.unexpected()
 	}
 
@@ -283,16 +283,16 @@ func (p *Parser) SelectTest() (ast.SelectTest, diag.Error) {
 }
 
 func (p *Parser) Unsafe() (ast.Unsafe, diag.Error) {
-	pin := p.c.Pin
+	pin := p.peek.Pin
 
 	p.advance() // skip "unsafe"
 
-	if p.c.Kind != token.Period {
+	if p.peek.Kind != token.Period {
 		return ast.Unsafe{}, p.unexpected()
 	}
 	p.advance() // skip "."
 
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return ast.Unsafe{}, p.unexpected()
 	}
 
@@ -320,7 +320,7 @@ func (p *Parser) Args() ([]ast.Exp, diag.Error) {
 
 	var args []ast.Exp
 	for {
-		if p.c.Kind == token.RightParen {
+		if p.peek.Kind == token.RightParen {
 			p.advance() // skip ")"
 			return args, nil
 		}
@@ -331,9 +331,9 @@ func (p *Parser) Args() ([]ast.Exp, diag.Error) {
 		}
 		args = append(args, exp)
 
-		if p.c.Kind == token.Comma {
+		if p.peek.Kind == token.Comma {
 			p.advance() // skip ","
-		} else if p.c.Kind == token.RightParen {
+		} else if p.peek.Kind == token.RightParen {
 			// will be skipped at next iteration
 		} else {
 			return nil, p.unexpected()
@@ -355,9 +355,9 @@ type SliceOrIndex struct {
 func (p *Parser) SliceOrIndex() (SliceOrIndex, diag.Error) {
 	p.advance() // skip "["
 
-	if p.c.Kind == token.Colon {
+	if p.peek.Kind == token.Colon {
 		p.advance() // skip ":"
-		if p.c.Kind == token.RightSquare {
+		if p.peek.Kind == token.RightSquare {
 			p.advance() // skip "]"
 			return SliceOrIndex{}, nil
 		}
@@ -366,7 +366,7 @@ func (p *Parser) SliceOrIndex() (SliceOrIndex, diag.Error) {
 		if err != nil {
 			return SliceOrIndex{}, err
 		}
-		if p.c.Kind != token.RightSquare {
+		if p.peek.Kind != token.RightSquare {
 			return SliceOrIndex{}, p.unexpected()
 		}
 		p.advance() // skip "]"
@@ -377,9 +377,9 @@ func (p *Parser) SliceOrIndex() (SliceOrIndex, diag.Error) {
 	if err != nil {
 		return SliceOrIndex{}, err
 	}
-	if p.c.Kind == token.Colon {
+	if p.peek.Kind == token.Colon {
 		p.advance() // skip ":"
-		if p.c.Kind == token.RightSquare {
+		if p.peek.Kind == token.RightSquare {
 			p.advance() // skip "]"
 			return SliceOrIndex{Exp: exp}, nil
 		}
@@ -387,7 +387,7 @@ func (p *Parser) SliceOrIndex() (SliceOrIndex, diag.Error) {
 		if err != nil {
 			return SliceOrIndex{}, err
 		}
-		if p.c.Kind != token.RightSquare {
+		if p.peek.Kind != token.RightSquare {
 			return SliceOrIndex{}, p.unexpected()
 		}
 		p.advance() // skip "]"
@@ -397,7 +397,7 @@ func (p *Parser) SliceOrIndex() (SliceOrIndex, diag.Error) {
 		}, nil
 	}
 
-	if p.c.Kind != token.RightSquare {
+	if p.peek.Kind != token.RightSquare {
 		return SliceOrIndex{}, p.unexpected()
 	}
 	p.advance() // skip "]"
@@ -410,17 +410,17 @@ func (p *Parser) SliceOrIndex() (SliceOrIndex, diag.Error) {
 func (p *Parser) TypeId() (ast.TypeId, diag.Error) {
 	p.advance() // skip "#typeid"
 
-	if p.c.Kind != token.LeftParen {
+	if p.peek.Kind != token.LeftParen {
 		return ast.TypeId{}, p.unexpected()
 	}
 	p.advance() // skip "("
 
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return ast.TypeId{}, p.unexpected()
 	}
 	name := p.word()
 
-	if p.c.Kind != token.RightParen {
+	if p.peek.Kind != token.RightParen {
 		return ast.TypeId{}, p.unexpected()
 	}
 	p.advance() // skip ")"
@@ -431,17 +431,17 @@ func (p *Parser) TypeId() (ast.TypeId, diag.Error) {
 func (p *Parser) ErrorId() (ast.ErrorId, diag.Error) {
 	p.advance() // skip "#error"
 
-	if p.c.Kind != token.LeftParen {
+	if p.peek.Kind != token.LeftParen {
 		return ast.ErrorId{}, p.unexpected()
 	}
 	p.advance() // skip "("
 
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return ast.ErrorId{}, p.unexpected()
 	}
 	name := p.word()
 
-	if p.c.Kind != token.RightParen {
+	if p.peek.Kind != token.RightParen {
 		return ast.ErrorId{}, p.unexpected()
 	}
 	p.advance() // skip ")"
@@ -452,27 +452,27 @@ func (p *Parser) ErrorId() (ast.ErrorId, diag.Error) {
 func (p *Parser) EnumMacro() (ast.EnumMacro, diag.Error) {
 	p.advance() // skip "#enum"
 
-	if p.c.Kind != token.LeftParen {
+	if p.peek.Kind != token.LeftParen {
 		return ast.EnumMacro{}, p.unexpected()
 	}
 	p.advance() // skip "("
 
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return ast.EnumMacro{}, p.unexpected()
 	}
 	name := p.word()
 
-	if p.c.Kind != token.Period {
+	if p.peek.Kind != token.Period {
 		return ast.EnumMacro{}, p.unexpected()
 	}
 	p.advance() // skip "."
 
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return ast.EnumMacro{}, p.unexpected()
 	}
 	entry := p.word()
 
-	if p.c.Kind != token.RightParen {
+	if p.peek.Kind != token.RightParen {
 		return ast.EnumMacro{}, p.unexpected()
 	}
 	p.advance() // skip ")"
@@ -486,12 +486,12 @@ func (p *Parser) EnumMacro() (ast.EnumMacro, diag.Error) {
 func (p *Parser) BuildQuery() (ast.BuildQuery, diag.Error) {
 	p.advance() // skip "#build"
 
-	if p.c.Kind != token.Period {
+	if p.peek.Kind != token.Period {
 		return ast.BuildQuery{}, p.unexpected()
 	}
 	p.advance() // skip "."
 
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return ast.BuildQuery{}, p.unexpected()
 	}
 	start := p.word()
@@ -499,7 +499,7 @@ func (p *Parser) BuildQuery() (ast.BuildQuery, diag.Error) {
 	var parts []string
 	parts = append(parts, start.Str)
 	for {
-		if p.c.Kind != token.Period {
+		if p.peek.Kind != token.Period {
 			return ast.BuildQuery{
 				Name: strings.Join(parts, "."),
 				Pin:  start.Pin,
@@ -507,7 +507,7 @@ func (p *Parser) BuildQuery() (ast.BuildQuery, diag.Error) {
 		}
 		p.advance() // skip "."
 
-		if p.c.Kind != token.Word {
+		if p.peek.Kind != token.Word {
 			return ast.BuildQuery{}, p.unexpected()
 		}
 		parts = append(parts, p.word().Str)
@@ -515,8 +515,8 @@ func (p *Parser) BuildQuery() (ast.BuildQuery, diag.Error) {
 }
 
 func (p *Parser) EnvQuery() (ast.EnvQuery, diag.Error) {
-	name := p.c.Data
-	pin := p.c.Pin
+	name := p.peek.Data
+	pin := p.peek.Pin
 	p.advance() // skip env name
 	return ast.EnvQuery{
 		Name: name,
@@ -527,7 +527,7 @@ func (p *Parser) EnvQuery() (ast.EnvQuery, diag.Error) {
 func (p *Parser) Cast() (ast.Cast, diag.Error) {
 	p.advance() // skip "cast"
 
-	if p.c.Kind != token.LeftParen {
+	if p.peek.Kind != token.LeftParen {
 		return ast.Cast{}, p.unexpected()
 	}
 	p.advance() // skip "("
@@ -537,7 +537,7 @@ func (p *Parser) Cast() (ast.Cast, diag.Error) {
 		return ast.Cast{}, err
 	}
 
-	if p.c.Kind != token.Comma {
+	if p.peek.Kind != token.Comma {
 		return ast.Cast{}, p.unexpected()
 	}
 	p.advance() // skip ","
@@ -547,7 +547,7 @@ func (p *Parser) Cast() (ast.Cast, diag.Error) {
 		return ast.Cast{}, err
 	}
 
-	if p.c.Kind != token.RightParen {
+	if p.peek.Kind != token.RightParen {
 		return ast.Cast{}, p.unexpected()
 	}
 	p.advance() // skip ")"
@@ -561,7 +561,7 @@ func (p *Parser) Cast() (ast.Cast, diag.Error) {
 func (p *Parser) CheckFlag() (ast.CheckFlag, diag.Error) {
 	p.advance() // skip "#check"
 
-	if p.c.Kind != token.LeftParen {
+	if p.peek.Kind != token.LeftParen {
 		return ast.CheckFlag{}, p.unexpected()
 	}
 	p.advance() // skip "("
@@ -571,7 +571,7 @@ func (p *Parser) CheckFlag() (ast.CheckFlag, diag.Error) {
 		return ast.CheckFlag{}, err
 	}
 
-	if p.c.Kind != token.Comma {
+	if p.peek.Kind != token.Comma {
 		return ast.CheckFlag{}, p.unexpected()
 	}
 	p.advance() // skip ","
@@ -581,7 +581,7 @@ func (p *Parser) CheckFlag() (ast.CheckFlag, diag.Error) {
 		return ast.CheckFlag{}, err
 	}
 
-	if p.c.Kind != token.RightParen {
+	if p.peek.Kind != token.RightParen {
 		return ast.CheckFlag{}, p.unexpected()
 	}
 	p.advance() // skip ")"
@@ -595,7 +595,7 @@ func (p *Parser) CheckFlag() (ast.CheckFlag, diag.Error) {
 func (p *Parser) Tint() (ast.Tint, diag.Error) {
 	p.advance() // skip "tint"
 
-	if p.c.Kind != token.LeftParen {
+	if p.peek.Kind != token.LeftParen {
 		return ast.Tint{}, p.unexpected()
 	}
 	p.advance() // skip "("
@@ -605,7 +605,7 @@ func (p *Parser) Tint() (ast.Tint, diag.Error) {
 		return ast.Tint{}, err
 	}
 
-	if p.c.Kind != token.Comma {
+	if p.peek.Kind != token.Comma {
 		return ast.Tint{}, p.unexpected()
 	}
 	p.advance() // skip ","
@@ -615,7 +615,7 @@ func (p *Parser) Tint() (ast.Tint, diag.Error) {
 		return ast.Tint{}, err
 	}
 
-	if p.c.Kind != token.RightParen {
+	if p.peek.Kind != token.RightParen {
 		return ast.Tint{}, p.unexpected()
 	}
 	p.advance() // skip ")"
@@ -629,7 +629,7 @@ func (p *Parser) Tint() (ast.Tint, diag.Error) {
 func (p *Parser) Size() (ast.Size, diag.Error) {
 	p.advance() // skip "#size"
 
-	if p.c.Kind != token.LeftParen {
+	if p.peek.Kind != token.LeftParen {
 		return ast.Size{}, p.unexpected()
 	}
 	p.advance() // skip "("
@@ -639,7 +639,7 @@ func (p *Parser) Size() (ast.Size, diag.Error) {
 		return ast.Size{}, err
 	}
 
-	if p.c.Kind != token.RightParen {
+	if p.peek.Kind != token.RightParen {
 		return ast.Size{}, p.unexpected()
 	}
 	p.advance() // skip ")"
@@ -650,7 +650,7 @@ func (p *Parser) Size() (ast.Size, diag.Error) {
 func (p *Parser) ArrayLen() (ast.ArrayLen, diag.Error) {
 	p.advance() // skip "#len"
 
-	if p.c.Kind != token.LeftParen {
+	if p.peek.Kind != token.LeftParen {
 		return ast.ArrayLen{}, p.unexpected()
 	}
 	p.advance() // skip "("
@@ -660,7 +660,7 @@ func (p *Parser) ArrayLen() (ast.ArrayLen, diag.Error) {
 		return ast.ArrayLen{}, err
 	}
 
-	if p.c.Kind != token.RightParen {
+	if p.peek.Kind != token.RightParen {
 		return ast.ArrayLen{}, p.unexpected()
 	}
 	p.advance() // skip ")"
@@ -669,20 +669,20 @@ func (p *Parser) ArrayLen() (ast.ArrayLen, diag.Error) {
 }
 
 func (p *Parser) List() (ast.List, diag.Error) {
-	pin := p.c.Pin
-	if p.c.Kind == token.Chunk {
+	pin := p.peek.Pin
+	if p.peek.Kind == token.PairSquare {
 		p.advance() // skip "[]"
 		return ast.List{Pin: pin}, nil
 	}
 
-	if p.c.Kind != token.LeftSquare {
+	if p.peek.Kind != token.LeftSquare {
 		return ast.List{}, p.unexpected()
 	}
 	p.advance() // skip "["
 
 	var list []ast.Exp
 	for {
-		if p.c.Kind == token.RightSquare {
+		if p.peek.Kind == token.RightSquare {
 			p.advance() // skip ""
 			return ast.List{
 				Pin:  pin,
@@ -696,9 +696,9 @@ func (p *Parser) List() (ast.List, diag.Error) {
 		}
 		list = append(list, exp)
 
-		if p.c.Kind == token.Comma {
+		if p.peek.Kind == token.Comma {
 			p.advance() // skip ","
-		} else if p.c.Kind == token.RightSquare {
+		} else if p.peek.Kind == token.RightSquare {
 			// will be skipped at next iteration
 		} else {
 			return ast.List{}, p.unexpected()

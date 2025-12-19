@@ -9,7 +9,7 @@ import (
 func (p *Parser) Must() (ast.Must, diag.Error) {
 	p.advance() // skip "must"
 
-	if p.c.Kind != token.LeftParen {
+	if p.peek.Kind != token.LeftParen {
 		return ast.Must{}, p.unexpected()
 	}
 	p.advance() // skip "("
@@ -19,12 +19,12 @@ func (p *Parser) Must() (ast.Must, diag.Error) {
 		return ast.Must{}, err
 	}
 
-	if p.c.Kind != token.RightParen {
+	if p.peek.Kind != token.RightParen {
 		return ast.Must{}, p.unexpected()
 	}
 	p.advance() // skip ")"
 
-	if p.c.Kind != token.Semicolon {
+	if p.peek.Kind != token.Semicolon {
 		return ast.Must{}, p.unexpected()
 	}
 	p.advance() // skip ";"
@@ -35,7 +35,7 @@ func (p *Parser) Must() (ast.Must, diag.Error) {
 func (p *Parser) StaticMust() (ast.StaticMust, diag.Error) {
 	p.advance() // skip "#must"
 
-	if p.c.Kind != token.LeftParen {
+	if p.peek.Kind != token.LeftParen {
 		return ast.StaticMust{}, p.unexpected()
 	}
 	p.advance() // skip "("
@@ -45,12 +45,12 @@ func (p *Parser) StaticMust() (ast.StaticMust, diag.Error) {
 		return ast.StaticMust{}, err
 	}
 
-	if p.c.Kind != token.RightParen {
+	if p.peek.Kind != token.RightParen {
 		return ast.StaticMust{}, p.unexpected()
 	}
 	p.advance() // skip ")"
 
-	if p.c.Kind != token.Semicolon {
+	if p.peek.Kind != token.Semicolon {
 		return ast.StaticMust{}, p.unexpected()
 	}
 	p.advance() // skip ";"
@@ -70,7 +70,7 @@ func (p *Parser) topStaticMust() diag.Error {
 func (p *Parser) Test() (ast.Test, diag.Error) {
 	p.advance() // skip "test"
 
-	if p.c.Kind != token.LeftParen {
+	if p.peek.Kind != token.LeftParen {
 		return ast.Test{}, p.unexpected()
 	}
 	p.advance() // skip "("
@@ -80,12 +80,12 @@ func (p *Parser) Test() (ast.Test, diag.Error) {
 		return ast.Test{}, err
 	}
 
-	if p.c.Kind != token.RightParen {
+	if p.peek.Kind != token.RightParen {
 		return ast.Test{}, p.unexpected()
 	}
 	p.advance() // skip ")"
 
-	if p.c.Kind != token.Semicolon {
+	if p.peek.Kind != token.Semicolon {
 		return ast.Test{}, p.unexpected()
 	}
 	p.advance() // skip ";"

@@ -6,7 +6,7 @@ import (
 )
 
 func (p *Parser) Union() (ast.Union, diag.Error) {
-	pin := p.c.Pin
+	pin := p.peek.Pin
 	p.advance() // skip "union"
 
 	fields, err := p.fields()

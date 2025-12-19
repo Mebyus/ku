@@ -1,8 +1,8 @@
 package parser
 
 func (p *Parser) advance() {
-	p.c = p.n
-	p.n = p.lx.Lex()
+	p.peek = p.next
+	p.next = p.lx.Lex()
 }
 
 func (p *Parser) init() {

@@ -7,13 +7,13 @@ import (
 )
 
 func (p *Parser) For() (ast.Statement, diag.Error) {
-	if p.n.Kind == token.LeftCurly {
+	if p.next.Kind == token.LeftCurly {
 		return p.Loop()
 	}
 
 	p.advance() // skip "for"
-	if p.c.Kind == token.Word {
-		switch p.n.Kind {
+	if p.peek.Kind == token.Word {
+		switch p.next.Kind {
 		case token.Assign:
 			return p.forRangeAutoType()
 		case token.Colon:
@@ -83,7 +83,7 @@ func (p *Parser) forRange() (ast.Statement, diag.Error) {
 		return nil, err
 	}
 
-	if p.c.Kind != token.Assign {
+	if p.peek.Kind != token.Assign {
 		return nil, p.unexpected()
 	}
 	p.advance() // skip "="
@@ -108,13 +108,13 @@ func (p *Parser) forRange() (ast.Statement, diag.Error) {
 }
 
 func (p *Parser) forRangeStartEnd() (ast.Exp, ast.Exp, diag.Error) {
-	if p.c.Kind != token.LeftSquare {
+	if p.peek.Kind != token.LeftSquare {
 		return nil, nil, p.unexpected()
 	}
 	p.advance() // skip "["
 
 	var start ast.Exp
-	if p.c.Kind != token.Colon {
+	if p.peek.Kind != token.Colon {
 		exp, err := p.Exp()
 		if err != nil {
 			return nil, nil, err
@@ -122,7 +122,7 @@ func (p *Parser) forRangeStartEnd() (ast.Exp, ast.Exp, diag.Error) {
 		start = exp
 	}
 
-	if p.c.Kind != token.Colon {
+	if p.peek.Kind != token.Colon {
 		return nil, nil, p.unexpected()
 	}
 	p.advance() // skip ":"
@@ -132,7 +132,7 @@ func (p *Parser) forRangeStartEnd() (ast.Exp, ast.Exp, diag.Error) {
 		return nil, nil, err
 	}
 
-	if p.c.Kind != token.RightSquare {
+	if p.peek.Kind != token.RightSquare {
 		return nil, nil, p.unexpected()
 	}
 	p.advance() // skip "["

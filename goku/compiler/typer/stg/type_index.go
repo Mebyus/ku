@@ -125,7 +125,7 @@ func (x *TypeIndex) lookup(scope *Scope, spec ast.TypeSpec) (*Type, diag.Error) 
 	case ast.TypeFullName:
 	case ast.ArrayPointer:
 		return x.lookupArrayPointer(scope, p)
-	case ast.Chunk:
+	case ast.Span:
 		return x.lookupSpan(scope, p)
 	case ast.Array:
 		return x.lookupArray(scope, p)
@@ -263,7 +263,7 @@ func (x *TypeIndex) lookupRef(scope *Scope, p ast.Ref) (*Type, diag.Error) {
 	return typ, nil
 }
 
-func (x *TypeIndex) lookupSpan(scope *Scope, p ast.Chunk) (*Type, diag.Error) {
+func (x *TypeIndex) lookupSpan(scope *Scope, p ast.Span) (*Type, diag.Error) {
 	t, err := x.lookup(scope, p.Type)
 	if err != nil {
 		return nil, err

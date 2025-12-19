@@ -7,7 +7,7 @@ import (
 )
 
 func (p *Parser) Struct() (ast.Struct, diag.Error) {
-	pin := p.c.Pin
+	pin := p.peek.Pin
 	p.advance() // skip "struct"
 
 	fields, err := p.fields()
@@ -22,14 +22,14 @@ func (p *Parser) Struct() (ast.Struct, diag.Error) {
 }
 
 func (p *Parser) fields() ([]ast.Field, diag.Error) {
-	if p.c.Kind != token.LeftCurly {
+	if p.peek.Kind != token.LeftCurly {
 		return nil, p.unexpected()
 	}
 	p.advance() // skip "{"
 
 	var fields []ast.Field
 	for {
-		if p.c.Kind == token.RightCurly {
+		if p.peek.Kind == token.RightCurly {
 			p.advance() // skip "}"
 			return fields, nil
 		}
@@ -40,7 +40,7 @@ func (p *Parser) fields() ([]ast.Field, diag.Error) {
 		}
 		fields = append(fields, field)
 
-		if p.c.Kind == token.Comma {
+		if p.peek.Kind == token.Comma {
 			// Commas are optional between struct fields.
 			p.advance() // skip ","
 		}
@@ -48,12 +48,12 @@ func (p *Parser) fields() ([]ast.Field, diag.Error) {
 }
 
 func (p *Parser) field() (ast.Field, diag.Error) {
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return ast.Field{}, p.unexpected()
 	}
 	name := p.word()
 
-	if p.c.Kind != token.Colon {
+	if p.peek.Kind != token.Colon {
 		return ast.Field{}, p.unexpected()
 	}
 	p.advance() // consume ":"

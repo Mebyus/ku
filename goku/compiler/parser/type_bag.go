@@ -7,17 +7,17 @@ import (
 )
 
 func (p *Parser) Bag() (ast.Bag, diag.Error) {
-	pin := p.c.Pin
+	pin := p.peek.Pin
 	p.advance() // skip "bag"
 
-	if p.c.Kind != token.LeftCurly {
+	if p.peek.Kind != token.LeftCurly {
 		return ast.Bag{}, p.unexpected()
 	}
 	p.advance() // skip "{"
 
 	var funs []ast.BagFun
 	for {
-		if p.c.Kind == token.RightCurly {
+		if p.peek.Kind == token.RightCurly {
 			p.advance() // skip "}"
 			return ast.Bag{
 				Pin:  pin,
@@ -30,7 +30,7 @@ func (p *Parser) Bag() (ast.Bag, diag.Error) {
 			return ast.Bag{}, err
 		}
 
-		if p.c.Kind != token.Semicolon {
+		if p.peek.Kind != token.Semicolon {
 			return ast.Bag{}, p.unexpected()
 		}
 		p.advance() // skip ";"
@@ -40,7 +40,7 @@ func (p *Parser) Bag() (ast.Bag, diag.Error) {
 }
 
 func (p *Parser) bagFun() (ast.BagFun, diag.Error) {
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return ast.BagFun{}, p.unexpected()
 	}
 	name := p.word()

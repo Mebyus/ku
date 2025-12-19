@@ -22,15 +22,15 @@ func (p *Parser) topConst(traits ast.Traits) diag.Error {
 func (p *Parser) Const() (ast.Const, diag.Error) {
 	p.advance() // skip "const"
 
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return ast.Const{}, p.unexpected()
 	}
-	if p.n.Kind == token.Walrus {
+	if p.next.Kind == token.Walrus {
 		return p.walrusConst()
 	}
 	name := p.word()
 
-	if p.c.Kind != token.Colon {
+	if p.peek.Kind != token.Colon {
 		return ast.Const{}, p.unexpected()
 	}
 	p.advance() // skip ":"
@@ -40,7 +40,7 @@ func (p *Parser) Const() (ast.Const, diag.Error) {
 		return ast.Const{}, err
 	}
 
-	if p.c.Kind != token.Assign {
+	if p.peek.Kind != token.Assign {
 		return ast.Const{}, p.unexpected()
 	}
 	p.advance() // skip "="
@@ -50,7 +50,7 @@ func (p *Parser) Const() (ast.Const, diag.Error) {
 		return ast.Const{}, err
 	}
 
-	if p.c.Kind != token.Semicolon {
+	if p.peek.Kind != token.Semicolon {
 		return ast.Const{}, p.unexpected()
 	}
 	p.advance() // consume ";"
@@ -71,7 +71,7 @@ func (p *Parser) walrusConst() (ast.Const, diag.Error) {
 		return ast.Const{}, err
 	}
 
-	if p.c.Kind != token.Semicolon {
+	if p.peek.Kind != token.Semicolon {
 		return ast.Const{}, p.unexpected()
 	}
 	p.advance() // consume ";"

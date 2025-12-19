@@ -7,11 +7,11 @@ import (
 )
 
 func (p *Parser) Stub() (ast.Stub, diag.Error) {
-	pin := p.c.Pin
+	pin := p.peek.Pin
 
 	p.advance() // skip "#stub"
 
-	if p.c.Kind != token.Semicolon {
+	if p.peek.Kind != token.Semicolon {
 		return ast.Stub{}, p.unexpected()
 	}
 	p.advance() // skip ";"
@@ -20,11 +20,11 @@ func (p *Parser) Stub() (ast.Stub, diag.Error) {
 }
 
 func (p *Parser) Never() (ast.Never, diag.Error) {
-	pin := p.c.Pin
+	pin := p.peek.Pin
 
 	p.advance() // skip "#never"
 
-	if p.c.Kind != token.Semicolon {
+	if p.peek.Kind != token.Semicolon {
 		return ast.Never{}, p.unexpected()
 	}
 	p.advance() // skip ";"

@@ -13,8 +13,11 @@ type Parser struct {
 
 	lx lexer.Stream
 
-	c token.Token
-	n token.Token
+	// token at current parser position
+	peek token.Token
+
+	// next token after peek
+	next token.Token
 
 	props []ast.Prop
 }

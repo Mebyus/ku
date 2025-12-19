@@ -22,22 +22,22 @@ func (p *Parser) topAlias(traits ast.Traits) diag.Error {
 func (p *Parser) Alias() (ast.Alias, diag.Error) {
 	p.advance() // skip "let"
 
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return ast.Alias{}, p.unexpected()
 	}
 	name := p.word()
 
-	if p.c.Kind != token.RightArrow {
+	if p.peek.Kind != token.RightArrow {
 		return ast.Alias{}, p.unexpected()
 	}
-	p.advance() // skip "=>"
+	p.advance() // skip "->"
 
 	exp, err := p.Exp()
 	if err != nil {
 		return ast.Alias{}, err
 	}
 
-	if p.c.Kind != token.Semicolon {
+	if p.peek.Kind != token.Semicolon {
 		return ast.Alias{}, p.unexpected()
 	}
 	p.advance() // consume ";"

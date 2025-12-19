@@ -47,7 +47,7 @@ func (p *Parser) TestFun(traits ast.Traits) diag.Error {
 }
 
 func (p *Parser) testFun() (ast.TestFun, diag.Error) {
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return ast.TestFun{}, p.unexpected()
 	}
 	name := p.word()
@@ -66,12 +66,12 @@ func (p *Parser) testFun() (ast.TestFun, diag.Error) {
 func (p *Parser) FunStub(traits ast.Traits) diag.Error {
 	p.advance() // skip "#stub"
 
-	if p.c.Kind != token.Fun {
+	if p.peek.Kind != token.Fun {
 		return p.unexpected()
 	}
 	p.advance() // skip "fun"
 
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return p.unexpected()
 	}
 	name := p.word()
@@ -90,7 +90,7 @@ func (p *Parser) FunStub(traits ast.Traits) diag.Error {
 }
 
 func (p *Parser) fun() (ast.Fun, diag.Error) {
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return ast.Fun{}, p.unexpected()
 	}
 	name := p.word()
@@ -100,7 +100,7 @@ func (p *Parser) fun() (ast.Fun, diag.Error) {
 		return ast.Fun{}, err
 	}
 
-	if p.c.Kind != token.LeftCurly {
+	if p.peek.Kind != token.LeftCurly {
 		return ast.Fun{}, p.unexpected()
 	}
 
@@ -122,13 +122,13 @@ func (p *Parser) signature() (ast.Signature, diag.Error) {
 		return ast.Signature{}, err
 	}
 
-	if p.c.Kind != token.RightArrow {
+	if p.peek.Kind != token.RightArrow {
 		return ast.Signature{Params: params}, nil
 	}
 
 	p.advance() // skip "=>"
 
-	if p.c.Kind == token.Never {
+	if p.peek.Kind == token.Never {
 		p.advance() // skip "#never"
 		return ast.Signature{
 			Params: params,
@@ -148,14 +148,14 @@ func (p *Parser) signature() (ast.Signature, diag.Error) {
 }
 
 func (p *Parser) Params() ([]ast.Param, diag.Error) {
-	if p.c.Kind != token.LeftParen {
+	if p.peek.Kind != token.LeftParen {
 		return nil, p.unexpected()
 	}
 	p.advance() // skip "("
 
 	var params []ast.Param
 	for {
-		if p.c.Kind == token.RightParen {
+		if p.peek.Kind == token.RightParen {
 			p.advance() // skip ")"
 			return params, nil
 		}
@@ -166,9 +166,9 @@ func (p *Parser) Params() ([]ast.Param, diag.Error) {
 		}
 		params = append(params, param)
 
-		if p.c.Kind == token.Comma {
+		if p.peek.Kind == token.Comma {
 			p.advance() // skip ","
-		} else if p.c.Kind == token.RightParen {
+		} else if p.peek.Kind == token.RightParen {
 			// will be skipped at next iteration
 		} else {
 			return nil, p.unexpected()
@@ -177,12 +177,12 @@ func (p *Parser) Params() ([]ast.Param, diag.Error) {
 }
 
 func (p *Parser) Param() (ast.Param, diag.Error) {
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return ast.Param{}, p.unexpected()
 	}
 	name := p.word()
 
-	if p.c.Kind != token.Colon {
+	if p.peek.Kind != token.Colon {
 		return ast.Param{}, p.unexpected()
 	}
 	p.advance() // consume ":"
@@ -200,13 +200,13 @@ func (p *Parser) Param() (ast.Param, diag.Error) {
 
 // check for unsafe trait before function or method name
 func (p *Parser) unsafe(traits *ast.Traits) diag.Error {
-	if p.c.Kind != token.Unsafe {
+	if p.peek.Kind != token.Unsafe {
 		return nil
 	}
 
 	p.advance() // skip "unsafe"
 
-	if p.c.Kind != token.Period {
+	if p.peek.Kind != token.Period {
 		return p.unexpected()
 	}
 	p.advance() // skip "."

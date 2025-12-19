@@ -10,7 +10,7 @@ import (
 func (p *Parser) ImportBlocks() ([]ast.ImportBlock, diag.Error) {
 	var blocks []ast.ImportBlock
 	for {
-		if p.c.Kind == token.Import {
+		if p.peek.Kind == token.Import {
 			block, err := p.ImportBlock()
 			if err != nil {
 				return nil, err
@@ -31,14 +31,14 @@ func (p *Parser) ImportBlock() (ast.ImportBlock, diag.Error) {
 		return ast.ImportBlock{}, err
 	}
 
-	if p.c.Kind != token.LeftCurly {
+	if p.peek.Kind != token.LeftCurly {
 		return ast.ImportBlock{}, p.unexpected()
 	}
 	p.advance() // skip "{"
 
 	var imports []ast.Import
 	for {
-		if p.c.Kind == token.RightCurly {
+		if p.peek.Kind == token.RightCurly {
 			p.advance() // skip "}"
 			return ast.ImportBlock{
 				Imports: imports,
@@ -55,7 +55,7 @@ func (p *Parser) ImportBlock() (ast.ImportBlock, diag.Error) {
 }
 
 func (p *Parser) Origin() (origin.Origin, diag.Error) {
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return origin.Loc, nil
 	}
 	name := p.word()
@@ -68,20 +68,20 @@ func (p *Parser) Origin() (origin.Origin, diag.Error) {
 }
 
 func (p *Parser) Import() (ast.Import, diag.Error) {
-	if p.c.Kind != token.Word {
+	if p.peek.Kind != token.Word {
 		return ast.Import{}, p.unexpected()
 	}
 	name := p.word()
 
-	if p.c.Kind != token.RightArrow {
+	if p.peek.Kind != token.RightArrow {
 		return ast.Import{}, p.unexpected()
 	}
 	p.advance() // skip "=>"
 
-	if p.c.Kind != token.String {
+	if p.peek.Kind != token.String {
 		return ast.Import{}, p.unexpected()
 	}
-	s := p.c
+	s := p.peek
 	p.advance() // skip import string
 
 	if s.Data == "" {

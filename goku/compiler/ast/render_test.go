@@ -490,8 +490,8 @@ func arrptr(typ TypeSpec) ArrayPointer {
 	return ArrayPointer{Type: typ}
 }
 
-func chunk(typ TypeSpec) Chunk {
-	return Chunk{Type: typ}
+func chunk(typ TypeSpec) Span {
+	return Span{Type: typ}
 }
 
 func slit(s string) String {
