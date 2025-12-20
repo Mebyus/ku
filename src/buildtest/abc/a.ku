@@ -10,6 +10,14 @@ type String struct {
     len: u32
 }
 
+fun ret_tuple1() -> (uint) {
+    ret 0;
+}
+
+fun ret_tuple2() -> (uint, sint) {
+    ret 0, 1;
+}
+
 // type Variant union {
 //     ptr: *void
 //     num: uint

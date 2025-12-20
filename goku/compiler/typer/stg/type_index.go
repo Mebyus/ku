@@ -377,6 +377,13 @@ func (s *Scope) lookupTuple(tuple ast.Tuple) (*Type, diag.Error) {
 	if len(tuple.Types) == 0 {
 		return s.Types.Known.Void, nil
 	}
+	if len(tuple.Types) == 1 {
+		typ, err := s.LookupType(tuple.Types[0])
+		if err != nil {
+			return nil, err
+		}
+		return typ, nil
+	}
 
 	types := make([]*Type, 0, len(tuple.Types))
 	for _, p := range tuple.Types {
