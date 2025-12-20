@@ -150,7 +150,7 @@ func (t *Typer) translateAssignSymbol(symbol ast.Symbol, a ast.Assign) (*stg.Ass
 	if err != nil {
 		return nil, err
 	}
-	err = t.checkAssignTypes(s.Type, exp)
+	err = t.ctx.Types.CheckAssign(s.Type, exp)
 	if err != nil {
 		return nil, err
 	}
@@ -159,14 +159,6 @@ func (t *Typer) translateAssignSymbol(symbol ast.Symbol, a ast.Assign) (*stg.Ass
 		Symbol: s,
 		Exp:    exp,
 	}, nil
-}
-
-func (t *Typer) checkAssignTypes(want *stg.Type, exp stg.Exp) diag.Error {
-	if exp.Type() == want {
-		return nil
-	}
-
-	return nil
 }
 
 func (t *Typer) translateVar(v ast.Var) (*stg.Var, diag.Error) {
@@ -187,8 +179,21 @@ func (t *Typer) translateVar(v ast.Var) (*stg.Var, diag.Error) {
 	s := t.scope.Alloc(smk.Var, name, pin)
 	s.Type = typ
 
+	var exp stg.Exp
+	if v.Exp != nil {
+		exp, err = t.scope.TranslateExp(v.Exp)
+		if err != nil {
+			return nil, err
+		}
+		err = t.ctx.Types.CheckAssign(typ, exp)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &stg.Var{
 		Symbol: s,
+		Exp:    exp,
 	}, nil
 }
 
@@ -283,7 +288,7 @@ func (t *Typer) translateRet(r ast.Ret) (*stg.Ret, diag.Error) {
 }
 
 func (t *Typer) translateExp(exp ast.Exp) (stg.Exp, diag.Error) {
-	return t.ctx.Types.MakeInteger(exp.Span().Pin, 0), nil
+	return t.scope.TranslateExp(exp)
 }
 
 // check that function result and expression types are compatible

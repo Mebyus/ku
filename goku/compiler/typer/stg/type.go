@@ -41,6 +41,8 @@ func (t *Type) String() string {
 	switch t.Kind {
 	case tpk.Void:
 		return "void"
+	case tpk.Nil:
+		return "nil"
 	case tpk.Integer:
 		switch t.Size {
 		case 0:
@@ -86,6 +88,12 @@ func (t *Type) String() string {
 		}
 	case tpk.VoidPointer:
 		return "*void"
+	case tpk.VoidRef:
+		return "&void"
+	case tpk.Pointer:
+		return "*" + t.Def.(Pointer).Type.String()
+	case tpk.ArrayPointer:
+		return "[*]" + t.Def.(ArrayPointer).Type.String()
 	case tpk.Custom:
 		c := t.Def.(*Custom)
 		s = c.Symbol.Name

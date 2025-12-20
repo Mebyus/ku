@@ -19,6 +19,9 @@ const (
 	// There is always only one trivial type.
 	Void
 
+	// Static type for "nil" literal.
+	Nil
+
 	// Type for any integers (literals, constants and expressions)
 	// excluding custom integer types.
 	//
@@ -124,6 +127,7 @@ var text = [...]string{
 	empty: "<nil>",
 
 	Void:    "void",
+	Nil:     "nil",
 	Integer: "int",
 	String:  "str",
 	Boolean: "bool",

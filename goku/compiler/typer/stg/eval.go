@@ -29,7 +29,7 @@ func (s *Scope) EvalConstExp(exp ast.Exp) (Exp, diag.Error) {
 		// TODO: make separate type kind for runes
 		return s.Types.MakeInteger(e.Pin, e.Val), nil
 	case ast.Binary:
-		return s.evalConstBinaryExp(e)
+		return s.translateConstBinaryExp(e)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) expression (%T)", e.Kind(), e.Kind(), e))
 	}
@@ -59,7 +59,7 @@ func (s *Scope) evalConstSymbolExp(sym ast.Symbol) (Exp, diag.Error) {
 	return symbol.Def.(StaticValue).Exp, nil
 }
 
-func (s *Scope) evalConstBinaryExp(exp ast.Binary) (Exp, diag.Error) {
+func (s *Scope) translateConstBinaryExp(exp ast.Binary) (Exp, diag.Error) {
 	a, err := s.EvalConstExp(exp.A)
 	if err != nil {
 		return nil, err
@@ -68,6 +68,11 @@ func (s *Scope) evalConstBinaryExp(exp ast.Binary) (Exp, diag.Error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return s.evalConstBinaryExp(a, b, exp.Op)
+}
+
+func (s *Scope) evalConstBinaryExp(a, b Exp, op BinOp) (Exp, diag.Error) {
 	if a.Type() != b.Type() {
 		return nil, &diag.SimpleMessageError{
 			Pin:  a.Span().Pin,
@@ -82,13 +87,13 @@ func (s *Scope) evalConstBinaryExp(exp ast.Binary) (Exp, diag.Error) {
 			panic(fmt.Sprintf("static sized (size=%d) integers not implemented", typ.Size))
 		}
 
-		switch exp.Op.Kind {
+		switch op.Kind {
 		case bok.Add:
 			return addIntegers(s.Types, a.(Integer), b.(Integer)), nil
 		case bok.Sub:
 			return subIntegers(s.Types, a.(Integer), b.(Integer)), nil
 		default:
-			panic(fmt.Sprintf("unexpected \"%s\" (=%d) binary operator", exp.Op.Kind, exp.Op.Kind))
+			panic(fmt.Sprintf("unexpected \"%s\" (=%d) binary operator", op.Kind, op.Kind))
 		}
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type (%T)", typ.Kind, typ.Kind, typ.Def))

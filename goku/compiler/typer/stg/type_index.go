@@ -41,6 +41,9 @@ type TypeIndex struct {
 
 // StaticTypes contains instances of various predefined (builtin) static types.
 type StaticTypes struct {
+	// For nil literal.
+	Nil *Type
+
 	// Unsized.
 	Integer *Type
 
@@ -48,6 +51,12 @@ type StaticTypes struct {
 }
 
 func (t *StaticTypes) Init() {
+	t.Nil = &Type{
+		Size:  0,
+		Flags: TypeFlagBuiltin | TypeFlagStatic,
+		Kind:  tpk.Nil,
+	}
+
 	t.Integer = &Type{
 		Size:  0, // unsized static integer can hold arbitrary large integer number
 		Flags: TypeFlagBuiltin | TypeFlagSigned | TypeFlagStatic,
@@ -74,6 +83,9 @@ type KnownTypes struct {
 
 	// &void
 	VoidRef *Type
+
+	// bool
+	Bool *Type
 }
 
 func (t *KnownTypes) Init() {
@@ -91,6 +103,11 @@ func (t *KnownTypes) Init() {
 		Size:  archPointerSize,
 		Flags: TypeFlagBuiltin,
 		Kind:  tpk.VoidRef,
+	}
+	t.Bool = &Type{
+		Size:  1,
+		Flags: TypeFlagBuiltin,
+		Kind:  tpk.Boolean,
 	}
 }
 
@@ -394,19 +411,22 @@ func (s *Scope) lookupTuple(tuple ast.Tuple) (*Type, diag.Error) {
 		types = append(types, typ)
 	}
 
+	return s.Types.getTuple(types), nil
+}
+
+func (x *TypeIndex) getTuple(types []*Type) *Type {
 	key := encodeTypesAsKey(types)
-	typ, ok := s.Types.Tuples[key]
+	typ, ok := x.Tuples[key]
 	if ok {
-		return typ, nil
+		return typ
 	}
 	typ = &Type{
 		// TODO: calculate size
 		Def:  Tuple{Types: types},
 		Kind: tpk.Tuple,
 	}
-	s.Types.Tuples[key] = typ
-
-	return typ, nil
+	x.Tuples[key] = typ
+	return typ
 }
 
 // Checks that all corresponding fields in two lists have the same types:

@@ -88,12 +88,7 @@ func addBoolType(c *Context) {
 		Kind:  smk.Type,
 		Flags: SymbolBuiltin,
 	}
-	t := &Type{
-		Size:  1,
-		Flags: TypeFlagBuiltin,
-		Kind:  tpk.Boolean,
-	}
-	c.addType(s, t)
+	c.addType(s, c.Types.Known.Bool)
 }
 
 func addFloatType(c *Context, name string, size uint32) {

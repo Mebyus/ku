@@ -8,8 +8,8 @@ fun check(a: u32) -> () {
 
 fun alter(t: &SomeType, x: Sized) {
     var a: AnotherType;
-    var b: uint = 1 + a;
-    if a.buf2.len != 10 {
+    var b: uint = 1 + 2;
+    if b != 10 {
         ret;
     }
 }
@@ -45,10 +45,10 @@ type SomeType struct {
 
 fun (&SomeType) init(a: str, b: s32, k: [*]str) -> error {
     {}
-    if g.data == nil {
+    if k == nil {
         ret nil;
     }
-    if g.buf.len != 8 {
+    if b != 8 {
         ret nil;
     }
     // var g: uint;
