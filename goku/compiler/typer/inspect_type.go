@@ -74,7 +74,7 @@ func (t *Typer) inspectTypeFullName(p ast.TypeFullName) diag.Error {
 		}
 	}
 
-	unit := m.Def.(*stg.Unit)
+	unit := m.Def.(stg.SymDefUnit).Unit
 	name := p.Name.Str
 	s := unit.Scope.Lookup(name)
 	if s == nil {

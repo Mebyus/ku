@@ -151,3 +151,10 @@ type SymDefType struct {
 
 	Type *Type
 }
+
+// SymDefUnit symbol definition for import symbols.
+type SymDefUnit struct {
+	nodeSymDef
+
+	Unit *Unit
+}

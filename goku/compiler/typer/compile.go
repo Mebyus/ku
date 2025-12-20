@@ -355,7 +355,7 @@ func (t *Typer) addImport(s sm.ImportSite) diag.Error {
 	}
 
 	symbol := t.unit.Scope.Alloc(smk.Import, name, pin)
-	symbol.Def = unit
+	symbol.Def = stg.SymDefUnit{Unit: unit}
 	return nil
 }
 

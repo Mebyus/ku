@@ -9,8 +9,6 @@ import (
 )
 
 type Unit struct {
-	nodeSymDef // TODO: move this to separate wrapper struct
-
 	// Unit top level scope.
 	Scope Scope
 

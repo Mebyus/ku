@@ -175,7 +175,7 @@ func (s *Scope) lookupTypeFullName(p ast.TypeFullName) (*Type, diag.Error) {
 		}
 	}
 
-	unit := m.Def.(*Unit)
+	unit := m.Def.(SymDefUnit).Unit
 	name := p.Name.Str
 	symbol := unit.Scope.Lookup(name)
 	if symbol == nil {
