@@ -156,7 +156,7 @@ func (s *Scope) lookupTypeName(p ast.TypeName) (*Type, diag.Error) {
 		}
 	}
 
-	return symbol.Def.(*Type), nil
+	return symbol.Def.(SymDefType).Type, nil
 }
 
 func (s *Scope) lookupTypeFullName(p ast.TypeFullName) (*Type, diag.Error) {
@@ -197,7 +197,7 @@ func (s *Scope) lookupTypeFullName(p ast.TypeFullName) (*Type, diag.Error) {
 		}
 	}
 
-	return symbol.Def.(*Type), nil
+	return symbol.Def.(SymDefType).Type, nil
 }
 
 func (s *Scope) lookupArray(a ast.Array) (*Type, diag.Error) {

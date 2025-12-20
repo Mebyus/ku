@@ -144,3 +144,10 @@ type StaticValue struct {
 
 	Exp Exp
 }
+
+// SymDefType symbol definition for symbols which refer to a type.
+type SymDefType struct {
+	nodeSymDef
+
+	Type *Type
+}

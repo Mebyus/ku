@@ -111,6 +111,6 @@ func addFloatType(c *Context, name string, size uint32) {
 }
 
 func (c *Context) addType(s *Symbol, t *Type) {
-	s.Def = t
+	s.Def = SymDefType{Type: t}
 	c.Global.Bind(s)
 }

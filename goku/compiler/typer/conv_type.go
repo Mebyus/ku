@@ -54,7 +54,7 @@ func (t *Typer) convTypeSymbol(s *stg.Symbol) diag.Error {
 		Kind: tpk.Custom,
 	}
 
-	s.Def = def
+	s.Def = stg.SymDefType{Type: def}
 	return nil
 }
 

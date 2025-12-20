@@ -7,8 +7,6 @@ import (
 )
 
 type Type struct {
-	nodeSymDef // TODO: move type symdef to separate wrapper struct
-
 	// For some types this field is nil, since all necessary properties
 	// are stored in other fields.
 	//
