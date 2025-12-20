@@ -44,6 +44,8 @@ func (g *Printer) TypeSpec(typ TypeSpec) {
 		g.Form(t)
 	case Span:
 		g.Span(t)
+	case CapBuf:
+		g.CapBuf(t)
 	case Array:
 		g.Array(t)
 	case Struct:
@@ -133,6 +135,11 @@ func (g *Printer) ArrayRef(r ArrayRef) {
 
 func (g *Printer) Span(c Span) {
 	g.puts("[]")
+	g.TypeSpec(c.Type)
+}
+
+func (g *Printer) CapBuf(c CapBuf) {
+	g.puts("[^]")
 	g.TypeSpec(c.Type)
 }
 

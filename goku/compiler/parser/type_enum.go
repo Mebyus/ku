@@ -29,11 +29,8 @@ func (p *Parser) Enum() (ast.Enum, diag.Error) {
 		entries = append(entries, entry)
 
 		if p.peek.Kind == token.Comma {
+			// Commas are optional between enum entries.
 			p.advance() // skip ","
-		} else if p.peek.Kind == token.RightCurly {
-			// will be skipped at next iteration
-		} else {
-			return ast.Enum{}, p.unexpected()
 		}
 	}
 }

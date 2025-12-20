@@ -9,24 +9,24 @@ import (
 //
 // Formal definition:
 //
-//	Span => "[]" TypeSpec
-type Span struct {
+//	CapBuf => "[^]" TypeSpec
+type CapBuf struct {
 	// Chunk element type specifier.
 	Type TypeSpec
 }
 
-var _ TypeSpec = Span{}
+var _ TypeSpec = CapBuf{}
 
-func (Span) Kind() tsk.Kind {
-	return tsk.Span
+func (CapBuf) Kind() tsk.Kind {
+	return tsk.CapBuf
 }
 
-func (c Span) Span() sm.Span {
+func (c CapBuf) Span() sm.Span {
 	return c.Type.Span()
 }
 
-func (c Span) String() string {
+func (c CapBuf) String() string {
 	var g Printer
-	g.Span(c)
+	g.CapBuf(c)
 	return g.Output()
 }

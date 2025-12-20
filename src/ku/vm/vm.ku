@@ -1,0 +1,146 @@
+// Frame stores call stack unwind information for a call frame.
+type Frame struct {
+	// Return address.
+	addr: u32
+
+	// Frame pointer.
+	base: u32
+}
+
+// Memory segment names.
+//
+// Segment is used to store a pointer in register or memory.
+// Stored pointer is always 8 bytes in size. Its highest byte
+// stores segment, other 7 bytes store offset into that segment:
+//
+//	SS XX XX XX XX XX XX XX
+type Segment u8 {
+	TEXT
+	DATA
+	GLOBAL
+	STACK
+	HEAP
+}
+
+type Machine struct {
+	// Instruction pointer. Index in text memory.
+	ip: u64
+
+	// Stack pointer. Index in stack memory.
+	sp: u64
+
+	// Frame pointer. Index in stack memory.
+	fp: u64
+
+	// Syscall register.
+	// Select syscall number or receive result code.
+	sc: u64
+
+	// Comparison (control) flags.
+	cf: u64
+
+	// Number of executed instructions.
+	clock: u64
+
+	// General-purpose registers.
+	r: [64]u64
+
+	// Code of the program being executed, size cannot change during execution.
+    //
+    // Read-only.
+	text: []u8
+
+	// Static, read-only program data. Loaded at program start.
+	data: []u8
+
+	// Memory for global variables. Loaded and initialized at program start.
+    //
+    // Available for read/write.
+	global: []u8
+
+	// Stack memory, size cannot change during execution.
+    //
+    // Available for read/write.
+	stack: []u8
+
+	// Heap memory, size can change during execution.
+    //
+    // Available for read/write.
+	heap: []u8
+
+	// Stack for storing frames in procedure calls.
+	frames: [^]Frame
+
+	// Runtime error occured while executing current instruction.
+	// err: *RuntimeError
+
+	// Indicates if jump occured while executing current instruction.
+	jump_flag: bool
+
+	// Indicates if vm was halted by instruction or runtime error.
+	halt_flag: bool
+}
+
+fun (&Machine) exec(prog: *Program) {
+    g.reset(prog);
+
+	for !g.halt_flag {
+		g.step();
+		g.clock += 1;
+	}
+}
+
+fun (&Machine) step() {
+	g.jump_flag = false;
+
+	ip := g.ip;
+	op := g.text[ip];    // opcode
+	lt := g.text[ip+1];  // layout
+
+    var size: u64; // instruction data size
+    if cast(Opcode, op)
+    -> .SYS  {
+        if cast(VarSys, lt)
+	    -> .TRAP    { never; }
+        -> .HALT    { g.halt_flag = true; }
+        -> .NOP     {}
+        -> .RET     { g.exec_ret(); }
+        -> .SYSCALL { stub; }
+        else       { never; }
+    }
+    -> .JUMP {}
+    -> .CALL {}
+    else { never; }
+
+	if g.halt_flag {
+		ret;
+	}
+
+	if !g.jump_flag {
+		g.ip += 2 + size;
+	}
+}
+
+fun (&Machine) reset(prog: *Program) {
+    g.ip = cast(u64, prog.entry_offset);
+	g.text = prog.text;
+	g.data = prog.data;
+
+	// if int(prog.GlobalSize) > cap(g.global) {
+	// 	g.global = slices.Grow(g.global, int(prog.GlobalSize)-cap(g.global))
+	// }
+	// g.global = g.global[:prog.GlobalSize]
+	// clear(g.global)
+
+	// reset vm state to zero
+	// g.err = nil
+	g.halt_flag = false;
+	g.jump_flag = false;
+	g.sp = 0;
+	g.fp = 0;
+	g.sc = 0;
+	g.cf = 0;
+	g.clock = 0;
+	g.frames = g.frames[:0];
+	clear(g.r[:]);
+}

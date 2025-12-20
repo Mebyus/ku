@@ -1,0 +1,12 @@
+// Program holds program information in a form that is suitable
+// for VM execution.
+type Program struct {
+	text: []u8
+	data: []u8
+
+	// Entrypoint of the program. Offset into program text.
+	entry_offset: u32
+
+    // Number of bytes to allocate for global segment.
+	global_size: u32
+}

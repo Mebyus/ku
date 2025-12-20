@@ -75,7 +75,7 @@ var literal = [...]string{
 	AutoLen:        "[_]",
 	ArrayPointer:   "[*]",
 	ArrayRef:       "[&]",
-	CapBuffer:      "[^]",
+	CapBuf:         "[^]",
 	Nillable:       "?|",
 	NillableChunk:  "[?]",
 

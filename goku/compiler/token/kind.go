@@ -86,7 +86,7 @@ const (
 	AutoLen      // [_]
 	ArrayPointer // [*]
 	ArrayRef     // [&]
-	CapBuffer    // [^]
+	CapBuf       // [^]
 
 	Nillable      // ?|
 	NillableChunk // [?]

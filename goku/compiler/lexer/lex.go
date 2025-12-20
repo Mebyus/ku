@@ -486,7 +486,7 @@ func (lx *Lexer) other() token.Token {
 			lx.Advance() // skip "]"
 			return token.Token{
 				Pin:  pin,
-				Kind: token.CapBuffer,
+				Kind: token.CapBuf,
 			}
 		}
 		return lx.oneByteToken(token.LeftSquare)

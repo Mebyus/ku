@@ -10,7 +10,7 @@ import (
 
 func (t *Typer) inspectStatement(stm ast.Statement) diag.Error {
 	switch s := stm.(type) {
-	case ast.JumpNext, ast.JumpOut, ast.Never:
+	case ast.JumpNext, ast.JumpOut, ast.Never, ast.Stub:
 		return nil
 	case ast.Var:
 		return t.inspectVarStatement(s)
@@ -196,7 +196,7 @@ func (t *Typer) inspectVarInitExp(exp ast.Exp) diag.Error {
 
 func (t *Typer) inspectExp(exp ast.Exp) diag.Error {
 	switch e := exp.(type) {
-	case ast.Integer, ast.String, ast.Rune, ast.True, ast.False, ast.Nil, ast.Dirty, ast.ErrorId, ast.EnumMacro:
+	case ast.Integer, ast.String, ast.Rune, ast.True, ast.False, ast.Nil, ast.Dirty, ast.ErrorId, ast.EnumMacro, ast.DotName:
 		return nil
 	case ast.Symbol:
 		return t.linkExpSymbol(e)

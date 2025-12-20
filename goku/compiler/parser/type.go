@@ -89,6 +89,8 @@ func (p *Parser) TypeSpec() (ast.TypeSpec, diag.Error) {
 			return p.Span()
 		}
 		return p.Array()
+	case token.CapBuf:
+		return p.CapBuf()
 	case token.AutoLen:
 		return p.AutoLenArray()
 	case token.Type:
@@ -199,6 +201,17 @@ func (p *Parser) Span() (ast.Span, diag.Error) {
 	}
 
 	return ast.Span{Type: t}, nil
+}
+
+func (p *Parser) CapBuf() (ast.CapBuf, diag.Error) {
+	p.advance() // skip "[^]"
+
+	t, err := p.TypeSpec()
+	if err != nil {
+		return ast.CapBuf{}, err
+	}
+
+	return ast.CapBuf{Type: t}, nil
 }
 
 func (p *Parser) Pointer() (ast.Pointer, diag.Error) {

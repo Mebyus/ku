@@ -37,6 +37,8 @@ func (t *Typer) inspectCustomTypeSpec(spec ast.TypeSpec) diag.Error {
 	case ast.Bag:
 		fmt.Printf("WARN: bag type specifier not implemented\n")
 		return nil
+	case ast.Enum:
+		return t.inspectEnum(p)
 	case ast.Union:
 		return t.inspectFields(p.Fields)
 	}
@@ -129,6 +131,20 @@ func (t *Typer) inspectTuple(p ast.Tuple) diag.Error {
 	return nil
 }
 
+func (t *Typer) inspectEnum(p ast.Enum) diag.Error {
+	for _, e := range p.Entries {
+		if e.Exp == nil {
+			continue
+		}
+
+		err := t.inspectConstExp(e.Exp)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (t *Typer) inspectType(spec ast.TypeSpec) diag.Error {
 	switch p := spec.(type) {
 	case ast.VoidPointer, ast.VoidRef:
@@ -143,6 +159,8 @@ func (t *Typer) inspectType(spec ast.TypeSpec) diag.Error {
 		return t.linkArrayPointer(p)
 	case ast.Span:
 		return t.linkSpan(p)
+	case ast.CapBuf:
+		return t.linkCapBuf(p)
 	case ast.Array:
 		return t.linkArray(p)
 	default:
@@ -179,6 +197,13 @@ func (t *Typer) linkRef(p ast.Ref) diag.Error {
 }
 
 func (t *Typer) linkSpan(c ast.Span) diag.Error {
+	k := t.ins.indirect()
+	err := t.inspectType(c.Type)
+	t.ins.restore(k)
+	return err
+}
+
+func (t *Typer) linkCapBuf(c ast.CapBuf) diag.Error {
 	k := t.ins.indirect()
 	err := t.inspectType(c.Type)
 	t.ins.restore(k)

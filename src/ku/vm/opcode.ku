@@ -1,0 +1,13 @@
+type Opcode u8 {
+    SYS
+    JUMP
+    CALL
+}
+
+type VarSys u8 {
+    TRAP
+    HALT
+    NOP
+    RET
+    SYSCALL
+}

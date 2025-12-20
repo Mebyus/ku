@@ -21,6 +21,7 @@ const (
 	ArrayRef
 	ArrayPointer
 	Span
+	CapBuf
 	Enum
 	Bag
 	Fun
@@ -42,7 +43,8 @@ var text = [...]string{
 	Array:        "array",
 	ArrayRef:     "array ref",
 	ArrayPointer: "array pointer",
-	Span:         "chunk",
+	Span:         "span",
+	CapBuf:       "capbuf",
 	Enum:         "enum",
 	Bag:          "bag",
 	Fun:          "fun",
