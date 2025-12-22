@@ -12,15 +12,20 @@ fun alter(t: &SomeType, x: Sized) {
     if b != 10 {
         ret;
     }
+
 }
 
 // type Bool2 bool
 
 fun strip(s: str) -> str {
+    var a: &SomeType;
+    alter(a, 0);
+    // load("src");
     ret s;
 }
 
 fun load(path: str) -> ([]u8, error) {
+    strip(path);
     ret nil, nil;
 }
 

@@ -64,37 +64,12 @@ func (t *Typer) inspectResultType(spec ast.TypeSpec) diag.Error {
 
 func (t *Typer) inspectParams(params []ast.Param) diag.Error {
 	for _, p := range params {
-		err := t.inspectParam(p)
+		err := t.inspectType(p.Type)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-func (t *Typer) inspectParam(param ast.Param) diag.Error {
-	switch p := param.Type.(type) {
-	case ast.TypeName:
-		return t.linkTypeName(p)
-	case ast.TypeFullName:
-		return t.inspectTypeFullName(p)
-	case ast.Ref:
-		return t.linkRef(p)
-	case ast.Pointer:
-		return t.linkPointer(p)
-	case ast.ArrayPointer:
-		return t.linkArrayPointer(p)
-	case ast.VoidPointer:
-		return nil
-	case ast.Array:
-		return t.linkArray(p)
-	case ast.Span:
-		return t.linkSpan(p)
-	case ast.ArrayRef:
-		return t.linkArrayRef(p)
-	default:
-		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier (%T)", p.Kind(), p.Kind(), p))
-	}
 }
 
 func (t *Typer) inspectBlock(block ast.Block) diag.Error {

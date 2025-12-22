@@ -94,6 +94,8 @@ func (t *Type) String() string {
 		return "*" + t.Def.(Pointer).Type.String()
 	case tpk.ArrayPointer:
 		return "[*]" + t.Def.(ArrayPointer).Type.String()
+	case tpk.Ref:
+		return "&" + t.Def.(Ref).Type.String()
 	case tpk.Custom:
 		c := t.Def.(*Custom)
 		s = c.Symbol.Name
@@ -159,9 +161,9 @@ type Custom struct {
 }
 
 // Explicit interface implementation check.
-var _ TypeDef = Custom{}
+var _ TypeDef = &Custom{}
 
-func (Custom) Kind() tpk.Kind {
+func (*Custom) Kind() tpk.Kind {
 	return tpk.Custom
 }
 

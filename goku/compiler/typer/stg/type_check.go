@@ -1,11 +1,65 @@
 package stg
 
-import "github.com/mebyus/ku/goku/compiler/diag"
+import (
+	"fmt"
 
-func (x *TypeIndex) CheckAssign(want *Type, exp Exp) diag.Error {
+	"github.com/mebyus/ku/goku/compiler/diag"
+	"github.com/mebyus/ku/goku/compiler/enums/tpk"
+	"github.com/mebyus/ku/goku/compiler/sm"
+)
+
+func CheckAssign(want *Type, exp Exp) diag.Error {
 	typ := exp.Type()
 	if typ == want {
 		return nil
+	}
+
+	if typ.Kind != want.Kind {
+		switch want.Kind {
+		case tpk.Custom:
+			c := want.Def.(*Custom).Type
+			if typ.IsStatic() && typ.Size == 0 && typ.Kind == c.Kind {
+				return nil
+			}
+		}
+
+		return &diag.SimpleMessageError{
+			Pin:  exp.Span().Pin,
+			Text: fmt.Sprintf("incompatible types %s and %s", want, typ),
+		}
+	}
+
+	if typ.IsStatic() && typ.Size == 0 {
+		return nil
+	}
+
+	return &diag.SimpleMessageError{
+		Pin:  exp.Span().Pin,
+		Text: fmt.Sprintf("incompatible types %s and %s", want, typ),
+	}
+}
+
+func CheckCall(sig *Signature, args []Exp) diag.Error {
+	if len(args) != len(sig.Params) {
+		var pin sm.Pin
+		if len(args) != 0 {
+			// TODO: how to set pin properly if there are no args?
+			pin = args[0].Span().Pin
+		}
+		return &diag.SimpleMessageError{
+			Pin:  pin,
+			Text: fmt.Sprintf("call requires %d argument(s), but got %d", len(sig.Params), len(args)),
+		}
+	}
+
+	for i := range len(args) {
+		arg := args[i]
+		param := sig.Params[i]
+
+		err := CheckAssign(param, arg)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

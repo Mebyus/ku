@@ -27,6 +27,8 @@ func (s *Scope) TranslateExp(exp ast.Exp) (Exp, diag.Error) {
 		return s.Types.MakeNil(e.Pin), nil
 	case ast.Integer:
 		return s.Types.MakeInteger(e.Pin, e.Val), nil
+	case ast.String:
+		return s.Types.MakeString(e.Pin, e.Val), nil
 	case ast.Symbol:
 		return s.translateSymbolExp(e)
 	case ast.Binary:

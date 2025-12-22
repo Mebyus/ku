@@ -155,6 +155,8 @@ func (t *Typer) inspectType(spec ast.TypeSpec) diag.Error {
 		return t.inspectTypeFullName(p)
 	case ast.Pointer:
 		return t.linkPointer(p)
+	case ast.Ref:
+		return t.linkRef(p)
 	case ast.ArrayPointer:
 		return t.linkArrayPointer(p)
 	case ast.Span:
@@ -163,6 +165,8 @@ func (t *Typer) inspectType(spec ast.TypeSpec) diag.Error {
 		return t.linkCapBuf(p)
 	case ast.Array:
 		return t.linkArray(p)
+	case ast.ArrayRef:
+		return t.linkArrayRef(p)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier (%T)", p.Kind(), p.Kind(), p))
 	}

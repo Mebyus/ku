@@ -20,3 +20,5 @@ func (e *PinlessError) Render(w io.Writer, m sm.PinMap) error {
 	_, err := io.WriteString(w, e.Text)
 	return err
 }
+
+func (e *PinlessError) SetFallbackSpan(span sm.Span) {}

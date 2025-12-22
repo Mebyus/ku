@@ -25,6 +25,10 @@ type Error interface {
 	error
 
 	Render(w io.Writer, m sm.PinMap) error
+
+	// Sets span if it has zero value.
+	// Does nothing otherwise.
+	SetFallbackSpan(span sm.Span)
 }
 
 func Format(m sm.PinMap, e Error) error {

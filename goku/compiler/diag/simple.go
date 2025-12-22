@@ -35,3 +35,9 @@ func (e *SimpleMessageError) Render(w io.Writer, m sm.PinMap) error {
 	_, err = io.WriteString(w, e.Error())
 	return err
 }
+
+func (e *SimpleMessageError) SetFallbackSpan(span sm.Span) {
+	if e.Pin == 0 {
+		e.Pin = span.Pin
+	}
+}

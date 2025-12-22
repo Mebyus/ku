@@ -40,3 +40,5 @@ func (e *UnexpectedTokenError) Render(w io.Writer, m sm.PinMap) error {
 	_, err = io.WriteString(w, e.Error())
 	return err
 }
+
+func (e *UnexpectedTokenError) SetFallbackSpan(span sm.Span) {}

@@ -35,6 +35,8 @@ func (e *UnknownOriginError) Render(w io.Writer, m sm.PinMap) error {
 	return err
 }
 
+func (e *UnknownOriginError) SetFallbackSpan(span sm.Span) {}
+
 type ImportCycleError struct {
 	Sites []sm.ImportSite
 }
@@ -94,3 +96,5 @@ func renderImport(w io.Writer, m sm.PinMap, site sm.ImportSite) error {
 	}
 	return nil
 }
+
+func (e *ImportCycleError) SetFallbackSpan(span sm.Span) {}
