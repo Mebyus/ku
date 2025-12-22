@@ -142,6 +142,10 @@ func (t *Type) IsSigned() bool {
 	return t.Flags&TypeFlagSigned != 0
 }
 
+func (t *Type) IsBuiltin() bool {
+	return t.Flags&TypeFlagBuiltin != 0
+}
+
 // Custom defines custom type.
 type Custom struct {
 	// List of methods which are bound to this custom type.
@@ -195,7 +199,7 @@ func (Ref) Kind() tpk.Kind {
 }
 
 type Span struct {
-	// Chunk element type.
+	// Span element type.
 	Type *Type
 }
 
@@ -204,6 +208,18 @@ var _ TypeDef = Span{}
 
 func (Span) Kind() tpk.Kind {
 	return tpk.Span
+}
+
+type CapBuf struct {
+	// CapBuf element type.
+	Type *Type
+}
+
+// Explicit interface implementation check.
+var _ TypeDef = CapBuf{}
+
+func (CapBuf) Kind() tpk.Kind {
+	return tpk.CapBuf
 }
 
 type Tuple struct {
@@ -245,4 +261,20 @@ type Struct struct {
 
 func (Struct) Kind() tpk.Kind {
 	return tpk.Struct
+}
+
+type Enum struct {
+	Entries []EnumEntry
+
+	m map[ /* entry name */ string]*EnumEntry
+}
+
+func (Enum) Kind() tpk.Kind {
+	return tpk.Enum
+}
+
+type EnumEntry struct {
+	Value *Integer
+
+	Index uint32
 }

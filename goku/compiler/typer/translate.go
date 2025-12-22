@@ -98,6 +98,8 @@ func (t *Typer) translateStatement(stm ast.Statement) (stg.Statement, diag.Error
 		return t.translateIf(s)
 	case ast.Assign:
 		return t.translateAssign(s)
+	case ast.Invoke:
+		return t.translateInvoke(s)
 	case ast.Block:
 		if len(s.Nodes) == 0 {
 			// block statement with no statements is equivalent to empty statement
@@ -126,6 +128,10 @@ func (t *Typer) translateAssign(a ast.Assign) (*stg.Assign, diag.Error) {
 	default:
 		panic(fmt.Sprintf("unexpected %s (=%d) target expression (%T)", r.Kind(), r.Kind(), r))
 	}
+}
+
+func (t *Typer) translateInvoke(v ast.Invoke) (*stg.InvokeSymbol, diag.Error) {
+	return &stg.InvokeSymbol{}, nil
 }
 
 func (t *Typer) translateAssignSymbol(symbol ast.Symbol, a ast.Assign) (*stg.Assign, diag.Error) {

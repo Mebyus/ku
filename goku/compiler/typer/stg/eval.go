@@ -89,9 +89,9 @@ func (s *Scope) evalConstBinaryExp(a, b Exp, op BinOp) (Exp, diag.Error) {
 
 		switch op.Kind {
 		case bok.Add:
-			return addIntegers(s.Types, a.(Integer), b.(Integer)), nil
+			return addIntegers(s.Types, a.(*Integer), b.(*Integer)), nil
 		case bok.Sub:
-			return subIntegers(s.Types, a.(Integer), b.(Integer)), nil
+			return subIntegers(s.Types, a.(*Integer), b.(*Integer)), nil
 		default:
 			panic(fmt.Sprintf("unexpected \"%s\" (=%d) binary operator", op.Kind, op.Kind))
 		}
@@ -100,7 +100,7 @@ func (s *Scope) evalConstBinaryExp(a, b Exp, op BinOp) (Exp, diag.Error) {
 	}
 }
 
-func addIntegers(x *TypeIndex, a, b Integer) Integer {
+func addIntegers(x *TypeIndex, a, b *Integer) *Integer {
 	switch {
 	case a.Neg && b.Neg:
 		return x.MakeNegInteger(a.Pin, a.Val+b.Val)
@@ -121,7 +121,7 @@ func addIntegers(x *TypeIndex, a, b Integer) Integer {
 	}
 }
 
-func subIntegers(x *TypeIndex, a, b Integer) Integer {
+func subIntegers(x *TypeIndex, a, b *Integer) *Integer {
 	switch {
 	case a.Neg && b.Neg:
 		if a.Val > b.Val {
@@ -142,13 +142,13 @@ func subIntegers(x *TypeIndex, a, b Integer) Integer {
 	}
 }
 
-func expectInteger(exp Exp) (Integer, diag.Error) {
-	n, ok := exp.(Integer)
+func expectInteger(exp Exp) (*Integer, diag.Error) {
+	n, ok := exp.(*Integer)
 	if ok {
 		return n, nil
 	}
 
-	return Integer{}, &diag.SimpleMessageError{
+	return nil, &diag.SimpleMessageError{
 		Pin:  exp.Span().Pin,
 		Text: fmt.Sprintf("expected integer expression, got %s", exp.Type()),
 	}

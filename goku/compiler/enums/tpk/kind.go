@@ -92,6 +92,8 @@ const (
 
 	Span
 
+	CapBuf
+
 	// Pointer to another Type. An example of such a Type could be *str
 	// (pointer to a string)
 	Pointer
@@ -118,6 +120,8 @@ const (
 	//	type Name <OtherType>
 	Custom
 
+	Enum
+
 	Struct
 
 	Tuple
@@ -135,6 +139,7 @@ var text = [...]string{
 
 	Array:  "array",
 	Span:   "span",
+	Enum:   "enum",
 	Custom: "custom",
 	Struct: "struct",
 	Tuple:  "tuple",

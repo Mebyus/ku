@@ -43,3 +43,11 @@ type Branch struct {
 	// Branch condition. Always not nil.
 	Exp Exp
 }
+
+// InvokeSymbol statement which directly (not via function pointer) calls
+// a specific symbol (function or method).
+type InvokeSymbol struct {
+	Args []Exp
+
+	Symbol *Symbol
+}

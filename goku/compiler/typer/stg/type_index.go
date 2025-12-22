@@ -20,6 +20,9 @@ type TypeIndex struct {
 	// Maps span element type to the corresponding span type.
 	Spans map[ /* span element type */ *Type]*Type
 
+	// Maps capbuf element type to the corresponding capbuf type.
+	CapBufs map[ /* capbuf element type */ *Type]*Type
+
 	// Maps type referred by pointer to corresponding pointer type.
 	Pointers map[ /* type referred by pointer */ *Type]*Type
 
@@ -37,6 +40,9 @@ type TypeIndex struct {
 
 	// Maps array type definition (element type + size) to the corresponding array type.
 	Arrays map[Array]*Type
+
+	// Set for checking names for uniqueness. Reused between calls.
+	un map[string]struct{}
 }
 
 // StaticTypes contains instances of various predefined (builtin) static types.
@@ -116,12 +122,15 @@ func (x *TypeIndex) Init() {
 	x.Known.Init()
 
 	x.Spans = make(map[*Type]*Type)
+	x.CapBufs = make(map[*Type]*Type)
 	x.Pointers = make(map[*Type]*Type)
 	x.ArrayPointers = make(map[*Type]*Type)
 	x.Refs = make(map[*Type]*Type)
 	x.Structs = make(map[string][]*Type)
 	x.Tuples = make(map[string]*Type)
 	x.Arrays = make(map[Array]*Type)
+
+	x.un = make(map[string]struct{})
 }
 
 func (s *Scope) LookupType(spec ast.TypeSpec) (*Type, diag.Error) {
@@ -144,12 +153,17 @@ func (s *Scope) LookupType(spec ast.TypeSpec) (*Type, diag.Error) {
 		return s.lookupArrayPointer(p)
 	case ast.Span:
 		return s.lookupSpan(p)
+	case ast.CapBuf:
+		return s.lookupCapBuf(p)
 	case ast.Array:
 		return s.lookupArray(p)
 	case ast.Struct:
 		return s.lookupStruct(p)
 	case ast.Tuple:
 		return s.lookupTuple(p)
+	case ast.Enum:
+		// each enum is created as distinct type
+		return s.createEnumType(p)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier (%T)", p.Kind(), p.Kind(), p))
 	}
@@ -340,6 +354,26 @@ func (s *Scope) lookupSpan(p ast.Span) (*Type, diag.Error) {
 	return typ, nil
 }
 
+func (s *Scope) lookupCapBuf(p ast.CapBuf) (*Type, diag.Error) {
+	t, err := s.LookupType(p.Type)
+	if err != nil {
+		return nil, err
+	}
+
+	typ, ok := s.Types.CapBufs[t]
+	if ok {
+		return typ, nil
+	}
+	typ = &Type{
+		Def:  CapBuf{Type: t},
+		Size: 3 * archPointerSize,
+		Kind: tpk.CapBuf,
+	}
+	s.Types.CapBufs[t] = typ
+
+	return typ, nil
+}
+
 func (s *Scope) lookupStruct(p ast.Struct) (*Type, diag.Error) {
 	if len(p.Fields) == 0 {
 		panic("struct with no fields")
@@ -414,6 +448,122 @@ func (s *Scope) lookupTuple(tuple ast.Tuple) (*Type, diag.Error) {
 	return s.Types.getTuple(types), nil
 }
 
+func (s *Scope) createEnumType(enum ast.Enum) (*Type, diag.Error) {
+	name := enum.Base.Name.Str
+	pin := enum.Base.Name.Pin
+	symbol := s.Lookup(name)
+	if symbol == nil {
+		return nil, &diag.SimpleMessageError{
+			Pin:  pin,
+			Text: fmt.Sprintf("type name \"%s\" refers to undefined symbol", name),
+		}
+	}
+	if symbol.Kind != smk.Type {
+		return nil, &diag.SimpleMessageError{
+			Pin:  pin,
+			Text: fmt.Sprintf("symbol \"%s\" is %s, not a type", name, symbol.Kind),
+		}
+	}
+	typ := symbol.Def.(SymDefType).Type
+	if typ.Kind != tpk.Integer {
+		return nil, &diag.SimpleMessageError{
+			Pin:  pin,
+			Text: fmt.Sprintf("type \"%s\" is %s, not an integer type", name, typ.Kind),
+		}
+	}
+	if !typ.IsBuiltin() {
+		return nil, &diag.SimpleMessageError{
+			Pin:  pin,
+			Text: fmt.Sprintf("type \"%s\" is not a builtin integer type", name),
+		}
+	}
+	if typ.Size > 8 {
+		return nil, &diag.SimpleMessageError{
+			Pin:  pin,
+			Text: "enum size must be 8 or less bytes",
+		}
+	}
+
+	err := s.Types.checkUniqueEnumEntries(enum.Entries)
+	if err != nil {
+		return nil, err
+	}
+
+	def := &Enum{}
+	t := &Type{
+		Def:   def,
+		Flags: typ.Flags & TypeFlagSigned,
+		Size:  typ.Size,
+		Kind:  tpk.Enum,
+	}
+	if len(enum.Entries) == 0 {
+		return t, nil
+	}
+
+	m := make(map[string]*EnumEntry, len(enum.Entries))
+	entries := make([]EnumEntry, len(enum.Entries))
+
+	e, err := s.createEnumEntry(t, 0, enum.Entries[0].Exp)
+	if err != nil {
+		return nil, err
+	}
+
+	if e.Value == nil {
+		e.Value = &Integer{
+			Pin: enum.Entries[0].Name.Pin,
+			Val: 0,
+			typ: t,
+		}
+	}
+	start := e.Value
+
+	entries[0] = e
+	m[enum.Entries[0].Name.Str] = &entries[0]
+
+	for j, entry := range enum.Entries[1:] {
+		i := j + 1
+		e, err := s.createEnumEntry(t, i, entry.Exp)
+		if err != nil {
+			return nil, err
+		}
+		if e.Value == nil {
+			e.Value = start.Add(uint64(i))
+		}
+		entries[i] = e
+
+		name := entry.Name.Str
+		m[name] = &entries[i]
+	}
+	def.m = m
+	def.Entries = entries
+
+	return t, nil
+}
+
+func (s *Scope) createEnumEntry(typ *Type, i int, exp ast.Exp) (EnumEntry, diag.Error) {
+	if exp == nil {
+		return EnumEntry{Index: uint32(i)}, nil
+	}
+
+	e, err := s.EvalConstExp(exp)
+	if err != nil {
+		return EnumEntry{}, err
+	}
+	if e.Type().Kind != tpk.Integer {
+		return EnumEntry{}, &diag.SimpleMessageError{
+			Pin:  exp.Span().Pin,
+			Text: fmt.Sprintf("expected integer expression, got %s", e.Type()),
+		}
+	}
+	val := e.(*Integer)
+	val.typ = typ
+
+	return EnumEntry{
+		Value: val,
+		Index: uint32(i),
+	}, nil
+}
+
 func (x *TypeIndex) getTuple(types []*Type) *Type {
 	key := encodeTypesAsKey(types)
 	typ, ok := x.Tuples[key]
@@ -427,6 +577,30 @@ func (x *TypeIndex) getTuple(types []*Type) *Type {
 	}
 	x.Tuples[key] = typ
 	return typ
+}
+
+func (x *TypeIndex) checkUniqueEnumEntries(entries []ast.EnumEntry) diag.Error {
+	if len(entries) < 2 {
+		return nil
+	}
+	clear(x.un)
+
+	for _, e := range entries {
+		name := e.Name.Str
+		pin := e.Name.Pin
+
+		_, ok := x.un[name]
+		if ok {
+			return &diag.SimpleMessageError{
+				Pin:  pin,
+				Text: fmt.Sprintf("enum entry name \"%s\" declared more than once", name),
+			}
+		}
+
+		x.un[name] = struct{}{}
+	}
+
+	return nil
 }
 
 // Checks that all corresponding fields in two lists have the same types:
