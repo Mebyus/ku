@@ -54,6 +54,8 @@ type StaticTypes struct {
 	Integer *Type
 
 	String *Type
+
+	Boolean *Type
 }
 
 func (t *StaticTypes) Init() {
@@ -73,6 +75,12 @@ func (t *StaticTypes) Init() {
 		Size:  0,
 		Flags: TypeFlagBuiltin | TypeFlagStatic,
 		Kind:  tpk.String,
+	}
+
+	t.Boolean = &Type{
+		Size:  0,
+		Flags: TypeFlagBuiltin | TypeFlagStatic,
+		Kind:  tpk.Boolean,
 	}
 }
 

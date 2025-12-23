@@ -28,9 +28,18 @@ fun (&String) klen() -> u32 {
     {
         a = 1;
     }
+    if debug {
+        a = 2;
+    }
     ret a;
 }
 
 const k := 10;
 
 const a := 1 + 2;
+
+const b := -0x1;
+
+const c := 1 + (3 - 4);
+
+const debug := true;

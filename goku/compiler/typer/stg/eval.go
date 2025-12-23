@@ -8,6 +8,7 @@ import (
 	"github.com/mebyus/ku/goku/compiler/enums/bok"
 	"github.com/mebyus/ku/goku/compiler/enums/smk"
 	"github.com/mebyus/ku/goku/compiler/enums/tpk"
+	"github.com/mebyus/ku/goku/compiler/enums/uok"
 )
 
 func (s *Scope) EvalConstExp(exp ast.Exp) (Exp, diag.Error) {
@@ -24,18 +25,21 @@ func (s *Scope) EvalConstExp(exp ast.Exp) (Exp, diag.Error) {
 	case ast.String:
 		return s.Types.MakeString(e.Pin, e.Val), nil
 	case ast.True:
+		return s.Types.MakeBoolean(e.Pin, true), nil
 	case ast.False:
+		return s.Types.MakeBoolean(e.Pin, false), nil
 	case ast.Rune:
 		// TODO: make separate type kind for runes
 		return s.Types.MakeInteger(e.Pin, e.Val), nil
+	case ast.Unary:
+		return s.translateConstUnaryExp(e)
 	case ast.Binary:
 		return s.translateConstBinaryExp(e)
+	case ast.Paren:
+		return s.EvalConstExp(e.Exp)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) expression (%T)", e.Kind(), e.Kind(), e))
 	}
-
-	// TODO: remove this return
-	return nil, nil
 }
 
 func (s *Scope) evalConstSymbolExp(sym ast.Symbol) (Exp, diag.Error) {
@@ -57,6 +61,43 @@ func (s *Scope) evalConstSymbolExp(sym ast.Symbol) (Exp, diag.Error) {
 	}
 
 	return symbol.Def.(StaticValue).Exp, nil
+}
+
+func (s *Scope) translateConstUnaryExp(exp ast.Unary) (Exp, diag.Error) {
+	e, err := s.EvalConstExp(exp.Exp)
+	if err != nil {
+		return nil, err
+	}
+
+	typ := e.Type()
+	switch typ.Kind {
+	case tpk.Integer:
+		switch exp.Op.Kind {
+		case uok.Plus:
+			return e, nil
+		case uok.Minus:
+			if typ.Size == 0 {
+				n := e.(*Integer)
+				if n.Val == 0 {
+					return n, nil
+				}
+				n.Neg = !n.Neg
+				return n, nil
+			}
+
+			panic("not implemented")
+		default:
+			return nil, &diag.SimpleMessageError{
+				Pin:  exp.Op.Pin,
+				Text: fmt.Sprintf("unary operation %s is not defined for static integer types", exp.Op.Kind),
+			}
+		}
+	default:
+		return nil, &diag.SimpleMessageError{
+			Pin:  exp.Op.Pin,
+			Text: fmt.Sprintf("value of %s type cannot be used in unary expression", typ),
+		}
+	}
 }
 
 func (s *Scope) translateConstBinaryExp(exp ast.Binary) (Exp, diag.Error) {

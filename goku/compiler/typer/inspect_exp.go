@@ -13,7 +13,7 @@ import (
 // Report error upon encountering variable symbol.
 func (t *Typer) inspectConstExp(exp ast.Exp) diag.Error {
 	switch e := exp.(type) {
-	case ast.Integer, ast.String, ast.Rune:
+	case ast.Integer, ast.String, ast.Rune, ast.True, ast.False, ast.Float:
 		return nil
 	case ast.Symbol:
 		return t.linkConstSymbol(e)
@@ -25,6 +25,8 @@ func (t *Typer) inspectConstExp(exp ast.Exp) diag.Error {
 		return t.inspectConstCastExp(e)
 	case ast.List:
 		return t.inspectConstListExp(e)
+	case ast.Paren:
+		return t.inspectConstExp(e.Exp)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) expression (%T)", e.Kind(), e.Kind(), e))
 	}
