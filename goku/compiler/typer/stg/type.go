@@ -148,6 +148,19 @@ func (t *Type) IsBuiltin() bool {
 	return t.Flags&TypeFlagBuiltin != 0
 }
 
+// Returns a type referenced by this type.
+// Only applicable to Pointer and Ref types.
+func (t *Type) getDerefType() *Type {
+	switch t.Kind {
+	case tpk.Pointer:
+		return t.Def.(Pointer).Type
+	case tpk.Ref:
+		return t.Def.(Ref).Type
+	default:
+		panic(fmt.Sprintf("unexpected %s (=%d) type", t.Kind, t.Kind))
+	}
+}
+
 // Custom defines custom type.
 type Custom struct {
 	// List of methods which are bound to this custom type.
@@ -158,6 +171,9 @@ type Custom struct {
 
 	// Type which was used to define this custom type.
 	Type *Type
+
+	// Maps method name to its symbol.
+	m map[ /* method name */ string]*Symbol
 }
 
 // Explicit interface implementation check.
@@ -165,6 +181,28 @@ var _ TypeDef = &Custom{}
 
 func (*Custom) Kind() tpk.Kind {
 	return tpk.Custom
+}
+
+func (c *Custom) Init() {
+	if len(c.Methods) == 0 {
+		return
+	}
+
+	m := make(map[string]*Symbol, len(c.Methods))
+	for _, s := range c.Methods {
+		name := s.GetMethodName()
+		_, ok := m[name]
+		if ok {
+			panic(fmt.Sprintf("duplicate method \"%s\"", name))
+		}
+
+		m[name] = s
+	}
+	c.m = m
+}
+
+func (c *Custom) getMethod(name string) *Symbol {
+	return c.m[name]
 }
 
 type Pointer struct {
@@ -261,8 +299,18 @@ type Struct struct {
 	Fields []Field
 }
 
-func (Struct) Kind() tpk.Kind {
+func (*Struct) Kind() tpk.Kind {
 	return tpk.Struct
+}
+
+func (s *Struct) getField(name string) *Field {
+	for i := range s.Fields {
+		f := &s.Fields[i]
+		if f.Name == name {
+			return f
+		}
+	}
+	return nil
 }
 
 type Enum struct {

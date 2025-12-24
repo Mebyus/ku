@@ -419,13 +419,13 @@ func (s *Scope) lookupStruct(p ast.Struct) (*Type, diag.Error) {
 
 	list := s.Types.Structs[joined]
 	for _, t := range list {
-		if equalFieldTypes(fields, t.Def.(Struct).Fields) {
+		if equalFieldTypes(fields, t.Def.(*Struct).Fields) {
 			return t, nil
 		}
 	}
 	typ := &Type{
 		// TODO: calculate size
-		Def:  Struct{Fields: fields},
+		Def:  &Struct{Fields: fields},
 		Kind: tpk.Struct,
 	}
 	s.Types.Structs[joined] = append(s.Types.Structs[joined], typ)

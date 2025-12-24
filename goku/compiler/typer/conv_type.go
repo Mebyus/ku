@@ -10,8 +10,17 @@ import (
 )
 
 func (t *Typer) convTypeSymbol(s *stg.Symbol) diag.Error {
+	const debug = false
+
 	spec := t.box.Type(s.Aux).Spec
 	methods := t.methodsByReceiver[s]
+
+	if debug && len(methods) != 0 {
+		fmt.Printf("Type %s methods:\n", s.Name)
+		for _, m := range methods {
+			fmt.Printf("  * %s\n", m.Name)
+		}
+	}
 
 	p, ok := spec.(ast.Struct)
 	if ok {
@@ -49,11 +58,12 @@ func (t *Typer) convTypeSymbol(s *stg.Symbol) diag.Error {
 		Methods: methods,
 		Type:    typ,
 	}
+	custom.Init()
+
 	def := &stg.Type{
 		Def:  custom,
 		Kind: tpk.Custom,
 	}
-
 	s.Def = stg.SymDefType{Type: def}
 	return nil
 }

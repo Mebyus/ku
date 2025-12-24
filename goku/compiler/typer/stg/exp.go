@@ -34,7 +34,7 @@ func (s *Scope) TranslateExp(exp ast.Exp) (Exp, diag.Error) {
 	case ast.Binary:
 		return s.translateBinaryExp(e)
 	case ast.Chain:
-		panic("not implemented")
+		return s.translateChain(e)
 	case ast.Pack:
 		return s.translatePackExp(e)
 	default:
@@ -53,6 +53,99 @@ func (s *Scope) translatePackExp(exp ast.Pack) (*Pack, diag.Error) {
 	}
 
 	return s.Types.MakePack(list), nil
+}
+
+func (s *Scope) translateChain(exp ast.Chain) (Exp, diag.Error) {
+	if len(exp.Parts) == 0 {
+		panic("no parts in chain")
+	}
+
+	name := exp.Start.Str
+	pin := exp.Start.Pin
+
+	start := s.Lookup(name)
+	if start == nil {
+		return nil, &diag.SimpleMessageError{
+			Pin:  pin,
+			Text: fmt.Sprintf("name \"%s\" refers to undefined symbol", name),
+		}
+	}
+
+	var e Exp
+	switch start.Kind {
+	case smk.Receiver, smk.Var, smk.Param:
+		e = &VarExp{
+			Pin:    pin,
+			Symbol: start,
+		}
+	default:
+		panic(fmt.Sprintf("unexpected %s (=%d) chain start symbol", start.Kind, start.Kind))
+	}
+
+	for _, p := range exp.Parts {
+		var err diag.Error
+		e, err = applyChainPart(e, p)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return e, nil
+}
+
+func applyChainPart(exp Exp, part ast.Part) (Exp, diag.Error) {
+	switch p := part.(type) {
+	case ast.Select:
+		return applySelectPart(exp, p)
+	default:
+		panic(fmt.Sprintf("unexpected %s (=%d) chain part (%T)", p.Kind(), p.Kind(), p))
+	}
+}
+
+func applySelectPart(exp Exp, part ast.Select) (Exp, diag.Error) {
+	typ := exp.Type()
+
+	switch typ.Kind {
+	case tpk.Pointer, tpk.Ref:
+		return applySelectToPointer(exp, part)
+	default:
+		panic(fmt.Sprintf("unexpected %s type", typ))
+	}
+}
+
+func applySelectToPointer(exp Exp, part ast.Select) (Exp, diag.Error) {
+	typ := exp.Type().getDerefType()
+	name := part.Name.Str
+	pin := part.Name.Pin
+
+	switch typ.Kind {
+	case tpk.Custom:
+		c := typ.Def.(*Custom)
+		m := c.getMethod(name)
+		if m != nil {
+			panic("method selection not implemented")
+		}
+
+		if c.Type.Kind != tpk.Struct {
+			panic("not implemented")
+		}
+
+		s := c.Type.Def.(*Struct)
+		f := s.getField(name)
+		if f == nil {
+			return nil, &diag.SimpleMessageError{
+				Pin:  pin,
+				Text: fmt.Sprintf("type %s does not have field or method named \"%s\"", typ, name),
+			}
+		}
+
+		return &DerefSelectField{
+			Pin:   pin,
+			Exp:   exp,
+			Field: f,
+		}, nil
+	default:
+		panic(fmt.Sprintf("unexpected %s type", typ))
+	}
 }
 
 func (s *Scope) translateSymbolExp(sym ast.Symbol) (Exp, diag.Error) {

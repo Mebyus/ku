@@ -10,6 +10,10 @@ type String struct {
     len: u32
 }
 
+fun (&String) len0() -> u32 {
+    ret 0;
+}
+
 fun ret_tuple1() -> (uint) {
     ret 0;
 }
@@ -31,7 +35,7 @@ fun (&String) klen() -> u32 {
     if debug {
         a = 2;
     }
-    ret a;
+    ret g.len;
 }
 
 const k := 10;
