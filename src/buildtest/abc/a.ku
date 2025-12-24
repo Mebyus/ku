@@ -15,6 +15,12 @@ fun (&String) len0() -> u32 {
 }
 
 fun ret_tuple1() -> (uint) {
+    var k: uint = 0;
+    if k != 1 {
+
+    } else if true {
+
+    }
     ret 0;
 }
 

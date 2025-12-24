@@ -258,22 +258,22 @@ func (t *Typer) translateVar(v ast.Var) (*stg.Var, diag.Error) {
 	}, nil
 }
 
-func (t *Typer) translateIf(f ast.If) (*stg.If, diag.Error) {
+func (t *Typer) translateIf(f ast.If) (stg.Statement, diag.Error) {
 	var s stg.If
+	branches := make([]*stg.Branch, 0, len(f.ElseIfs)+1)
 
-	err := t.translateBranch(&s.If, f.If)
+	b, err := t.translateBranch(f.If)
 	if err != nil {
 		return nil, err
 	}
+	branches = append(branches, b)
 
-	if len(f.ElseIfs) != 0 {
-		s.ElseIfs = make([]stg.Branch, 0, len(f.ElseIfs))
-		for i := range len(f.ElseIfs) {
-			err := t.translateBranch(&s.ElseIfs[i], f.ElseIfs[i])
-			if err != nil {
-				return nil, err
-			}
+	for _, e := range f.ElseIfs {
+		b, err := t.translateBranch(e)
+		if err != nil {
+			return nil, err
 		}
+		branches = append(branches, b)
 	}
 
 	if f.Else != nil && len(f.Else.Nodes) != 0 {
@@ -287,30 +287,95 @@ func (t *Typer) translateIf(f ast.If) (*stg.If, diag.Error) {
 			s.Else = &block
 		}
 	}
+
+	k := 0 // counts runtime branches
+	for i := range len(branches) {
+		b := branches[i]
+
+		if b.IsStatic() {
+			if !b.IsTrue() {
+				// static false branch is nop
+				continue
+			}
+
+			// here k is equal to number of runtime branches that has come before
+			// this branch
+			if k == 0 {
+				if b.IsEmpty() {
+					// empty static true branch with no runtime branches before
+					// transforms the whole statement into nop
+					return nil, nil
+				}
+
+				// static true branch with no runtime branches before
+				// transforms the whole statement into block statement
+				return &b.Block, nil
+			}
+
+			if b.IsEmpty() {
+				// empty static true branch with at least one runtime branch before
+				// ends remaining branches with no else block
+				s.Else = nil
+				break
+			}
+
+			// static true branch with at least one runtime branch before
+			// replaces else branch
+			s.Else = &b.Block
+			break
+		}
+
+		k += 1
+	}
+
+	const debug = false
+	if k != len(branches) {
+		if debug {
+			fmt.Printf("branch %d/%d alive\n", k, len(branches))
+		}
+
+		branches = branches[:k]
+		clear(branches[k:])
+	}
+
+	if len(branches) == 0 {
+		if s.Else == nil {
+			// all branches were eliminated at compile-time, statement becomes nop
+			return nil, nil
+		}
+
+		// only else branch survived, transform it into block statement
+		return s.Else, nil
+	}
+
+	s.Branches = branches
 	return &s, nil
 }
 
-func (t *Typer) translateBranch(branch *stg.Branch, f ast.IfClause) diag.Error {
+func (t *Typer) translateBranch(f ast.IfClause) (*stg.Branch, diag.Error) {
+	var b stg.Branch
+
 	exp, err := t.translateExp(f.Exp)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	typ := exp.Type()
 	if typ.Kind != tpk.Boolean {
-		return &diag.SimpleMessageError{
+		return nil, &diag.SimpleMessageError{
 			Pin:  exp.Span().Pin,
 			Text: fmt.Sprintf("branch condition yields %s value, not a boolean", typ),
 		}
 	}
 
-	branch.Block.Scope.Init(sck.Branch, t.scope)
-	err = t.translateBlock(&branch.Block, f.Body)
+	b.Block.Scope.Init(sck.Branch, t.scope)
+	err = t.translateBlock(&b.Block, f.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	branch.Exp = exp
-	return nil
+	b.Exp = exp
+	b.SetFlags()
+	return &b, nil
 }
 
 func (t *Typer) translateRet(r ast.Ret) (*stg.Ret, diag.Error) {
