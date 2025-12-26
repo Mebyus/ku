@@ -38,7 +38,7 @@ fun (&String) klen() -> u32 {
     {
         a = 1;
     }
-    if debug {
+    if g.len0() == 1 {
         a = 2;
     }
     ret g.len;

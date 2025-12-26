@@ -40,6 +40,12 @@ func CheckAssign(want *Type, exp Exp) diag.Error {
 }
 
 func CheckCall(sig *Signature, args []Exp) diag.Error {
+	if sig.Receiver != nil {
+		// First element in args must be receiver expression.
+		// And receiver already got checked before this.
+		args = args[1:]
+	}
+
 	if len(args) != len(sig.Params) {
 		var pin sm.Pin
 		if len(args) != 0 {

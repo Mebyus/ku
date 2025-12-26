@@ -39,6 +39,8 @@ func (s *Scope) TranslateExp(exp ast.Exp) (Exp, diag.Error) {
 		return s.translateBinaryExp(e)
 	case ast.Chain:
 		return s.translateChain(e)
+	case ast.Call:
+		return s.translateCall(e)
 	case ast.Pack:
 		return s.translatePackExp(e)
 	default:
@@ -57,6 +59,66 @@ func (s *Scope) translatePackExp(exp ast.Pack) (*Pack, diag.Error) {
 	}
 
 	return s.Types.MakePack(list), nil
+}
+
+func (s *Scope) translateCall(exp ast.Call) (Exp, diag.Error) {
+	var args []Exp
+	if len(exp.Args) != 0 {
+		args = make([]Exp, 0, len(exp.Args))
+
+		for _, arg := range exp.Args {
+			a, err := s.TranslateExp(arg)
+			if err != nil {
+				return nil, err
+			}
+			args = append(args, a)
+		}
+	}
+
+	chain, err := s.translateChain(exp.Chain)
+	if err != nil {
+		return nil, err
+	}
+
+	var call Exp
+	var sig *Signature
+	switch c := chain.(type) {
+	case *VarExp:
+		symbol := c.Symbol
+
+		switch symbol.Kind {
+		case smk.Fun:
+			call = &Call{
+				Pin:    exp.Span().Pin,
+				Symbol: symbol,
+				Args:   args,
+			}
+			sig = &symbol.Def.(*Fun).Signature
+		default:
+			panic(fmt.Sprintf("unexpected %s (=%d) symbol \"%s\"", symbol.Kind, symbol.Kind, symbol.Name))
+		}
+	case *BoundMethod:
+		symbol := c.Symbol
+		fun := symbol.Def.(*Fun)
+
+		args = append([]Exp{c.Receiver}, args...)
+		call = &Call{
+			Pin:    exp.Span().Pin,
+			Symbol: symbol,
+			Args:   args,
+		}
+		sig = &fun.Signature
+	default:
+		panic(fmt.Sprintf("unexpected (%T) chain expression in call", c))
+	}
+
+	err = CheckCall(sig, args)
+	if err != nil {
+		err.SetFallbackSpan(chain.Span())
+		return nil, err
+	}
+
+	return call, nil
 }
 
 func (s *Scope) translateChain(exp ast.Chain) (Exp, diag.Error) {
@@ -83,7 +145,10 @@ func (s *Scope) translateChain(exp ast.Chain) (Exp, diag.Error) {
 			Symbol: start,
 		}
 	default:
-		panic(fmt.Sprintf("unexpected %s (=%d) chain start symbol", start.Kind, start.Kind))
+		return nil, &diag.SimpleMessageError{
+			Pin:  pin,
+			Text: fmt.Sprintf("%s symbol \"%s\" cannot start a chain", start.Kind, name),
+		}
 	}
 
 	for _, p := range exp.Parts {
@@ -126,7 +191,7 @@ func applySelectToPointer(exp Exp, part ast.Select) (Exp, diag.Error) {
 		c := typ.Def.(*Custom)
 		m := c.getMethod(name)
 		if m != nil {
-			panic("method selection not implemented")
+			return bindMethodToPointerReceiver(exp, m)
 		}
 
 		if c.Type.Kind != tpk.Struct {
@@ -150,6 +215,35 @@ func applySelectToPointer(exp Exp, part ast.Select) (Exp, diag.Error) {
 	default:
 		panic(fmt.Sprintf("unexpected %s type", typ))
 	}
+}
+
+func bindMethodToPointerReceiver(r Exp, m *Symbol) (*BoundMethod, diag.Error) {
+	got := r.Type()
+
+	want := m.Def.(*Fun).Receiver
+	if want != got {
+		switch {
+		case want.Kind == tpk.Ref && got.Kind == tpk.Pointer:
+			return nil, &diag.SimpleMessageError{
+				Pin:  r.Span().Pin,
+				Text: fmt.Sprintf("method \"%s\" has ref receiver type, but being used with pointer value", m.Name),
+			}
+		case want.Kind != tpk.Ref && want.Kind != tpk.Pointer:
+			return nil, &diag.SimpleMessageError{
+				Pin:  r.Span().Pin,
+				Text: fmt.Sprintf("method \"%s\" has value receiver type, but being used with pointer value (sugar dereferencing is not allowed)", m.Name),
+			}
+		case want.Kind == tpk.Pointer && got.Kind == tpk.Ref:
+			// auto conversion is allowed
+		default:
+			panic(fmt.Sprintf("unexpected combination of types %s and %s", want, got))
+		}
+	}
+
+	return &BoundMethod{
+		Receiver: r,
+		Symbol:   m,
+	}, nil
 }
 
 func (s *Scope) translateSymbolExp(sym ast.Symbol) (Exp, diag.Error) {
