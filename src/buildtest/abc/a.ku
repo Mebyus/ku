@@ -43,7 +43,11 @@ fun ret_tuple2() -> (uint, sint) {
 // }
 
 fun (&String) klen() -> u32 {
+    must(true);
+
     var a: uint;
+    must(a == 0);
+
     {
         a = 1;
     }

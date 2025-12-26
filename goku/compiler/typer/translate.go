@@ -102,6 +102,8 @@ func (t *Typer) translateStatement(stm ast.Statement) (stg.Statement, diag.Error
 		return t.translateInvoke(s)
 	case ast.While:
 		return t.translateWhile(s)
+	case ast.Must:
+		return t.translateMust(s)
 	case ast.Block:
 		if len(s.Nodes) == 0 {
 			// block statement with no statements is equivalent to empty statement
@@ -139,6 +141,35 @@ func (t *Typer) translateInvoke(v ast.Invoke) (*stg.Invoke, diag.Error) {
 	}
 
 	return &stg.Invoke{Call: call}, nil
+}
+
+func (t *Typer) translateMust(m ast.Must) (stg.Statement, diag.Error) {
+	exp, err := t.scope.TranslateExp(m.Exp)
+	if err != nil {
+		return nil, err
+	}
+
+	typ := exp.Type()
+	if typ.Kind != tpk.Boolean {
+		return nil, &diag.SimpleMessageError{
+			Pin:  exp.Span().Pin,
+			Text: fmt.Sprintf("assert condition yields %s value, not a boolean", typ),
+		}
+	}
+
+	if !typ.IsStatic() {
+		return &stg.Must{Exp: exp}, nil
+	}
+
+	if exp.(*stg.Boolean).Val {
+		// assert is true at compile time, transform to empty statement
+		return nil, nil
+	}
+
+	return nil, &diag.SimpleMessageError{
+		Pin:  exp.Span().Pin,
+		Text: "compile-time assert is false",
+	}
 }
 
 func (t *Typer) translateWhile(w ast.While) (stg.Statement, diag.Error) {

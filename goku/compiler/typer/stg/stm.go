@@ -103,3 +103,9 @@ type While struct {
 type Loop struct {
 	Body Block
 }
+
+// Must represents must statement.
+type Must struct {
+	// Always not nil.
+	Exp Exp
+}
