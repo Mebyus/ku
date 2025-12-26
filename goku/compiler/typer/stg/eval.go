@@ -133,12 +133,18 @@ func (s *Scope) evalConstBinaryExp(a, b Exp, op BinOp) (Exp, diag.Error) {
 			return addIntegers(s.Types, a.(*Integer), b.(*Integer)), nil
 		case bok.Sub:
 			return subIntegers(s.Types, a.(*Integer), b.(*Integer)), nil
+		case bok.Equal:
+			return equalIntegers(s.Types, a.(*Integer), b.(*Integer)), nil
 		default:
 			panic(fmt.Sprintf("unexpected \"%s\" (=%d) binary operator", op.Kind, op.Kind))
 		}
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type (%T)", typ.Kind, typ.Kind, typ.Def))
 	}
+}
+
+func equalIntegers(x *TypeIndex, a, b *Integer) *Boolean {
+	return x.MakeBoolean(a.Pin, a.Neg == b.Neg && a.Val == b.Val)
 }
 
 func addIntegers(x *TypeIndex, a, b *Integer) *Integer {

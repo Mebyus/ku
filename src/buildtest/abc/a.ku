@@ -21,6 +21,15 @@ fun ret_tuple1() -> (uint) {
     } else if true {
 
     }
+
+    for 1 == 1 {
+        ret 1;
+    }
+
+    for true {
+        k = 2;
+    }
+
     ret 0;
 }
 

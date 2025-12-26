@@ -100,6 +100,8 @@ func (t *Typer) translateStatement(stm ast.Statement) (stg.Statement, diag.Error
 		return t.translateAssign(s)
 	case ast.Invoke:
 		return t.translateInvoke(s)
+	case ast.While:
+		return t.translateWhile(s)
 	case ast.Block:
 		if len(s.Nodes) == 0 {
 			// block statement with no statements is equivalent to empty statement
@@ -137,6 +139,60 @@ func (t *Typer) translateInvoke(v ast.Invoke) (*stg.Invoke, diag.Error) {
 	}
 
 	return &stg.Invoke{Call: call}, nil
+}
+
+func (t *Typer) translateWhile(w ast.While) (stg.Statement, diag.Error) {
+	exp, err := t.scope.TranslateExp(w.Exp)
+	if err != nil {
+		return nil, err
+	}
+
+	typ := exp.Type()
+	if typ.Kind != tpk.Boolean {
+		return nil, &diag.SimpleMessageError{
+			Pin:  exp.Span().Pin,
+			Text: fmt.Sprintf("loop condition yields %s value, not a boolean", typ),
+		}
+	}
+
+	if typ.IsStatic() {
+		if exp.(*stg.Boolean).Val {
+			// condition is always true, transform to Loop statement
+			var loop stg.Loop
+			loop.Body.Scope.Init(sck.Loop, t.scope)
+			err = t.translateBlock(&loop.Body, w.Body)
+			if err != nil {
+				return nil, err
+			}
+			if len(loop.Body.Nodes) == 0 {
+				return nil, &diag.SimpleMessageError{
+					Pin:  w.Body.Pin,
+					Text: "loop has empty body and its condition is always true, spinloops are forbidden",
+				}
+			}
+
+			return &loop, nil
+		} else {
+			// condition is always false, check loop body and transform to empty statement
+			var body stg.Block
+			body.Scope.Init(sck.Loop, t.scope)
+			err = t.translateBlock(&body, w.Body)
+			if err != nil {
+				return nil, err
+			}
+
+			return nil, nil
+		}
+	}
+
+	while := stg.While{Exp: exp}
+	while.Body.Scope.Init(sck.Loop, t.scope)
+	err = t.translateBlock(&while.Body, w.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return &while, nil
 }
 
 func (t *Typer) translateAssignSymbol(symbol ast.Symbol, a ast.Assign) (*stg.Assign, diag.Error) {

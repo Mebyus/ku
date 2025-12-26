@@ -90,3 +90,16 @@ type Invoke struct {
 	// Must be one of call expressions.
 	Call Exp
 }
+
+// While represents conditional loop statement.
+type While struct {
+	Body Block
+
+	// Loop condition. Always not nil.
+	Exp Exp
+}
+
+// Loop represents unconditional loop statement.
+type Loop struct {
+	Body Block
+}
