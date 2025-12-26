@@ -2,22 +2,22 @@ package stg
 
 import "github.com/mebyus/ku/goku/compiler/sm"
 
-// VarExp represents expression formed from variable usage (as operand)
+// SymExp represents expression formed from symbol usage (as operand or part of chain)
 // inside an expression.
-type VarExp struct {
+type SymExp struct {
 	Pin sm.Pin
 
 	Symbol *Symbol
 }
 
-func (v *VarExp) Type() *Type {
+func (v *SymExp) Type() *Type {
 	return v.Symbol.Type
 }
 
-func (v *VarExp) Span() sm.Span {
+func (v *SymExp) Span() sm.Span {
 	return sm.Span{Pin: v.Pin}
 }
 
-func (v *VarExp) String() string {
+func (v *SymExp) String() string {
 	return v.Symbol.Name
 }

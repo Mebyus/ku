@@ -40,7 +40,7 @@ func (s *Scope) TranslateExp(exp ast.Exp) (Exp, diag.Error) {
 	case ast.Chain:
 		return s.translateChain(e)
 	case ast.Call:
-		return s.translateCall(e)
+		return s.TranslateCall(e)
 	case ast.Pack:
 		return s.translatePackExp(e)
 	default:
@@ -61,7 +61,7 @@ func (s *Scope) translatePackExp(exp ast.Pack) (*Pack, diag.Error) {
 	return s.Types.MakePack(list), nil
 }
 
-func (s *Scope) translateCall(exp ast.Call) (Exp, diag.Error) {
+func (s *Scope) TranslateCall(exp ast.Call) (Exp, diag.Error) {
 	var args []Exp
 	if len(exp.Args) != 0 {
 		args = make([]Exp, 0, len(exp.Args))
@@ -83,7 +83,7 @@ func (s *Scope) translateCall(exp ast.Call) (Exp, diag.Error) {
 	var call Exp
 	var sig *Signature
 	switch c := chain.(type) {
-	case *VarExp:
+	case *SymExp:
 		symbol := c.Symbol
 
 		switch symbol.Kind {
@@ -122,10 +122,6 @@ func (s *Scope) translateCall(exp ast.Call) (Exp, diag.Error) {
 }
 
 func (s *Scope) translateChain(exp ast.Chain) (Exp, diag.Error) {
-	if len(exp.Parts) == 0 {
-		panic("no parts in chain")
-	}
-
 	name := exp.Start.Str
 	pin := exp.Start.Pin
 
@@ -140,7 +136,19 @@ func (s *Scope) translateChain(exp ast.Chain) (Exp, diag.Error) {
 	var e Exp
 	switch start.Kind {
 	case smk.Receiver, smk.Var, smk.Param:
-		e = &VarExp{
+		e = &SymExp{
+			Pin:    pin,
+			Symbol: start,
+		}
+	case smk.Fun:
+		if len(exp.Parts) != 0 {
+			return nil, &diag.SimpleMessageError{
+				Pin:  pin,
+				Text: fmt.Sprintf("function \"%s\" cannot start a chain", name),
+			}
+		}
+
+		e = &SymExp{
 			Pin:    pin,
 			Symbol: start,
 		}
@@ -262,10 +270,10 @@ func (s *Scope) translateSymbolExp(sym ast.Symbol) (Exp, diag.Error) {
 	case smk.Const:
 		return symbol.Def.(StaticValue).Exp, nil
 	case smk.Var:
-		return &VarExp{Pin: pin, Symbol: symbol}, nil
+		return &SymExp{Pin: pin, Symbol: symbol}, nil
 	case smk.Param:
 		// TODO: do we need separate type of expressions for param symbol?
-		return &VarExp{Pin: pin, Symbol: symbol}, nil
+		return &SymExp{Pin: pin, Symbol: symbol}, nil
 	default:
 		return nil, &diag.SimpleMessageError{
 			Pin:  pin,

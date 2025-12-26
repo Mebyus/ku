@@ -8,7 +8,6 @@ import (
 	"github.com/mebyus/ku/goku/compiler/enums/sck"
 	"github.com/mebyus/ku/goku/compiler/enums/smk"
 	"github.com/mebyus/ku/goku/compiler/enums/tpk"
-	"github.com/mebyus/ku/goku/compiler/sm"
 	"github.com/mebyus/ku/goku/compiler/typer/stg"
 )
 
@@ -131,62 +130,13 @@ func (t *Typer) translateAssign(a ast.Assign) (*stg.Assign, diag.Error) {
 	}
 }
 
-func (t *Typer) translateInvoke(v ast.Invoke) (*stg.InvokeSymbol, diag.Error) {
-	name := v.Call.Chain.Start.Str
-	pin := v.Call.Chain.Start.Pin
-
-	s := t.scope.Lookup(name)
-	if s == nil {
-		return nil, &diag.SimpleMessageError{
-			Pin:  pin,
-			Text: fmt.Sprintf("name \"%s\" refers to undefined symbol", name),
-		}
+func (t *Typer) translateInvoke(v ast.Invoke) (*stg.Invoke, diag.Error) {
+	call, err := t.scope.TranslateCall(v.Call)
+	if err != nil {
+		return nil, err
 	}
 
-	var args []stg.Exp
-	if len(v.Call.Args) != 0 {
-		args = make([]stg.Exp, 0, len(v.Call.Args))
-
-		for _, arg := range v.Call.Args {
-			a, err := t.translateExp(arg)
-			if err != nil {
-				return nil, err
-			}
-			args = append(args, a)
-		}
-	}
-
-	switch s.Kind {
-	case smk.Fun:
-		if len(v.Call.Chain.Parts) != 0 {
-			return nil, &diag.SimpleMessageError{
-				Pin:  pin,
-				Text: fmt.Sprintf("\"%s\" is a function and cannot be chained", name),
-			}
-		}
-
-		err := stg.CheckCall(&s.Def.(*stg.Fun).Signature, args)
-		if err != nil {
-			err.SetFallbackSpan(sm.Span{Pin: pin})
-			return nil, err
-		}
-
-		return &stg.InvokeSymbol{
-			Symbol: s,
-			Args:   args,
-		}, nil
-	case smk.Receiver:
-		panic("not implemented")
-	case smk.Param, smk.Var:
-		panic("not implemented")
-	case smk.Method:
-		panic(fmt.Sprintf("unexpected %s (=%d) symbol \"%s\" at chain start", s.Kind, s.Kind, name))
-	default:
-		return nil, &diag.SimpleMessageError{
-			Pin:  pin,
-			Text: fmt.Sprintf("%s symbol \"%s\" cannot start a chain", s.Kind, name),
-		}
-	}
+	return &stg.Invoke{Call: call}, nil
 }
 
 func (t *Typer) translateAssignSymbol(symbol ast.Symbol, a ast.Assign) (*stg.Assign, diag.Error) {

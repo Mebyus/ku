@@ -85,10 +85,8 @@ func (b *Branch) IsEmpty() bool {
 	return len(b.Block.Nodes) == 0
 }
 
-// InvokeSymbol statement which directly (not via function pointer) calls
-// a specific symbol (function or method).
-type InvokeSymbol struct {
-	Args []Exp
-
-	Symbol *Symbol
+// Invoke statement which call something without assigning the result.
+type Invoke struct {
+	// Must be one of call expressions.
+	Call Exp
 }
