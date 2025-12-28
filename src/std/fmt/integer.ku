@@ -8,7 +8,7 @@ fun hex_digit(x: u8) -> u8 {
     must(x < 16);
 
 	if x <= 9 {
-		ret fmt_dec_digit(x);
+		ret dec_digit(x);
 	}
 	ret x - 10 + 'A';
 }
@@ -16,15 +16,11 @@ fun hex_digit(x: u8) -> u8 {
 const hex_byte_length := 2;
 
 fun unsafe.put_hex_byte(p: [&]u8, x: u8) {
-    must(p != nil);
-
 	p.[0] = hex_digit(x >> 4);
 	p.[1] = hex_digit(x & 0xF);
 }
 
 fun unsafe.put_bin_byte(p: [&]u8, x: u8) {
-    must(p != nil);
-
 	var i: uint = 8;
     // digits are written from least to most significant bit
 	for i != 0 {
@@ -34,11 +30,16 @@ fun unsafe.put_bin_byte(p: [&]u8, x: u8) {
 	}
 }
 
+/*/doc
+Get least significant byte of u32 integer.
+*/
+fun get_lsb_u32(x: u32) -> u8 {
+    ret cast(u8, x & 0xFF);
+}
+
 const bin_bytes_u16_length := 8 + 1 + 8;
 
 fun unsafe.put_bin_bytes_u16(p: [&]u8, x: u16) {
-    must(p != nil);
-
     unsafe.put_bin_byte(p, cast(u8, x >> 8));
     p.[8] = ' ';
     unsafe.put_bin_byte(p + 9, cast(u8, x & 0xFF));
@@ -47,17 +48,15 @@ fun unsafe.put_bin_bytes_u16(p: [&]u8, x: u16) {
 const bin_bytes_u32_length := 8 + 1 + 8 + 1 + 8 + 1 + 8;
 
 fun unsafe.put_bin_bytes_u32(p: [&]u8, x: u32) {
-    must(p != nil);
-
-    unsafe.put_bin_byte(p + 27, cast(u8, x & 0xFF));
+    unsafe.put_bin_byte(p + 27, get_lsb_u32(x));
     p.[26] = ' ';
     
     x >>= 8;
-    unsafe.put_bin_byte(p + 18, cast(u8, x & 0xFF));
+    unsafe.put_bin_byte(p + 18, get_lsb_u32(x));
     p.[17] = ' ';
 
     x >>= 8;
-    unsafe.put_bin_byte(p + 9, cast(u8, x & 0xFF));
+    unsafe.put_bin_byte(p + 9, get_lsb_u32(x));
     p.[8] = ' ';
 
     x >>= 8;
@@ -73,8 +72,6 @@ zeroes if necessary. Buffer must be at least 8 bytes
 long.
 */
 fun unsafe.put_hex_prefix_zeroes_u32(p: [&]u8, x: u32) {
-    must(p != nil);
-
 	var i: uint = max_u32_hex_length;
 	// digits are written from least to most significant byte
 	for i != 0 {
@@ -94,13 +91,11 @@ zeroes if necessary. Buffer must be at least 16 bytes
 long.
 */
 fun unsafe.put_hex_prefix_zeroes_u64(p: [&]u8, x: u64) {
-    must(p != nil);
-
 	var i: uint = max_u64_hex_length;
 	// digits are written from least to most significant byte
 	for i != 0 {
 		i -= 1;
-		var n: u8 = cast(u8, x & 0xFF);
+		var n: u8 = cast(u8, x & 0xF);
 		p.[i] = hex_digit(n);
 		x = x >> 4;
 	}

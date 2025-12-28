@@ -29,6 +29,9 @@ type TypeIndex struct {
 	// Maps type referred by array pointer to corresponding array pointer type.
 	ArrayPointers map[ /* type referred by pointer */ *Type]*Type
 
+	// Maps type referred by array ref to corresponding array ref type.
+	ArrayRefs map[ /* type referred by pointer */ *Type]*Type
+
 	// Maps type referred by reference to corresponding reference type.
 	Refs map[ /* type referred by reference */ *Type]*Type
 
@@ -56,11 +59,12 @@ type StaticTypes struct {
 	String *Type
 
 	Boolean *Type
+
+	Rune *Type
 }
 
 func (t *StaticTypes) Init() {
 	t.Nil = &Type{
-		Size:  0,
 		Flags: TypeFlagBuiltin | TypeFlagStatic,
 		Kind:  tpk.Nil,
 	}
@@ -72,15 +76,18 @@ func (t *StaticTypes) Init() {
 	}
 
 	t.String = &Type{
-		Size:  0,
 		Flags: TypeFlagBuiltin | TypeFlagStatic,
 		Kind:  tpk.String,
 	}
 
 	t.Boolean = &Type{
-		Size:  0,
 		Flags: TypeFlagBuiltin | TypeFlagStatic,
 		Kind:  tpk.Boolean,
+	}
+
+	t.Rune = &Type{
+		Flags: TypeFlagBuiltin | TypeFlagStatic,
+		Kind:  tpk.Rune,
 	}
 }
 
@@ -133,6 +140,7 @@ func (x *TypeIndex) Init() {
 	x.CapBufs = make(map[*Type]*Type)
 	x.Pointers = make(map[*Type]*Type)
 	x.ArrayPointers = make(map[*Type]*Type)
+	x.ArrayRefs = make(map[*Type]*Type)
 	x.Refs = make(map[*Type]*Type)
 	x.Structs = make(map[string][]*Type)
 	x.Tuples = make(map[string]*Type)
@@ -159,6 +167,8 @@ func (s *Scope) LookupType(spec ast.TypeSpec) (*Type, diag.Error) {
 		return s.lookupTypeFullName(p)
 	case ast.ArrayPointer:
 		return s.lookupArrayPointer(p)
+	case ast.ArrayRef:
+		return s.lookupArrayRef(p)
 	case ast.Span:
 		return s.lookupSpan(p)
 	case ast.CapBuf:
@@ -318,6 +328,26 @@ func (s *Scope) lookupArrayPointer(p ast.ArrayPointer) (*Type, diag.Error) {
 		Kind: tpk.ArrayPointer,
 	}
 	s.Types.ArrayPointers[t] = typ
+
+	return typ, nil
+}
+
+func (s *Scope) lookupArrayRef(p ast.ArrayRef) (*Type, diag.Error) {
+	t, err := s.LookupType(p.Type)
+	if err != nil {
+		return nil, err
+	}
+
+	typ, ok := s.Types.ArrayRefs[t]
+	if ok {
+		return typ, nil
+	}
+	typ = &Type{
+		Def:  ArrayRef{Type: t},
+		Size: archPointerSize,
+		Kind: tpk.ArrayRef,
+	}
+	s.Types.ArrayRefs[t] = typ
 
 	return typ, nil
 }

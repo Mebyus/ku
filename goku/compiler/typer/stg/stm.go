@@ -28,7 +28,8 @@ type Assign struct {
 	// Always not nil.
 	Exp Exp
 
-	Symbol *Symbol
+	// Assign target. Always not nil.
+	Target Exp
 }
 
 type If struct {

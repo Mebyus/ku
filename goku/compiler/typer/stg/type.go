@@ -86,6 +86,8 @@ func (t *Type) String() string {
 		default:
 			panic(fmt.Sprintf("unexpected size (=%d)", t.Size))
 		}
+	case tpk.Rune:
+		s = "rune"
 	case tpk.VoidPointer:
 		return "*void"
 	case tpk.VoidRef:
@@ -225,6 +227,17 @@ var _ TypeDef = ArrayPointer{}
 
 func (ArrayPointer) Kind() tpk.Kind {
 	return tpk.ArrayPointer
+}
+
+type ArrayRef struct {
+	// Type referenced by pointer.
+	Type *Type
+}
+
+var _ TypeDef = ArrayRef{}
+
+func (ArrayRef) Kind() tpk.Kind {
+	return tpk.ArrayRef
 }
 
 type Ref struct {

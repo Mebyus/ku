@@ -81,6 +81,8 @@ const (
 
 	Float
 
+	Rune
+
 	VoidPointer
 	VoidRef
 
@@ -103,6 +105,8 @@ const (
 	// Pointer to continuous region of memory holding
 	// variable number of elements of another type.
 	ArrayPointer
+
+	ArrayRef
 
 	// Types of symbols, created by importing other unit
 	//
@@ -136,6 +140,7 @@ var text = [...]string{
 	String:  "str",
 	Boolean: "bool",
 	Float:   "float",
+	Rune:    "rune",
 
 	Array:  "array",
 	Span:   "span",
@@ -148,6 +153,7 @@ var text = [...]string{
 	Pointer:      "pointer",
 	VoidPointer:  "void pointer",
 	ArrayPointer: "array pointer",
+	ArrayRef:     "array ref",
 
 	Import: "import",
 }

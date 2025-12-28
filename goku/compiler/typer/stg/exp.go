@@ -33,12 +33,14 @@ func (s *Scope) TranslateExp(exp ast.Exp) (Exp, diag.Error) {
 		return s.Types.MakeBoolean(e.Pin, true), nil
 	case ast.False:
 		return s.Types.MakeBoolean(e.Pin, false), nil
+	case ast.Rune:
+		return s.Types.MakeRune(e.Pin, uint32(e.Val)), nil
 	case ast.Symbol:
 		return s.translateSymbolExp(e)
 	case ast.Binary:
 		return s.translateBinaryExp(e)
 	case ast.Chain:
-		return s.translateChain(e)
+		return s.TranslateChain(e)
 	case ast.Call:
 		return s.TranslateCall(e)
 	case ast.Pack:
@@ -75,7 +77,7 @@ func (s *Scope) TranslateCall(exp ast.Call) (Exp, diag.Error) {
 		}
 	}
 
-	chain, err := s.translateChain(exp.Chain)
+	chain, err := s.TranslateChain(exp.Chain)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +123,7 @@ func (s *Scope) TranslateCall(exp ast.Call) (Exp, diag.Error) {
 	return call, nil
 }
 
-func (s *Scope) translateChain(exp ast.Chain) (Exp, diag.Error) {
+func (s *Scope) TranslateChain(exp ast.Chain) (Exp, diag.Error) {
 	name := exp.Start.Str
 	pin := exp.Start.Pin
 
@@ -161,7 +163,7 @@ func (s *Scope) translateChain(exp ast.Chain) (Exp, diag.Error) {
 
 	for _, p := range exp.Parts {
 		var err diag.Error
-		e, err = applyChainPart(e, p)
+		e, err = s.applyChainPart(e, p)
 		if err != nil {
 			return nil, err
 		}
@@ -169,27 +171,77 @@ func (s *Scope) translateChain(exp ast.Chain) (Exp, diag.Error) {
 	return e, nil
 }
 
-func applyChainPart(exp Exp, part ast.Part) (Exp, diag.Error) {
+func (s *Scope) applyChainPart(exp Exp, part ast.Part) (Exp, diag.Error) {
 	switch p := part.(type) {
 	case ast.Select:
-		return applySelectPart(exp, p)
+		return s.applySelectPart(exp, p)
+	case ast.DerefIndex:
+		return s.applyDerefIndexPart(exp, p)
 	default:
 		panic(fmt.Sprintf("unexpected %s (=%d) chain part (%T)", p.Kind(), p.Kind(), p))
 	}
 }
 
-func applySelectPart(exp Exp, part ast.Select) (Exp, diag.Error) {
+func (s *Scope) applyDerefIndexPart(exp Exp, part ast.DerefIndex) (*DerefIndex, diag.Error) {
+	index, err := s.TranslateExp(part.Exp)
+	if err != nil {
+		return nil, err
+	}
+
+	xtyp := index.Type()
+	if xtyp.Kind != tpk.Integer {
+		return nil, &diag.SimpleMessageError{
+			Pin:  index.Span().Pin,
+			Text: fmt.Sprintf("index must have integer type, got %s", xtyp),
+		}
+	}
+
+	if xtyp.IsStatic() {
+		n := index.(*Integer)
+		if n.Neg {
+			return nil, &diag.SimpleMessageError{
+				Pin:  n.Pin,
+				Text: fmt.Sprintf("negative index value -%d", n.Val),
+			}
+		}
+	}
+
+	typ := exp.Type()
+	var rtyp *Type
+	switch typ.Kind {
+	case tpk.ArrayPointer:
+		return nil, &diag.SimpleMessageError{
+			Pin:  exp.Span().Pin,
+			Text: fmt.Sprintf("indexed expression has array pointer %s type, which could have nil value", typ),
+		}
+	case tpk.ArrayRef:
+		rtyp = typ.Def.(ArrayRef).Type
+	default:
+		return nil, &diag.SimpleMessageError{
+			Pin:  exp.Span().Pin,
+			Text: fmt.Sprintf("cannot use deref index on %s type", typ),
+		}
+	}
+
+	return &DerefIndex{
+		Exp:   exp,
+		Index: index,
+		typ:   rtyp,
+	}, nil
+}
+
+func (s *Scope) applySelectPart(exp Exp, part ast.Select) (Exp, diag.Error) {
 	typ := exp.Type()
 
 	switch typ.Kind {
 	case tpk.Pointer, tpk.Ref:
-		return applySelectToPointer(exp, part)
+		return s.applySelectToPointer(exp, part)
 	default:
 		panic(fmt.Sprintf("unexpected %s type", typ))
 	}
 }
 
-func applySelectToPointer(exp Exp, part ast.Select) (Exp, diag.Error) {
+func (s *Scope) applySelectToPointer(exp Exp, part ast.Select) (Exp, diag.Error) {
 	typ := exp.Type().getDerefType()
 	name := part.Name.Str
 	pin := part.Name.Pin
@@ -343,16 +395,45 @@ func (x *TypeIndex) deduceBinaryExpTypeA(a, b Exp, op BinOp) (*Type, diag.Error)
 
 	switch tb.Kind {
 	case tpk.Integer:
-		if ta.Kind != tpk.Integer {
+		switch ta.Kind {
+		case tpk.Integer:
+			if ta.Size == 0 {
+				return x.getBinaryForIntegerType(tb, op)
+			}
+
+			panic("sized static integers not implemented")
+		case tpk.Rune:
+			if tb.IsSigned() {
+				return nil, &diag.SimpleMessageError{
+					Pin:  op.Pin,
+					Text: fmt.Sprintf("binary operation on rune and signed integer"),
+				}
+			}
+
+			v := a.(*Rune).Val
+			switch tb.Size {
+			case 1:
+				if v > 0xFF {
+					return nil, &diag.SimpleMessageError{
+						Pin:  op.Pin,
+						Text: fmt.Sprintf("rune value 0x%X cannot fit into u8", v),
+					}
+				}
+			case 2:
+				if v > 0xFFFF {
+					return nil, &diag.SimpleMessageError{
+						Pin:  op.Pin,
+						Text: fmt.Sprintf("rune value 0x%X cannot fit into u8", v),
+					}
+				}
+			}
+			return x.getBinaryForIntegerType(tb, op)
+		default:
 			return nil, &diag.SimpleMessageError{
 				Pin:  op.Pin,
 				Text: fmt.Sprintf("binary operation on incompatible types %s and %s", ta, tb),
 			}
 		}
-		if ta.Size == 0 {
-			return x.getBinaryForIntegerType(tb, op)
-		}
-		panic("not implemented")
 	case tpk.Pointer, tpk.ArrayPointer:
 		if ta.Kind != tpk.Nil {
 			return nil, &diag.SimpleMessageError{

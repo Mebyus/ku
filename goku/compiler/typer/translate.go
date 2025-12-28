@@ -5,6 +5,8 @@ import (
 
 	"github.com/mebyus/ku/goku/compiler/ast"
 	"github.com/mebyus/ku/goku/compiler/diag"
+	"github.com/mebyus/ku/goku/compiler/enums/aok"
+	"github.com/mebyus/ku/goku/compiler/enums/exk"
 	"github.com/mebyus/ku/goku/compiler/enums/sck"
 	"github.com/mebyus/ku/goku/compiler/enums/smk"
 	"github.com/mebyus/ku/goku/compiler/enums/tpk"
@@ -125,12 +127,172 @@ func (t *Typer) translateStatement(stm ast.Statement) (stg.Statement, diag.Error
 	}
 }
 
-func (t *Typer) translateAssign(a ast.Assign) (*stg.Assign, diag.Error) {
-	switch r := a.Target.(type) {
-	case ast.Symbol:
-		return t.translateAssignSymbol(r, a)
+func (t *Typer) translateAssign(a ast.Assign) (stg.Statement, diag.Error) {
+	switch a.Op.Kind {
+	case aok.Simple:
+		return t.translateSimpleAssign(a)
+	case aok.Walrus:
+		return t.translateWalrusAssign(a)
+	case aok.Add, aok.Sub, aok.Mul, aok.Div, aok.And, aok.Or, aok.Rem, aok.LeftShift, aok.RightShift:
+		return t.translateOpAssign(a)
 	default:
-		panic(fmt.Sprintf("unexpected %s (=%d) target expression (%T)", r.Kind(), r.Kind(), r))
+		panic(fmt.Sprintf("unexpected %s (=%d) assign operator", a.Op.Kind))
+	}
+}
+
+func (t *Typer) translateSimpleAssign(a ast.Assign) (stg.Statement, diag.Error) {
+	target, err := t.scope.TranslateExp(a.Target)
+	if err != nil {
+		return nil, err
+	}
+
+	exp, err := t.translateExp(a.Value)
+	if err != nil {
+		return nil, err
+	}
+	err = stg.CheckAssign(target.Type(), exp)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: probably need to move this check to stg.CheckAssign
+	e, ok := target.(*stg.SymExp)
+	if ok {
+		s := e.Symbol
+		if s.Kind != smk.Var && s.Kind != smk.Param {
+			return nil, &diag.SimpleMessageError{
+				Pin:  e.Pin,
+				Text: fmt.Sprintf("cannot assign to %s symbol \"%s\"", s.Kind, s.Name),
+			}
+		}
+	}
+
+	return &stg.Assign{
+		Target: target,
+		Exp:    exp,
+	}, nil
+}
+
+func (t *Typer) translateOpAssign(a ast.Assign) (stg.Statement, diag.Error) {
+	_, ok := a.Target.(ast.Pack)
+	if ok {
+		return nil, &diag.SimpleMessageError{
+			Pin:  a.Target.Span().Pin,
+			Text: fmt.Sprintf("cannot use multiple assignment with %s operator", a.Op.Kind),
+		}
+	}
+
+	target, err := t.scope.TranslateExp(a.Target)
+	if err != nil {
+		return nil, err
+	}
+
+	typ := target.Type()
+	if typ.Kind != tpk.Integer {
+		return nil, &diag.SimpleMessageError{
+			Pin:  a.Target.Span().Pin,
+			Text: fmt.Sprintf("cannot use assignment %s operator on %s type", a.Op.Kind, typ),
+		}
+	}
+
+	exp, err := t.translateExp(a.Value)
+	if err != nil {
+		return nil, err
+	}
+	err = stg.CheckAssign(target.Type(), exp)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: need separate statement type for this
+	return nil, nil
+}
+
+func (t *Typer) translateWalrusAssign(a ast.Assign) (stg.Statement, diag.Error) {
+	exp, err := t.translateExp(a.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	if exp.Type().Kind == tpk.Tuple {
+		if a.Target.Kind() != exk.Pack {
+			return nil, &diag.SimpleMessageError{
+				Pin:  a.Op.Pin,
+				Text: "assignment of multiple values to a single target",
+			}
+		}
+		return t.translatePackAssignOrDefine(a.Target.(ast.Pack).List, exp)
+	}
+
+	if a.Target.Kind() == exk.Pack {
+		return nil, &diag.SimpleMessageError{
+			Pin:  a.Op.Pin,
+			Text: "assignment of single value to multiple targets",
+		}
+	}
+
+	target, err := t.defineOrAssign(a.Target, exp.Type())
+	if err != nil {
+		return nil, err
+	}
+
+	return &stg.Assign{
+		Target: target,
+		Exp:    exp,
+	}, nil
+}
+
+func (t *Typer) translatePackAssignOrDefine(targets []ast.Exp, exp stg.Exp) (stg.Statement, diag.Error) {
+	tuple := exp.Type().Def.(stg.Tuple)
+	types := tuple.Types
+
+	if len(targets) != len(types) {
+		return nil, &diag.SimpleMessageError{
+			Pin:  targets[0].Span().Pin,
+			Text: fmt.Sprintf("mismatched number of assign targets (%d) and values (%d)", len(targets), len(types)),
+		}
+	}
+
+	list := make([]stg.Exp, 0, len(targets))
+	for i := range len(targets) {
+		target, err := t.defineOrAssign(targets[i], types[i])
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, target)
+	}
+
+	return &stg.Assign{
+		Exp:    exp,
+		Target: t.ctx.Types.MakePack(list),
+	}, nil
+}
+
+func (t *Typer) defineOrAssign(target ast.Exp, typ *stg.Type) (stg.Exp, diag.Error) {
+	switch e := target.(type) {
+	case ast.Symbol:
+		name := e.Name
+		pin := e.Pin
+
+		symbol := t.scope.Lookup(name)
+		if symbol == nil {
+			symbol = t.scope.Alloc(smk.Var, name, pin)
+			symbol.Type = typ
+		}
+
+		return &stg.SymExp{
+			Pin:    pin,
+			Symbol: symbol,
+		}, nil
+	default:
+		exp, err := t.scope.TranslateExp(e)
+		if err != nil {
+			return exp, nil
+		}
+
+		// TODO: typecheck
+		// err = stg.CheckAssign(exp.Type(), )
+		return exp, nil
 	}
 }
 
@@ -224,39 +386,6 @@ func (t *Typer) translateWhile(w ast.While) (stg.Statement, diag.Error) {
 	}
 
 	return &while, nil
-}
-
-func (t *Typer) translateAssignSymbol(symbol ast.Symbol, a ast.Assign) (*stg.Assign, diag.Error) {
-	name := symbol.Name
-	pin := symbol.Pin
-
-	s := t.scope.Lookup(name)
-	if s == nil {
-		return nil, &diag.SimpleMessageError{
-			Pin:  pin,
-			Text: fmt.Sprintf("name \"%s\" refers to undefined symbol", name),
-		}
-	}
-	if s.Kind != smk.Var && s.Kind != smk.Param {
-		return nil, &diag.SimpleMessageError{
-			Pin:  pin,
-			Text: fmt.Sprintf("cannot assign to %s symbol \"%s\"", s.Kind, name),
-		}
-	}
-
-	exp, err := t.translateExp(a.Value)
-	if err != nil {
-		return nil, err
-	}
-	err = stg.CheckAssign(s.Type, exp)
-	if err != nil {
-		return nil, err
-	}
-
-	return &stg.Assign{
-		Symbol: s,
-		Exp:    exp,
-	}, nil
 }
 
 func (t *Typer) translateVar(v ast.Var) (*stg.Var, diag.Error) {

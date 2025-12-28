@@ -37,6 +37,15 @@ fun ret_tuple2() -> (uint, sint) {
     ret 0, 1;
 }
 
+fun use_tuple() -> uint {
+    var a: uint;
+    a, b := ret_tuple2();
+    if a == 0 {
+        ret b;
+    }
+    ret a;
+}
+
 // type Variant union {
 //     ptr: *void
 //     num: uint
