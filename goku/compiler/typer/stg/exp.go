@@ -45,9 +45,38 @@ func (s *Scope) TranslateExp(exp ast.Exp) (Exp, diag.Error) {
 		return s.TranslateCall(e)
 	case ast.Pack:
 		return s.translatePackExp(e)
+	case ast.Cast:
+		return s.translateCast(e)
 	default:
 		panic(fmt.Sprintf("unexpected %s (=%d) expression (%T)", e.Kind(), e.Kind(), e))
 	}
+}
+
+func (s *Scope) translateCast(c ast.Cast) (Exp, diag.Error) {
+	exp, err := s.TranslateExp(c.Exp)
+	if err != nil {
+		return nil, err
+	}
+
+	want, err := s.LookupType(c.Type)
+	if err != nil {
+		return nil, err
+	}
+
+	if exp.Type() == want {
+		// cast is not needed, simplify expression
+		return exp, nil
+	}
+	err = CheckCast(want, exp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Cast{
+		Exp: exp,
+		Pin: c.Type.Span().Pin,
+		typ: want,
+	}, nil
 }
 
 func (s *Scope) translatePackExp(exp ast.Pack) (*Pack, diag.Error) {

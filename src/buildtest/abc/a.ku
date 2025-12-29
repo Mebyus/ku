@@ -63,7 +63,7 @@ fun (&String) klen() -> u32 {
     if g.len0() == 1 {
         a = 2;
     }
-    ret g.len;
+    ret g.len + cast(u32, a);
 }
 
 const k := 10;

@@ -70,3 +70,15 @@ func CheckCall(sig *Signature, args []Exp) diag.Error {
 
 	return nil
 }
+
+func CheckCast(want *Type, exp Exp) diag.Error {
+	typ := exp.Type()
+	if typ.Kind == tpk.Integer && want.Kind == tpk.Integer {
+		return nil
+	}
+
+	return &diag.SimpleMessageError{
+		Pin:  exp.Span().Pin,
+		Text: fmt.Sprintf("value of %s type cannot be cast into %s", typ, want),
+	}
+}
