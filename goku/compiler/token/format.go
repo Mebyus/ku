@@ -125,6 +125,7 @@ var literal = [...]string{
 	Build:  "#build",
 	Size:   "#size",
 	Lookup: "#lookup",
+	Export: "#export",
 
 	TypeId:  "#typeid",
 	ErrorId: "#error",

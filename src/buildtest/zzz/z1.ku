@@ -16,7 +16,7 @@ fun alter(t: &SomeType, x: Sized) {
 }
 
 // type Bool2 bool
-
+#export
 fun strip(s: str) -> str {
     var a: &SomeType;
     alter(a, 0);

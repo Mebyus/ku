@@ -23,6 +23,9 @@ type Unit struct {
 	// All imports inside this unit.
 	Imports []sm.ImportSite
 
+	// List of exported symbols inside this unit.
+	Export []*Symbol
+
 	// Unit index assigned by order in which units are discovered
 	// during unit discovery phase (uwalk).
 	DiscoveryIndex uint32

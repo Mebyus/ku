@@ -99,6 +99,9 @@ type Traits struct {
 
 	// True for unsafe functions and methods.
 	Unsafe bool
+
+	// True for exported functions.
+	Export bool
 }
 
 type Prop struct {

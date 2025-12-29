@@ -217,22 +217,18 @@ func (lx *Lexer) static() token.Token {
 	}
 
 	switch data {
-	case "must":
-		tok.Kind = token.StaticMust
 	case "if":
 		tok.Kind = token.StaticIf
 	case "typeid":
 		tok.Kind = token.TypeId
 	case "error":
 		tok.Kind = token.ErrorId
+	case "export":
+		tok.Kind = token.Export
 	case "enum":
 		tok.Kind = token.Enum
 	case "size":
 		tok.Kind = token.Size
-	case "check":
-		tok.Kind = token.Check
-	case "len":
-		tok.Kind = token.Len
 	case "build":
 		tok.Kind = token.Build
 	case "debug":

@@ -89,10 +89,17 @@ const (
 	// Symbol should be skipped during compilation.
 	// Flag is set as a result of symbol usage analysis and program tree pruning.
 	SymbolSkip
+
+	// Only applicable for functions. Symbol should be exported in produced binary object file.
+	SymbolExport
 )
 
 func (s *Symbol) IsPublic() bool {
 	return s.Flags&SymbolPublic != 0
+}
+
+func (s *Symbol) IsExport() bool {
+	return s.Flags*SymbolExport != 0
 }
 
 func (s *Symbol) MarkSkip() {

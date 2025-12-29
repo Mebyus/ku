@@ -375,6 +375,10 @@ func (t *Typer) addFun(fun ast.Fun) diag.Error {
 	if fun.Pub {
 		symbol.Flags |= stg.SymbolPublic
 	}
+	if fun.Export {
+		symbol.Flags |= stg.SymbolExport
+		t.unit.Export = append(t.unit.Export, symbol)
+	}
 	t.funs = append(t.funs, symbol)
 	return nil
 }

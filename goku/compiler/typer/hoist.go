@@ -37,7 +37,7 @@ func (t *Typer) hoistSymbols() diag.Error {
 	// mark isolated private symbols as skip
 	for _, i := range graph.Isolated {
 		s := graph.Nodes[i].Symbol
-		if s.IsPublic() {
+		if s.IsPublic() || s.IsExport() {
 			continue
 		}
 
@@ -52,7 +52,7 @@ func (t *Typer) hoistSymbols() diag.Error {
 		pubCount := 0
 		for _, v := range comp.V {
 			s := graph.Nodes[v.Index].Symbol
-			if s.IsPublic() {
+			if s.IsPublic() || s.IsExport() {
 				pubCount += 1
 			}
 		}

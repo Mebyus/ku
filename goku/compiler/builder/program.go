@@ -48,6 +48,7 @@ func (b *Bundle) makeGraph() *graphs.Cycle {
 func CompileBundle(b *Bundle) diag.Error {
 	b.Context.Init()
 
+	exportCount := 0
 	for _, cohort := range b.Graph.Cohorts {
 		for _, i := range cohort {
 			unit := b.Units[i]
@@ -59,8 +60,24 @@ func CompileBundle(b *Bundle) diag.Error {
 			if err != nil {
 				return err
 			}
+
+			exportCount += len(unit.Export)
 		}
 	}
+
+	if exportCount == 0 {
+		fmt.Println("stop: no exported symbols found")
+		return nil
+	}
+
+	fmt.Printf("found %d exported symbol(s)\n", exportCount)
+	exported := make([]*stg.Symbol, 0, exportCount)
+	for _, u := range b.Units {
+		exported = append(exported, u.Export...)
+	}
+
+	stg.Prune(exported)
+
 	return nil
 }
 

@@ -29,6 +29,10 @@ func (p *Parser) top() diag.Error {
 		traits.Pub = true
 		p.advance() // skip "pub"
 	}
+	if p.peek.Kind == token.Export {
+		traits.Export = true
+		p.advance() // skip "#export"
+	}
 
 	switch p.peek.Kind {
 	case token.Type:

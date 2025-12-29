@@ -141,6 +141,7 @@ const (
 	Build  // #build
 	Size   // #size - query type size
 	Lookup // #lookup
+	Export // #export
 
 	TypeId  // #typeid
 	ErrorId // #error
