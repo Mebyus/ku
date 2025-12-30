@@ -99,8 +99,8 @@ func (w *Walker) AnalyzeUnit(item QueueItem) (*stg.Unit, diag.Error) {
 	files, loadErr := w.pool.LoadDir(dir, &sm.DirScanParams{IncludeTestFiles: item.IncludeTestFiles})
 	if loadErr != nil {
 		return nil, &diag.SimpleMessageError{
-			Text: fmt.Sprintf("load unit \"%s\": %s", item.Path, loadErr),
 			Pin:  item.Pin,
+			Text: fmt.Sprintf("load unit \"%s\": %s", item.Path, loadErr),
 		}
 	}
 

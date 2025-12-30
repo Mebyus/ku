@@ -1,5 +1,7 @@
 package stg
 
+import "github.com/mebyus/ku/goku/compiler/sm"
+
 type Statement interface{}
 
 // Block represents block statement or function body.
@@ -109,4 +111,14 @@ type Loop struct {
 type Must struct {
 	// Always not nil.
 	Exp Exp
+}
+
+// Stub represents stub statement.
+type Stub struct {
+	Pin sm.Pin
+}
+
+// Never represents never statement.
+type Never struct {
+	Pin sm.Pin
 }

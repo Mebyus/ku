@@ -115,6 +115,19 @@ func (g *Printer) Slice(s Slice) {
 	g.puts("]")
 }
 
+func (g *Printer) DerefSlice(s DerefSlice) {
+	g.Chain(s.Chain)
+	g.puts("[")
+	if s.Start != nil {
+		g.Exp(s.Start)
+	}
+	g.puts(":")
+	if s.End != nil {
+		g.Exp(s.End)
+	}
+	g.puts("]")
+}
+
 func (g *Printer) GetRef(r GetRef) {
 	g.Chain(r.Chain)
 	g.puts(".&")

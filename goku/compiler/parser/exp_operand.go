@@ -176,7 +176,19 @@ func (p *Parser) Chain() (ast.Operand, diag.Error) {
 		case token.Address:
 			return p.getRef(chain), nil
 		case token.DerefIndex:
-			part, err = p.DerefIndex()
+			var s SliceOrIndex
+			s, err = p.SliceOrIndex()
+			if err != nil {
+				return nil, err
+			}
+			if !s.Index {
+				return ast.DerefSlice{
+					Chain: chain,
+					Start: s.Exp,
+					End:   s.End,
+				}, nil
+			}
+			part = ast.DerefIndex{Exp: s.Exp}
 		// case token.BagSelect:
 		// 	part, err = p.bagSelectPart()
 		case token.LeftSquare:
@@ -244,21 +256,6 @@ func (p *Parser) DerefSelect() (ast.DerefSelect, diag.Error) {
 	name := p.word()
 
 	return ast.DerefSelect{Name: name}, nil
-}
-
-func (p *Parser) DerefIndex() (ast.DerefIndex, diag.Error) {
-	p.advance() // skip ".["
-
-	exp, err := p.Exp()
-	if err != nil {
-		return ast.DerefIndex{}, err
-	}
-	if p.peek.Kind != token.RightSquare {
-		return ast.DerefIndex{}, p.unexpected()
-	}
-	p.advance() // skip "]"
-
-	return ast.DerefIndex{Exp: exp}, nil
 }
 
 func (p *Parser) Select() ast.Select {

@@ -115,6 +115,11 @@ func (t *Typer) compile(texts []*ast.Text) diag.Error {
 }
 
 func (t *Typer) addTexts(texts []*ast.Text) diag.Error {
+	err := t.addImports(t.unit.Imports)
+	if err != nil {
+		return err
+	}
+
 	for _, text := range texts {
 		err := t.addText(text)
 		if err != nil {
@@ -125,11 +130,7 @@ func (t *Typer) addTexts(texts []*ast.Text) diag.Error {
 }
 
 func (t *Typer) addText(text *ast.Text) diag.Error {
-	err := t.addImports(t.unit.Imports)
-	if err != nil {
-		return err
-	}
-	err = t.addTypes(text.Types)
+	err := t.addTypes(text.Types)
 	if err != nil {
 		return err
 	}
@@ -351,6 +352,7 @@ func (t *Typer) addImport(s sm.ImportSite) diag.Error {
 	name := s.Name
 	pin := s.Pin
 	if t.unit.Scope.Has(name) {
+		// fmt.Println(t.unit.Scope.Get(name).Pin)
 		return errMultDef(name, pin)
 	}
 

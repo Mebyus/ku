@@ -226,6 +226,8 @@ func (t *Typer) inspectExp(exp ast.Exp) diag.Error {
 		return t.inspectPack(e)
 	case ast.Size:
 		return t.inspectSizeExp(e)
+	case ast.DerefSlice:
+		return t.inspectDerefSlice(e)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) expression (%T)", e.Kind(), e.Kind(), e))
 	}
@@ -242,13 +244,38 @@ func (t *Typer) linkExpSymbol(symbol ast.Symbol) diag.Error {
 	}
 
 	if s.Kind == smk.Import || s.Kind == smk.Type {
-		return &diag.SimpleMessageError{
-			Pin:  symbol.Pin,
-			Text: fmt.Sprintf("%s symbol \"%s\" used as operand in expression", s.Kind, name),
-		}
+		// TODO: this can be shadowed name, need to refactor inspection approach
+		//
+		// return &diag.SimpleMessageError{
+		// 	Pin:  symbol.Pin,
+		// 	Text: fmt.Sprintf("%s symbol \"%s\" used as operand in expression", s.Kind, name),
+		// }
 	}
 
 	t.ins.link(s)
+	return nil
+}
+
+func (t *Typer) inspectDerefSlice(s ast.DerefSlice) diag.Error {
+	err := t.inspectChainExp(s.Chain)
+	if err != nil {
+		return err
+	}
+
+	if s.Start != nil {
+		err = t.inspectExp(s.Start)
+		if err != nil {
+			return err
+		}
+	}
+
+	if s.End != nil {
+		err = t.inspectExp(s.End)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

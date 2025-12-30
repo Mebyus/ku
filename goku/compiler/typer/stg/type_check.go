@@ -21,6 +21,11 @@ func CheckAssign(want *Type, exp Exp) diag.Error {
 			if typ.IsStatic() && typ.Size == 0 && typ.Kind == c.Kind {
 				return nil
 			}
+		case tpk.Integer:
+			if typ.Kind == tpk.Rune {
+				// TODO: check size for static runes
+				return nil
+			}
 		}
 
 		return &diag.SimpleMessageError{

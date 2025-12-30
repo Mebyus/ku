@@ -106,6 +106,10 @@ func (t *Typer) translateStatement(stm ast.Statement) (stg.Statement, diag.Error
 		return t.translateWhile(s)
 	case ast.Must:
 		return t.translateMust(s)
+	case ast.Stub:
+		return &stg.Stub{Pin: s.Pin}, nil
+	case ast.Never:
+		return &stg.Never{Pin: s.Pin}, nil
 	case ast.Block:
 		if len(s.Nodes) == 0 {
 			// block statement with no statements is equivalent to empty statement
@@ -394,18 +398,6 @@ func (t *Typer) translateVar(v ast.Var) (*stg.Var, diag.Error) {
 		return nil, err
 	}
 
-	name := v.Name.Str
-	pin := v.Name.Pin
-
-	if t.scope.Has(name) {
-		return nil, &diag.SimpleMessageError{
-			Pin:  pin,
-			Text: fmt.Sprintf("symbol \"%s\" was already declared in this block", name),
-		}
-	}
-	s := t.scope.Alloc(smk.Var, name, pin)
-	s.Type = typ
-
 	var exp stg.Exp
 	if v.Exp != nil {
 		exp, err = t.scope.TranslateExp(v.Exp)
@@ -417,6 +409,18 @@ func (t *Typer) translateVar(v ast.Var) (*stg.Var, diag.Error) {
 			return nil, err
 		}
 	}
+
+	name := v.Name.Str
+	pin := v.Name.Pin
+
+	if t.scope.Has(name) {
+		return nil, &diag.SimpleMessageError{
+			Pin:  pin,
+			Text: fmt.Sprintf("symbol \"%s\" was already declared in this block", name),
+		}
+	}
+	s := t.scope.Alloc(smk.Var, name, pin)
+	s.Type = typ
 
 	return &stg.Var{
 		Symbol: s,

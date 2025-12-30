@@ -299,6 +299,8 @@ const (
 
 	Slice
 
+	DerefSlice
+
 	// Special form.
 	Pack
 
@@ -408,6 +410,7 @@ var text = [...]string{
 
 	DerefIndex:  "deref.index",
 	DerefSelect: "deref.select",
+	DerefSlice:  "deref.slice",
 	SelectTest:  "select.test",
 	DotName:     "dot.name",
 

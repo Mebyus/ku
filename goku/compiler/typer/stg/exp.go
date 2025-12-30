@@ -47,9 +47,68 @@ func (s *Scope) TranslateExp(exp ast.Exp) (Exp, diag.Error) {
 		return s.translatePackExp(e)
 	case ast.Cast:
 		return s.translateCast(e)
+	case ast.DerefSlice:
+		return s.translateDerefSlice(e)
 	default:
 		panic(fmt.Sprintf("unexpected %s (=%d) expression (%T)", e.Kind(), e.Kind(), e))
 	}
+}
+
+func (s *Scope) translateDerefSlice(d ast.DerefSlice) (Exp, diag.Error) {
+	if d.End == nil {
+		return s.translateSliceArrayRef(d.Chain, d.Start)
+	}
+
+	panic("not implemented")
+}
+
+func (s *Scope) translateSliceArrayRef(chain ast.Chain, start ast.Exp) (Exp, diag.Error) {
+	c, err := s.TranslateChain(chain)
+	if err != nil {
+		return nil, err
+	}
+
+	typ := c.Type()
+	if typ.Kind != tpk.ArrayRef {
+		return nil, &diag.SimpleMessageError{
+			Pin:  start.Span().Pin,
+			Text: fmt.Sprintf("this operation is not allowed on %s value, must be array ref", typ),
+		}
+	}
+
+	if start == nil {
+		return c, nil
+	}
+
+	index, err := s.TranslateExp(start)
+	if err != nil {
+		return nil, err
+	}
+
+	t := index.Type()
+	if t.Kind != tpk.Integer {
+		return nil, &diag.SimpleMessageError{
+			Pin:  index.Span().Pin,
+			Text: fmt.Sprintf("cannot use %s value as index, must be integer", t),
+		}
+	}
+	if t.IsStatic() {
+		v := index.(*Integer)
+		if v.Neg {
+			return nil, &diag.SimpleMessageError{
+				Pin:  v.Pin,
+				Text: fmt.Sprintf("negative index value -%d", v.Val),
+			}
+		}
+		if v.Val == 0 {
+			return c, nil
+		}
+	}
+
+	return &SliceArrayRef{
+		Exp:   c,
+		Index: index,
+	}, nil
 }
 
 func (s *Scope) translateCast(c ast.Cast) (Exp, diag.Error) {
@@ -183,6 +242,48 @@ func (s *Scope) TranslateChain(exp ast.Chain) (Exp, diag.Error) {
 			Pin:    pin,
 			Symbol: start,
 		}
+	case smk.Import:
+		if len(exp.Parts) != 1 {
+			return nil, &diag.SimpleMessageError{
+				Pin:  pin,
+				Text: fmt.Sprintf("multiple chain parts after import symbol \"%s\"", name),
+			}
+		}
+
+		p, ok := exp.Parts[0].(ast.Select)
+		if !ok {
+			return nil, &diag.SimpleMessageError{
+				Pin:  pin,
+				Text: fmt.Sprintf("bad operation (%T) on import symbol \"%s\"", exp.Parts[0], name),
+			}
+		}
+
+		unit := start.Def.(SymDefUnit).Unit
+		sname := p.Name.Str
+		symbol := unit.Scope.Lookup(sname)
+		if symbol == nil {
+			return nil, &diag.SimpleMessageError{
+				Pin:  p.Name.Pin,
+				Text: fmt.Sprintf("name \"%s\" refers to undefined symbol", sname),
+			}
+		}
+		if symbol.Kind != smk.Fun {
+			return nil, &diag.SimpleMessageError{
+				Pin:  p.Name.Pin,
+				Text: fmt.Sprintf("name \"%s\" refers to %s, not a function", sname, symbol.Kind),
+			}
+		}
+		if !symbol.IsPublic() {
+			return nil, &diag.SimpleMessageError{
+				Pin:  p.Name.Pin,
+				Text: fmt.Sprintf("symbol \"%s\" is not public", sname),
+			}
+		}
+
+		return &SymExp{
+			Symbol: symbol,
+			Pin:    p.Name.Pin,
+		}, nil
 	default:
 		return nil, &diag.SimpleMessageError{
 			Pin:  pin,

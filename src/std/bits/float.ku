@@ -1,0 +1,4 @@
+pub
+fun from_f32(f: f32) -> u32 {
+    stub;
+}

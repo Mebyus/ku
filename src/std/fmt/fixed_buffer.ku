@@ -1,4 +1,3 @@
-
 type FixedBuffer struct {
 	// Pointer to buffer memory.
 	// Always not nil for initialized struct.
@@ -146,7 +145,7 @@ fun (&FixedBuffer) put_hex_prefix_zeroes_u32(x: u32) {
         ret;
     }
 
-    unsafe.put_hex_prefix_zeroes_u32(tail.ptr, x);
+    put_hex_prefix_zeroes_u32(tail.ptr, x);
     g.len += max_u32_hex_length;
 }
 
@@ -160,7 +159,7 @@ fun (&FixedBuffer) put_hex_prefix_zeroes_u64(x: u64) {
         ret;
     }
 
-    unsafe.put_hex_prefix_zeroes_u64(tail.ptr, x);
+    put_hex_prefix_zeroes_u64(tail.ptr, x);
     g.len += max_u64_hex_length;
 }
 
@@ -174,7 +173,7 @@ fun (&FixedBuffer) put_bin_bytes_u16(x: u16) {
         ret;
     }
 
-    unsafe.put_bin_bytes_u16(tail.ptr, x);
+    put_bin_bytes_u16(tail.ptr, x);
     g.len += bin_bytes_u16_length;
 }
 
@@ -188,7 +187,7 @@ fun (&FixedBuffer) put_bin_bytes_u32(x: u32) {
         ret;
     }
 
-    unsafe.put_bin_bytes_u32(tail.ptr, x);
+    put_bin_bytes_u32(tail.ptr, x);
     g.len += bin_bytes_u32_length;
 }
 
@@ -202,7 +201,7 @@ fun (&FixedBuffer) put_bits_f32(f: f32) {
         ret;
     }
 
-    unsafe.put_bits_f32(tail.ptr, f);
+    put_bits_f32(tail.ptr, f);
     g.len += fmt_bits_f32_length;
 }
 
@@ -222,11 +221,11 @@ fun (&FixedBuffer) put_hex_bytes(s: []u8) {
         ret;
     }
 
-    unsafe.put_hex_byte(tail.ptr, s[0]);
+    put_hex_byte(tail.ptr, s[0]);
     for i = [1:s.len] {
         var offset: uint = 3 * i - 1;
         tail.ptr.[offset] = ' ';
-        unsafe.put_hex_byte(tail.ptr + offset + 1, s[i]);
+        put_hex_byte(tail.ptr + offset + 1, s[i]);
     }
     g.len += len;
 }
