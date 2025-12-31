@@ -135,12 +135,41 @@ func (s *Scope) evalConstBinaryExp(a, b Exp, op BinOp) (Exp, diag.Error) {
 			return subIntegers(s.Types, a.(*Integer), b.(*Integer)), nil
 		case bok.Equal:
 			return equalIntegers(s.Types, a.(*Integer), b.(*Integer)), nil
+		case bok.LeftShift:
+			return leftShiftIntegers(s.Types, a.(*Integer), b.(*Integer))
 		default:
 			panic(fmt.Sprintf("unexpected \"%s\" (=%d) binary operator", op.Kind, op.Kind))
 		}
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type (%T)", typ.Kind, typ.Kind, typ.Def))
 	}
+}
+
+func leftShiftIntegers(x *TypeIndex, a, b *Integer) (*Integer, diag.Error) {
+	if b.Neg {
+		return nil, &diag.SimpleMessageError{
+			Pin:  b.Pin,
+			Text: "shift by negative integer",
+		}
+	}
+	if b.Val > 64 {
+		return nil, &diag.SimpleMessageError{
+			Pin:  b.Pin,
+			Text: "shift is greater than 64 bits",
+		}
+	}
+
+	if b.Val == 0 {
+		return a, nil
+	}
+	if b.Val == 64 {
+		return x.MakeInteger(a.Pin, 0), nil
+	}
+
+	if a.Neg {
+		return x.MakeNegInteger(a.Pin, a.Val<<b.Val), nil
+	}
+	return x.MakeInteger(a.Pin, a.Val<<b.Val), nil
 }
 
 func equalIntegers(x *TypeIndex, a, b *Integer) *Boolean {

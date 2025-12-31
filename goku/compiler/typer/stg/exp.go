@@ -366,10 +366,37 @@ func (s *Scope) applySelectPart(exp Exp, part ast.Select) (Exp, diag.Error) {
 	typ := exp.Type()
 
 	switch typ.Kind {
+	case tpk.Span:
+		return s.applySelectToSpan(exp, part)
 	case tpk.Pointer, tpk.Ref:
 		return s.applySelectToPointer(exp, part)
 	default:
 		panic(fmt.Sprintf("unexpected %s type", typ))
+	}
+}
+
+func (s *Scope) applySelectToSpan(exp Exp, part ast.Select) (Exp, diag.Error) {
+	name := part.Name.Str
+	pin := part.Name.Pin
+
+	switch name {
+	case "len":
+		return &SelectSpanLen{
+			Exp: exp,
+			Pin: pin,
+			typ: s.Types.Known.Uint,
+		}, nil
+	case "ptr":
+		return &SelectSpanLen{
+			Exp: exp,
+			Pin: pin,
+			typ: s.Types.getArrayPointer(exp.Type().Def.(Span).Type),
+		}, nil
+	default:
+		return nil, &diag.SimpleMessageError{
+			Pin:  pin,
+			Text: fmt.Sprintf("span does not have \"%s\" field", name),
+		}
 	}
 }
 
@@ -512,12 +539,17 @@ func (x *TypeIndex) deduceBinaryExpType(a, b Exp, op BinOp) (*Type, diag.Error) 
 		return x.deduceBinaryExpTypeB(a, b, op)
 	}
 
+	switch op.Kind {
+	case bok.LeftShift, bok.RightShift:
+		if ta.Kind == tpk.Integer && tb.Kind == tpk.Integer {
+			return ta, nil
+		}
+	}
+
 	return nil, &diag.SimpleMessageError{
 		Pin:  op.Pin,
 		Text: fmt.Sprintf("type %s and %s are incompatible for binary operation", ta, tb),
 	}
-
-	panic("not implemented")
 }
 
 // type checks binary expression and returns its resulting type

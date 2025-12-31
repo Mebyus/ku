@@ -98,6 +98,8 @@ func (t *Type) String() string {
 		return "[*]" + t.Def.(ArrayPointer).Type.String()
 	case tpk.Ref:
 		return "&" + t.Def.(Ref).Type.String()
+	case tpk.Span:
+		return "[]" + t.Def.(Span).Type.String()
 	case tpk.Custom:
 		c := t.Def.(*Custom)
 		s = c.Symbol.Name

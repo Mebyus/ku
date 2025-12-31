@@ -96,6 +96,8 @@ func (t *Typer) translateStatement(stm ast.Statement) (stg.Statement, diag.Error
 		return t.translateRet(s)
 	case ast.Var:
 		return t.translateVar(s)
+	case ast.Const:
+		return t.translateConst(s)
 	case ast.If:
 		return t.translateIf(s)
 	case ast.Assign:
@@ -459,6 +461,44 @@ func (t *Typer) translateWhile(w ast.While) (stg.Statement, diag.Error) {
 	}
 
 	return &while, nil
+}
+
+func (t *Typer) translateConst(c ast.Const) (stg.Statement, diag.Error) {
+	exp, err := t.scope.TranslateExp(c.Exp)
+	if err != nil {
+		return nil, err
+	}
+
+	var typ *stg.Type
+	if c.Type != nil {
+		typ, err = t.scope.LookupType(c.Type)
+		if err != nil {
+			return nil, err
+		}
+		err = stg.CheckAssign(typ, exp)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		typ = exp.Type()
+	}
+
+	name := c.Name.Str
+	pin := c.Name.Pin
+
+	if t.scope.Has(name) {
+		return nil, &diag.SimpleMessageError{
+			Pin:  pin,
+			Text: fmt.Sprintf("symbol \"%s\" was already declared in this block", name),
+		}
+	}
+	s := t.scope.Alloc(smk.Const, name, pin)
+	s.Type = typ
+	s.Def = stg.StaticValue{Exp: exp}
+
+	// Constant definition is compile-time only construct and thus
+	// translated to empty statement.
+	return nil, nil
 }
 
 func (t *Typer) translateVar(v ast.Var) (*stg.Var, diag.Error) {

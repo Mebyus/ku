@@ -23,33 +23,32 @@ const buffer_eof := "(...)";
 
 fun (&FixedBuffer) init(s: []u8) {
     const min_initial_size := 1 << 8;
-    must(min_initial_size > buffer_eof.len); // could be #must, but C compiler is unable to work with that
+    // must(min_initial_size > buffer_eof.len); // could be #must, but C compiler is unable to work with that
 	must(s.len >= min_initial_size);
 	must(s.ptr != nil);
 
 	g.ptr = s.ptr;
 	g.cap = s.len;
-    g.reset(g);
+    g.reset();
 }
 
 fun (&FixedBuffer) tail() -> []u8 {
-    var tail: []u8;
     if g.eof {
-        ret tail;
+        ret nil;
     }
     if g.len >= g.cap {
         g.eof = true;
-        ret tail;
+        ret nil;
     }
 
-    var body: []u8 = make_span(g.ptr, g.cap);
+    var body: []u8 = g.ptr.[:g.cap];
     tail = body[g.len:];
 
     ret tail;
 }
 
 fun (&FixedBuffer) take() -> str {
-    var body: []u8 = make_span(g.ptr, g.cap);
+    var body: []u8 = g.ptr.[:g.cap];
 
     var s: str;
     if !g.eof {

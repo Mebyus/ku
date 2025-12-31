@@ -325,19 +325,7 @@ func (s *Scope) lookupArrayPointer(p ast.ArrayPointer) (*Type, diag.Error) {
 	if err != nil {
 		return nil, err
 	}
-
-	typ, ok := s.Types.ArrayPointers[t]
-	if ok {
-		return typ, nil
-	}
-	typ = &Type{
-		Def:  ArrayPointer{Type: t},
-		Size: archPointerSize,
-		Kind: tpk.ArrayPointer,
-	}
-	s.Types.ArrayPointers[t] = typ
-
-	return typ, nil
+	return s.Types.getArrayPointer(t), nil
 }
 
 func (s *Scope) lookupArrayRef(p ast.ArrayRef) (*Type, diag.Error) {
@@ -622,6 +610,20 @@ func (x *TypeIndex) getTuple(types []*Type) *Type {
 		Kind: tpk.Tuple,
 	}
 	x.Tuples[key] = typ
+	return typ
+}
+
+func (x *TypeIndex) getArrayPointer(t *Type) *Type {
+	typ, ok := x.ArrayPointers[t]
+	if ok {
+		return typ
+	}
+	typ = &Type{
+		Def:  ArrayPointer{Type: t},
+		Size: archPointerSize,
+		Kind: tpk.ArrayPointer,
+	}
+	x.ArrayPointers[t] = typ
 	return typ
 }
 
