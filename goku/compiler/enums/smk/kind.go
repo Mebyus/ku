@@ -29,6 +29,9 @@ const (
 	// Variable definition (name + type + initial value).
 	Var
 
+	// Loop variable.
+	Loop
+
 	Alias
 
 	Gen
@@ -73,6 +76,7 @@ var text = [...]string{
 
 	Receiver:  "receiver",
 	OmitParam: "param.omit",
+	Loop:      "var.loop",
 }
 
 func (k Kind) String() string {

@@ -122,3 +122,17 @@ type Stub struct {
 type Never struct {
 	Pin sm.Pin
 }
+
+// ForRange represents for range statement.
+type ForRange struct {
+	Body Block
+
+	// Equals nil if omitted. Zero value is used.
+	Start Exp
+
+	// Always not nil. Always has integer type.
+	End Exp
+
+	// Loop variable.
+	Var *Symbol
+}

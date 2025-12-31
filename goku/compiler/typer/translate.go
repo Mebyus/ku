@@ -104,6 +104,8 @@ func (t *Typer) translateStatement(stm ast.Statement) (stg.Statement, diag.Error
 		return t.translateInvoke(s)
 	case ast.While:
 		return t.translateWhile(s)
+	case ast.ForRange:
+		return t.translateForRange(s)
 	case ast.Must:
 		return t.translateMust(s)
 	case ast.Stub:
@@ -336,6 +338,73 @@ func (t *Typer) translateMust(m ast.Must) (stg.Statement, diag.Error) {
 		Pin:  exp.Span().Pin,
 		Text: "compile-time assert is false",
 	}
+}
+
+func (t *Typer) translateForRange(r ast.ForRange) (stg.Statement, diag.Error) {
+	var f stg.ForRange
+	var start stg.Exp
+	var err diag.Error
+
+	if r.Start != nil {
+		start, err = t.scope.TranslateExp(r.Start)
+		if err != nil {
+			return nil, err
+		}
+		typ := start.Type()
+		if typ.Kind != tpk.Integer {
+			return nil, &diag.SimpleMessageError{
+				Pin:  start.Span().Pin,
+				Text: fmt.Sprintf("range start expression has %s value, not integer", typ),
+			}
+		}
+	}
+
+	end, err := t.scope.TranslateExp(r.End)
+	if err != nil {
+		return nil, err
+	}
+	typ := end.Type()
+	if typ.Kind != tpk.Integer {
+		return nil, &diag.SimpleMessageError{
+			Pin:  end.Span().Pin,
+			Text: fmt.Sprintf("range end expression has %s value, not integer", typ),
+		}
+	}
+
+	var vt *stg.Type
+	if r.Type != nil {
+		vt, err = t.scope.LookupType(r.Type)
+		if err != nil {
+			return nil, err
+		}
+		if vt.Kind != tpk.Integer {
+			return nil, &diag.SimpleMessageError{
+				Pin:  r.Type.Span().Pin,
+				Text: fmt.Sprintf("loop variable type %s, is not an integer", vt),
+			}
+		}
+	} else {
+		vt = t.ctx.Types.Known.Uint
+	}
+
+	f.Body.Scope.Init(sck.Loop, t.scope)
+	name := r.Name.Str
+	symbol := f.Body.Scope.Alloc(smk.Loop, name, r.Name.Pin)
+	symbol.Type = vt
+
+	err = t.translateBlock(&f.Body, r.Body)
+	if err != nil {
+		return nil, err
+	}
+	if len(f.Body.Nodes) == 0 {
+		// transform for range loop with empty body into empty statement
+		return nil, nil
+	}
+
+	f.Start = start
+	f.End = end
+	f.Var = symbol
+	return &f, nil
 }
 
 func (t *Typer) translateWhile(w ast.While) (stg.Statement, diag.Error) {

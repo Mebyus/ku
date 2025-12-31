@@ -37,6 +37,8 @@ func (s *Scope) TranslateExp(exp ast.Exp) (Exp, diag.Error) {
 		return s.Types.MakeRune(e.Pin, uint32(e.Val)), nil
 	case ast.Symbol:
 		return s.translateSymbolExp(e)
+	case ast.Paren:
+		return s.TranslateExp(e.Exp)
 	case ast.Binary:
 		return s.translateBinaryExp(e)
 	case ast.Chain:
@@ -451,10 +453,7 @@ func (s *Scope) translateSymbolExp(sym ast.Symbol) (Exp, diag.Error) {
 	switch symbol.Kind {
 	case smk.Const:
 		return symbol.Def.(StaticValue).Exp, nil
-	case smk.Var:
-		return &SymExp{Pin: pin, Symbol: symbol}, nil
-	case smk.Param:
-		// TODO: do we need separate type of expressions for param symbol?
+	case smk.Var, smk.Loop, smk.Param:
 		return &SymExp{Pin: pin, Symbol: symbol}, nil
 	default:
 		return nil, &diag.SimpleMessageError{
@@ -513,6 +512,11 @@ func (x *TypeIndex) deduceBinaryExpType(a, b Exp, op BinOp) (*Type, diag.Error) 
 		return x.deduceBinaryExpTypeB(a, b, op)
 	}
 
+	return nil, &diag.SimpleMessageError{
+		Pin:  op.Pin,
+		Text: fmt.Sprintf("type %s and %s are incompatible for binary operation", ta, tb),
+	}
+
 	panic("not implemented")
 }
 
@@ -536,7 +540,7 @@ func (x *TypeIndex) deduceBinaryExpTypeA(a, b Exp, op BinOp) (*Type, diag.Error)
 			if tb.IsSigned() {
 				return nil, &diag.SimpleMessageError{
 					Pin:  op.Pin,
-					Text: fmt.Sprintf("binary operation on rune and signed integer"),
+					Text: "binary operation on rune and signed integer",
 				}
 			}
 

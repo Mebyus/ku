@@ -105,6 +105,9 @@ type KnownTypes struct {
 	// &void
 	VoidRef *Type
 
+	// uint
+	Uint *Type
+
 	// bool
 	Bool *Type
 }
@@ -124,6 +127,11 @@ func (t *KnownTypes) Init() {
 		Size:  archPointerSize,
 		Flags: TypeFlagBuiltin,
 		Kind:  tpk.VoidRef,
+	}
+	t.Uint = &Type{
+		Size:  archPointerSize,
+		Flags: TypeFlagBuiltin,
+		Kind:  tpk.Integer,
 	}
 	t.Bool = &Type{
 		Size:  1,

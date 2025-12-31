@@ -26,7 +26,7 @@ func addBuiltinTypes(c *Context) {
 	addSignedIntegerType(c, "s64", 8)
 	addSignedIntegerType(c, "s128", 16)
 
-	addUnsignedIntegerType(c, "uint", archPointerSize) // TODO: uint and sint sizes should depend on target architecture
+	addBuiltinType(c, "uint", c.Types.Known.Uint)
 	addSignedIntegerType(c, "sint", archPointerSize)
 
 	addBoolType(c)
@@ -38,6 +38,15 @@ func addBuiltinTypes(c *Context) {
 	addFloatType(c, "f128", 16)
 
 	addStringType(c)
+}
+
+func addBuiltinType(c *Context, name string, t *Type) {
+	s := &Symbol{
+		Name:  name,
+		Kind:  smk.Type,
+		Flags: SymbolBuiltin,
+	}
+	c.addType(s, t)
 }
 
 func addStringType(c *Context) {
