@@ -61,7 +61,62 @@ func (s *Scope) translateDerefSlice(d ast.DerefSlice) (Exp, diag.Error) {
 		return s.translateSliceArrayRef(d.Chain, d.Start)
 	}
 
-	panic("not implemented")
+	return s.translateMakeSpan(d)
+}
+
+func (s *Scope) translateMakeSpan(d ast.DerefSlice) (Exp, diag.Error) {
+	c, err := s.TranslateChain(d.Chain)
+	if err != nil {
+		return nil, err
+	}
+
+	var elem *Type
+	typ := c.Type()
+	switch typ.Kind {
+	case tpk.ArrayRef:
+		elem = typ.Def.(ArrayRef).Type
+	case tpk.ArrayPointer:
+		elem = typ.Def.(ArrayPointer).Type
+	default:
+		return nil, &diag.SimpleMessageError{
+			Pin:  c.Span().Pin,
+			Text: fmt.Sprintf("this operation is not allowed on %s value, must be array ref or array pointer", typ),
+		}
+	}
+
+	var start Exp
+	if d.Start != nil {
+		start, err := s.TranslateExp(d.Start)
+		if err != nil {
+			return nil, err
+		}
+		t := start.Type()
+		if t.Kind != tpk.Integer {
+			return nil, &diag.SimpleMessageError{
+				Pin:  start.Span().Pin,
+				Text: fmt.Sprintf("cannot use %s value as index, must be integer", t),
+			}
+		}
+		// TODO: add static negative integer check
+	}
+
+	end, err := s.TranslateExp(d.End)
+	if err != nil {
+		return nil, err
+	}
+	t := end.Type()
+	if t.Kind != tpk.Integer {
+		return nil, &diag.SimpleMessageError{
+			Pin:  end.Span().Pin,
+			Text: fmt.Sprintf("cannot use %s value as index, must be integer", t),
+		}
+	}
+
+	return &MakeSpan{
+		Start: start,
+		End:   end,
+		typ:   s.Types.getSpan(elem),
+	}, nil
 }
 
 func (s *Scope) translateSliceArrayRef(chain ast.Chain, start ast.Exp) (Exp, diag.Error) {
@@ -387,7 +442,7 @@ func (s *Scope) applySelectToSpan(exp Exp, part ast.Select) (Exp, diag.Error) {
 			typ: s.Types.Known.Uint,
 		}, nil
 	case "ptr":
-		return &SelectSpanLen{
+		return &SelectSpanPtr{
 			Exp: exp,
 			Pin: pin,
 			typ: s.Types.getArrayPointer(exp.Type().Def.(Span).Type),

@@ -42,9 +42,7 @@ fun (&FixedBuffer) tail() -> []u8 {
     }
 
     var body: []u8 = g.ptr.[:g.cap];
-    tail = body[g.len:];
-
-    ret tail;
+    ret body[g.len:];
 }
 
 fun (&FixedBuffer) take() -> str {

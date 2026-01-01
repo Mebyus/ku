@@ -374,18 +374,7 @@ func (s *Scope) lookupSpan(p ast.Span) (*Type, diag.Error) {
 		return nil, err
 	}
 
-	typ, ok := s.Types.Spans[t]
-	if ok {
-		return typ, nil
-	}
-	typ = &Type{
-		Def:  Span{Type: t},
-		Size: 2 * archPointerSize,
-		Kind: tpk.Span,
-	}
-	s.Types.Spans[t] = typ
-
-	return typ, nil
+	return s.Types.getSpan(t), nil
 }
 
 func (s *Scope) lookupCapBuf(p ast.CapBuf) (*Type, diag.Error) {
@@ -610,6 +599,20 @@ func (x *TypeIndex) getTuple(types []*Type) *Type {
 		Kind: tpk.Tuple,
 	}
 	x.Tuples[key] = typ
+	return typ
+}
+
+func (x *TypeIndex) getSpan(t *Type) *Type {
+	typ, ok := x.Spans[t]
+	if ok {
+		return typ
+	}
+	typ = &Type{
+		Def:  Span{Type: t},
+		Size: 2 * archPointerSize,
+		Kind: tpk.Span,
+	}
+	x.Spans[t] = typ
 	return typ
 }
 
