@@ -63,21 +63,16 @@ func (s *Scope) evalConstSymbolExp(sym ast.Symbol) (Exp, diag.Error) {
 	return symbol.Def.(StaticValue).Exp, nil
 }
 
-func (s *Scope) translateConstUnaryExp(exp ast.Unary) (Exp, diag.Error) {
-	e, err := s.EvalConstExp(exp.Exp)
-	if err != nil {
-		return nil, err
-	}
-
-	typ := e.Type()
+func (s *Scope) evalConstUnaryExp(exp Exp, op UnaryOp) (Exp, diag.Error) {
+	typ := exp.Type()
 	switch typ.Kind {
 	case tpk.Integer:
-		switch exp.Op.Kind {
+		switch op.Kind {
 		case uok.Plus:
-			return e, nil
+			return exp, nil
 		case uok.Minus:
 			if typ.Size == 0 {
-				n := e.(*Integer)
+				n := exp.(*Integer)
 				if n.Val == 0 {
 					return n, nil
 				}
@@ -88,16 +83,25 @@ func (s *Scope) translateConstUnaryExp(exp ast.Unary) (Exp, diag.Error) {
 			panic("not implemented")
 		default:
 			return nil, &diag.SimpleMessageError{
-				Pin:  exp.Op.Pin,
-				Text: fmt.Sprintf("unary operation %s is not defined for static integer types", exp.Op.Kind),
+				Pin:  op.Pin,
+				Text: fmt.Sprintf("unary operation %s is not defined for static integer types", op.Kind),
 			}
 		}
 	default:
 		return nil, &diag.SimpleMessageError{
-			Pin:  exp.Op.Pin,
+			Pin:  op.Pin,
 			Text: fmt.Sprintf("value of %s type cannot be used in unary expression", typ),
 		}
 	}
+}
+
+func (s *Scope) translateConstUnaryExp(exp ast.Unary) (Exp, diag.Error) {
+	e, err := s.EvalConstExp(exp.Exp)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.evalConstUnaryExp(e, exp.Op)
 }
 
 func (s *Scope) translateConstBinaryExp(exp ast.Binary) (Exp, diag.Error) {

@@ -1,0 +1,4 @@
+pub
+fun is_whitespace(c: u8) -> bool {
+	ret c == ' ' || c == '\n' || c == '\t' || c == '\r';
+}

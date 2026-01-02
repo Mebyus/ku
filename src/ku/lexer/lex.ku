@@ -1,0 +1,28 @@
+import {
+    tokens -> "ku/tokens"
+}
+
+pub
+fun (&Lexer) read_token(tok: &tokens.Token) {
+	if g.eof() {
+		g.emit_eof(tok);
+        ret;
+	}
+
+	g.skip_whitespace_and_comments();
+	if g.eof() {
+		g.emit_eof(tok);
+        ret;
+	}
+
+	g.lex(tok);
+}
+
+fun (&Lexer) emit_eof(tok: &tokens.Token) {
+    tok.pin = g.pin();
+    tok.kind = .EOF;
+}
+
+fun (&Lexer) lex(tok: &tokens.Token) {
+
+}

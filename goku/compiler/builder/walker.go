@@ -10,11 +10,7 @@ import (
 )
 
 func Walk(cfg WalkConfig, init ...QueueItem) (*Bundle, diag.Error) {
-	w := Walker{
-		WalkConfig: cfg,
-
-		pool: sm.New(),
-	}
+	w := Walker{WalkConfig: cfg}
 	w.Bundle.Pool = w.pool
 
 	err := w.WalkFrom(init...)
@@ -42,14 +38,14 @@ type BaseDirs struct {
 
 type WalkConfig struct {
 	Dir BaseDirs
+
+	pool *sm.Pool
 }
 
 type Walker struct {
 	Bundle Bundle
 
 	WalkConfig
-
-	pool *sm.Pool
 }
 
 func (w *Walker) WalkFrom(init ...QueueItem) diag.Error {
@@ -100,7 +96,7 @@ func (w *Walker) AnalyzeUnit(item QueueItem) (*stg.Unit, diag.Error) {
 	if loadErr != nil {
 		return nil, &diag.SimpleMessageError{
 			Pin:  item.Pin,
-			Text: fmt.Sprintf("load unit \"%s\": %s", item.Path, loadErr),
+			Text: fmt.Sprintf("load unit \"%s\": %s", &item.Path, loadErr),
 		}
 	}
 

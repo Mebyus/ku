@@ -8,6 +8,7 @@ import (
 	"github.com/mebyus/ku/goku/compiler/enums/bok"
 	"github.com/mebyus/ku/goku/compiler/enums/smk"
 	"github.com/mebyus/ku/goku/compiler/enums/tpk"
+	"github.com/mebyus/ku/goku/compiler/enums/uok"
 	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
@@ -39,12 +40,16 @@ func (s *Scope) TranslateExp(exp ast.Exp) (Exp, diag.Error) {
 		return s.translateSymbolExp(e)
 	case ast.Paren:
 		return s.TranslateExp(e.Exp)
+	case ast.Unary:
+		return s.translateUnaryExp(e)
 	case ast.Binary:
 		return s.translateBinaryExp(e)
 	case ast.Chain:
 		return s.TranslateChain(e)
 	case ast.Call:
 		return s.TranslateCall(e)
+	case ast.Slice:
+		return s.translateSlice(e)
 	case ast.Pack:
 		return s.translatePackExp(e)
 	case ast.Cast:
@@ -53,6 +58,54 @@ func (s *Scope) TranslateExp(exp ast.Exp) (Exp, diag.Error) {
 		return s.translateDerefSlice(e)
 	default:
 		panic(fmt.Sprintf("unexpected %s (=%d) expression (%T)", e.Kind(), e.Kind(), e))
+	}
+}
+
+func (s *Scope) translateUnaryExp(u ast.Unary) (Exp, diag.Error) {
+	exp, err := s.TranslateExp(u.Exp)
+	if err != nil {
+		return nil, err
+	}
+
+	typ := exp.Type()
+	if typ.IsStatic() {
+		return s.evalConstUnaryExp(exp, u.Op)
+	}
+
+	k := u.Op.Kind
+	switch k {
+	case uok.Plus:
+		if typ.Kind != tpk.Integer {
+			return nil, &diag.SimpleMessageError{
+				Pin:  u.Op.Pin,
+				Text: fmt.Sprintf("type %s does not have + (unary plus) operation", typ),
+			}
+		}
+		return exp, nil
+	case uok.Minus:
+		if typ.Kind != tpk.Integer {
+			return nil, &diag.SimpleMessageError{
+				Pin:  u.Op.Pin,
+				Text: fmt.Sprintf("type %s does not have - (unary minus) operation", typ),
+			}
+		}
+		return &Unary{
+			Exp: exp,
+			Op:  u.Op,
+		}, nil
+	case uok.Not:
+		if typ.Kind != tpk.Boolean {
+			return nil, &diag.SimpleMessageError{
+				Pin:  u.Op.Pin,
+				Text: fmt.Sprintf("type %s does not have ! (unary not) operation", typ),
+			}
+		}
+		return &Unary{
+			Exp: exp,
+			Op:  u.Op,
+		}, nil
+	default:
+		panic(fmt.Sprintf("unexpected %s (=%d) unary operator", k, k))
 	}
 }
 
@@ -206,6 +259,80 @@ func (s *Scope) translatePackExp(exp ast.Pack) (*Pack, diag.Error) {
 	}
 
 	return s.Types.MakePack(list), nil
+}
+
+func (s *Scope) translateSlice(slice ast.Slice) (Exp, diag.Error) {
+	exp, err := s.TranslateChain(slice.Chain)
+	if err != nil {
+		return nil, err
+	}
+
+	var start Exp
+	if slice.Start != nil {
+		start, err = s.TranslateExp(slice.Start)
+		if err != nil {
+			return nil, err
+		}
+
+		t := start.Type()
+		if t.Kind != tpk.Integer {
+			return nil, &diag.SimpleMessageError{
+				Pin:  start.Span().Pin,
+				Text: fmt.Sprintf("cannot use %s value as index, must be integer", t),
+			}
+		}
+		if t.IsStatic() {
+			v := start.(*Integer)
+			if v.Neg {
+				return nil, &diag.SimpleMessageError{
+					Pin:  v.Pin,
+					Text: fmt.Sprintf("negative index value -%d", v.Val),
+				}
+			}
+		}
+	}
+
+	var end Exp
+	if slice.End != nil {
+		end, err = s.TranslateExp(slice.End)
+		if err != nil {
+			return nil, err
+		}
+
+		t := end.Type()
+		if t.Kind != tpk.Integer {
+			return nil, &diag.SimpleMessageError{
+				Pin:  end.Span().Pin,
+				Text: fmt.Sprintf("cannot use %s value as index, must be integer", t),
+			}
+		}
+		if t.IsStatic() {
+			v := end.(*Integer)
+			if v.Neg {
+				return nil, &diag.SimpleMessageError{
+					Pin:  v.Pin,
+					Text: fmt.Sprintf("negative index value -%d", v.Val),
+				}
+			}
+		}
+	}
+
+	typ := exp.Type()
+	switch typ.Kind {
+	case tpk.Array:
+		panic("not implemented")
+	case tpk.Span:
+		return &SpanSlice{
+			Exp:   exp,
+			Start: start,
+			End:   end,
+		}, nil
+	default:
+		return nil, &diag.SimpleMessageError{
+			Pin:  exp.Span().Pin,
+			Text: fmt.Sprintf("type %s does not support slice expression", typ),
+		}
+	}
 }
 
 func (s *Scope) TranslateCall(exp ast.Call) (Exp, diag.Error) {
@@ -364,8 +491,54 @@ func (s *Scope) applyChainPart(exp Exp, part ast.Part) (Exp, diag.Error) {
 		return s.applySelectPart(exp, p)
 	case ast.DerefIndex:
 		return s.applyDerefIndexPart(exp, p)
+	case ast.Index:
+		return s.applyIndexPart(exp, p)
 	default:
 		panic(fmt.Sprintf("unexpected %s (=%d) chain part (%T)", p.Kind(), p.Kind(), p))
+	}
+}
+
+func (s *Scope) applyIndexPart(exp Exp, part ast.Index) (Exp, diag.Error) {
+	index, err := s.TranslateExp(part.Exp)
+	if err != nil {
+		return nil, err
+	}
+
+	xtyp := index.Type()
+	if xtyp.Kind != tpk.Integer {
+		return nil, &diag.SimpleMessageError{
+			Pin:  index.Span().Pin,
+			Text: fmt.Sprintf("index must have integer type, got %s", xtyp),
+		}
+	}
+
+	if xtyp.IsStatic() {
+		n := index.(*Integer)
+		if n.Neg {
+			return nil, &diag.SimpleMessageError{
+				Pin:  n.Pin,
+				Text: fmt.Sprintf("negative index value -%d", n.Val),
+			}
+		}
+	}
+
+	typ := exp.Type()
+	switch typ.Kind {
+	case tpk.Array:
+		panic("not implemented")
+	case tpk.Span:
+		return &SpanIndex{
+			Exp:   exp,
+			Index: index,
+			typ:   typ.Def.(Span).Type,
+		}, nil
+	case tpk.CapBuf:
+		panic("not implemented")
+	default:
+		return nil, &diag.SimpleMessageError{
+			Pin:  index.Span().Pin,
+			Text: fmt.Sprintf("type %s does not support index expression", typ),
+		}
 	}
 }
 
@@ -720,7 +893,7 @@ func (x *TypeIndex) checkBinaryForType(typ *Type, op BinOp) (*Type, diag.Error) 
 		}
 	case tpk.Boolean:
 		switch op.Kind {
-		case bok.Equal, bok.NotEqual:
+		case bok.Equal, bok.NotEqual, bok.And, bok.Or:
 			return x.Known.Bool, nil
 		default:
 			return nil, &diag.SimpleMessageError{

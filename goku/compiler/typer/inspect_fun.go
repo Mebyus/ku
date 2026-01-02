@@ -51,15 +51,11 @@ func (t *Typer) inspectResultType(spec ast.TypeSpec) diag.Error {
 	case nil:
 		// function returns nothing or never returns
 		return nil
-	case ast.TypeName:
-		return t.linkTypeName(p)
-	case ast.Span:
-		return t.linkSpan(p)
 	case ast.Tuple:
 		return t.inspectTuple(p)
-	default:
-		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier (%T)", p.Kind(), p.Kind(), p))
 	}
+
+	return t.inspectType(spec)
 }
 
 func (t *Typer) inspectParams(params []ast.Param) diag.Error {

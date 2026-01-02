@@ -104,6 +104,8 @@ func (t *Typer) translateStatement(stm ast.Statement) (stg.Statement, diag.Error
 		return t.translateAssign(s)
 	case ast.Invoke:
 		return t.translateInvoke(s)
+	case ast.Loop:
+		return t.translateLoop(s)
 	case ast.While:
 		return t.translateWhile(s)
 	case ast.ForRange:
@@ -407,6 +409,23 @@ func (t *Typer) translateForRange(r ast.ForRange) (stg.Statement, diag.Error) {
 	f.End = end
 	f.Var = symbol
 	return &f, nil
+}
+
+func (t *Typer) translateLoop(l ast.Loop) (stg.Statement, diag.Error) {
+	var loop stg.Loop
+	loop.Body.Scope.Init(sck.Loop, t.scope)
+	err := t.translateBlock(&loop.Body, l.Body)
+	if err != nil {
+		return nil, err
+	}
+	if len(loop.Body.Nodes) == 0 {
+		return nil, &diag.SimpleMessageError{
+			Pin:  l.Body.Pin,
+			Text: "loop has empty body, spinloops are forbidden",
+		}
+	}
+
+	return &loop, nil
 }
 
 func (t *Typer) translateWhile(w ast.While) (stg.Statement, diag.Error) {

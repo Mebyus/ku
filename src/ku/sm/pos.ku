@@ -1,0 +1,2 @@
+pub
+type Pin u64

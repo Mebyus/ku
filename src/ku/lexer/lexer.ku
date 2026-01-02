@@ -1,0 +1,39 @@
+import {
+    sm -> "ku/sm"
+}
+
+type Lexer struct {
+    text: []u8
+
+    // Text id shifted to upper 32 bits of u64 number.
+    mask: u64
+
+    // Lexer read position. Offset into text.
+    pos: u32
+
+    // Marks lexer saved position. Used for scanning word tokens.
+    mark: u32
+}
+
+fun (&Lexer) pin() -> sm.Pin {
+	ret cast(sm.Pin, g.mask | cast(u64, g.pos));
+}
+
+fun (&Lexer) eof() -> bool {
+	ret cast(uint, g.pos) >= g.text.len;
+}
+
+// Returns byte at current lexer position.
+fun (&Lexer) peek() -> u8 {
+	ret g.text[g.pos];
+}
+
+// Returns byte after current lexer position.
+// Returns 0 if next lexer position is outside of text.
+fun (&Lexer) next() -> u8 {
+	p := g.pos + 1;
+	if cast(uint, p) >= g.text.len {
+		ret 0;
+	}
+	ret g.text[p];
+}

@@ -1,0 +1,64 @@
+import {
+    sm -> "ku/sm"
+}
+
+pub
+type Token struct {
+    pin:  sm.Pin
+    kind: Kind
+}
+
+pub
+type Kind u8 {
+    EOF = 1
+
+    COMMA
+    COLON
+
+    LEFT_PAREN
+    RIGHT_PAREN
+
+    LEFT_CURLY
+    RIGHT_CURLY
+
+    LEFT_SQUARE
+    RIGHT_SQUARE
+
+    LEFT_ANGLE
+    RIGHT_ANGLE
+
+    PUB
+    FUN
+    TEST
+    TYPE
+    CONST
+    VAR
+    
+    STRUCT
+    UNION
+    
+    FOR
+    IMPORT
+    DEFER
+    BREAK
+    GONEXT
+    IF
+    ELSE
+    RET
+
+    NIL
+    VOID
+    FALSE
+    TRUE
+
+    NEVER
+    STUB
+    MUST
+    PANIC
+    CAST
+
+    INTEGER
+    STRING
+    FLOAT
+    RUNE
+}

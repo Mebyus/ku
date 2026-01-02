@@ -152,7 +152,9 @@ func Build(c *Config) error {
 }
 
 func build(c *Config) error {
+	pool := sm.New()
 	bundle, err := Walk(WalkConfig{
+		pool: pool,
 		Dir: BaseDirs{
 			Std: filepath.Join(c.RootDir, "src/std"),
 			Loc: c.SourceDir,
@@ -161,12 +163,12 @@ func build(c *Config) error {
 		Path: sm.Local(c.Unit),
 	})
 	if err != nil {
-		return diag.Format(bundle.Pool, err)
+		return diag.Format(pool, err)
 	}
 
 	err = CompileBundle(bundle)
 	if err != nil {
-		return diag.Format(bundle.Pool, err)
+		return diag.Format(pool, err)
 	}
 
 	return nil

@@ -1,0 +1,74 @@
+import std {
+	chars -> "chars"
+}
+
+// Shift lexer scan position one byte forward.
+fun (&Lexer) advance() {
+	g.pos += 1;
+}
+
+// Start recording new token data.
+fun (&Lexer) start() {
+	g.mark = g.pos;
+}
+
+// Returns a view (slice into scanned text) of recorded token data.
+fun (&Lexer) view() -> []u8 {
+	ret g.text[g.mark:g.pos];
+}
+
+fun (&Lexer) skip_line_comment() {
+	g.advance(); // skip '/'
+	g.advance(); // skip '/'
+	g.skip_line();
+}
+
+fun (&Lexer) skip_block_comment() {
+	g.advance(); // skip '/'
+	g.advance(); // skip '*'
+
+	for !g.eof() && !(g.peek() == '*' && g.next() == '/') {
+		g.advance();
+	}
+
+	if g.eof() {
+		ret;
+	}
+
+	g.advance(); // skip '*'
+	g.advance(); // skip '/'
+}
+
+fun (&Lexer) skip_whitespace_and_comments() {
+	for {
+		g.skip_whitespace();
+		if g.eof() {
+			ret;
+		}
+
+		if g.peek() == '/' && g.next() == '/' {
+			g.skip_line_comment();
+		} else if g.peek() == '/' && g.next() == '*' {
+			g.skip_block_comment();
+		} else {
+			ret;
+		}
+	}
+}
+
+fun (&Lexer) skip_whitespace() {
+	for !g.eof() && chars.is_whitespace(g.peek()) {
+		g.advance();
+	}
+}
+
+fun (&Lexer) skip_line() {
+	for !g.eof() && g.peek() != '\n' {
+		g.advance();
+	}
+	if g.eof() {
+		ret;
+	}
+
+	g.advance(); // skip newline byte
+}

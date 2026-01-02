@@ -82,6 +82,10 @@ func CheckCast(want *Type, exp Exp) diag.Error {
 		return nil
 	}
 
+	if want.Kind == tpk.Custom && want.Def.(*Custom).Type.Kind == tpk.Integer {
+		return nil
+	}
+
 	return &diag.SimpleMessageError{
 		Pin:  exp.Span().Pin,
 		Text: fmt.Sprintf("value of %s type cannot be cast into %s", typ, want),
