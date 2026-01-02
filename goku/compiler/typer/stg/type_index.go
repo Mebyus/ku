@@ -39,6 +39,10 @@ type TypeIndex struct {
 	// names (including field order).
 	Structs map[ /* joined field names */ string][]*Type
 
+	// Maps joined field names to a list of union types with the same field
+	// names (including field order).
+	Unions map[ /* joined field names */ string][]*Type
+
 	Tuples map[ /* binary encoded string of all types inside tuple */ string]*Type
 
 	// Maps array type definition (element type + size) to the corresponding array type.
@@ -151,6 +155,7 @@ func (x *TypeIndex) Init() {
 	x.ArrayRefs = make(map[*Type]*Type)
 	x.Refs = make(map[*Type]*Type)
 	x.Structs = make(map[string][]*Type)
+	x.Unions = make(map[string][]*Type)
 	x.Tuples = make(map[string]*Type)
 	x.Arrays = make(map[Array]*Type)
 
@@ -185,6 +190,8 @@ func (s *Scope) LookupType(spec ast.TypeSpec) (*Type, diag.Error) {
 		return s.lookupArray(p)
 	case ast.Struct:
 		return s.lookupStruct(p)
+	case ast.Union:
+		return s.lookupUnion(p)
 	case ast.Tuple:
 		return s.lookupTuple(p)
 	case ast.Enum:
@@ -397,17 +404,13 @@ func (s *Scope) lookupCapBuf(p ast.CapBuf) (*Type, diag.Error) {
 	return typ, nil
 }
 
-func (s *Scope) lookupStruct(p ast.Struct) (*Type, diag.Error) {
-	if len(p.Fields) == 0 {
-		panic("struct with no fields")
-	}
-
+func (s *Scope) lookupFields(list []ast.Field) (string, []Field, diag.Error) {
 	n := 0 // total length of joined field names
-	fields := make([]Field, 0, len(p.Fields))
-	for _, f := range p.Fields {
+	fields := make([]Field, 0, len(list))
+	for _, f := range list {
 		t, err := s.LookupType(f.Type)
 		if err != nil {
-			return nil, err
+			return "", nil, err
 		}
 
 		name := f.Name.Str
@@ -430,9 +433,22 @@ func (s *Scope) lookupStruct(p ast.Struct) (*Type, diag.Error) {
 		buf.WriteByte('|')
 		buf.WriteString(f.Name)
 	}
-	joined := buf.String()
+	key := buf.String()
 
-	list := s.Types.Structs[joined]
+	return key, fields, nil
+}
+
+func (s *Scope) lookupStruct(p ast.Struct) (*Type, diag.Error) {
+	if len(p.Fields) == 0 {
+		return s.Types.Known.Void, nil
+	}
+
+	key, fields, err := s.lookupFields(p.Fields)
+	if err != nil {
+		return nil, err
+	}
+
+	list := s.Types.Structs[key]
 	for _, t := range list {
 		if equalFieldTypes(fields, t.Def.(*Struct).Fields) {
 			return t, nil
@@ -443,7 +459,41 @@ func (s *Scope) lookupStruct(p ast.Struct) (*Type, diag.Error) {
 		Def:  &Struct{Fields: fields},
 		Kind: tpk.Struct,
 	}
-	s.Types.Structs[joined] = append(s.Types.Structs[joined], typ)
+	s.Types.Structs[key] = append(s.Types.Structs[key], typ)
+	return typ, nil
+}
+
+func (s *Scope) lookupUnion(u ast.Union) (*Type, diag.Error) {
+	if len(u.Fields) == 0 {
+		return s.Types.Known.Void, nil
+	}
+
+	key, fields, err := s.lookupFields(u.Fields)
+	if err != nil {
+		return nil, err
+	}
+
+	list := s.Types.Unions[key]
+	for _, t := range list {
+		if equalFieldTypes(fields, t.Def.(*Union).Fields) {
+			return t, nil
+		}
+	}
+
+	var size uint32
+	for _, f := range fields {
+		size += f.Type.Size
+	}
+	if size == 0 {
+		panic("not implemented")
+	}
+
+	typ := &Type{
+		Size: size,
+		Def:  &Union{Fields: fields},
+		Kind: tpk.Union,
+	}
+	s.Types.Unions[key] = append(s.Types.Unions[key], typ)
 	return typ, nil
 }
 

@@ -49,6 +49,13 @@ func (n *Integer) String() string {
 // Explicit interface implementation check.
 var _ Exp = &Integer{}
 
+// WithPin clones an Integer with specified pin position.
+func (n *Integer) WithPin(pin sm.Pin) *Integer {
+	v := *n
+	v.Pin = pin
+	return &v
+}
+
 // Add creates a new Integer of the same type with value n + v.
 // Pin is not set for it.
 func (n *Integer) Add(v uint64) *Integer {

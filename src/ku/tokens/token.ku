@@ -4,8 +4,14 @@ import {
 
 pub
 type Token struct {
+    data: Data
     pin:  sm.Pin
     kind: Kind
+}
+
+type Data union {
+    lit: str
+    val: u64
 }
 
 pub

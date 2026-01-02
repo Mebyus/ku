@@ -328,13 +328,31 @@ func (s *Struct) getField(name string) *Field {
 	return nil
 }
 
+type Union struct {
+	Fields []Field
+}
+
+func (*Union) Kind() tpk.Kind {
+	return tpk.Union
+}
+
+func (u *Union) getField(name string) *Field {
+	for i := range u.Fields {
+		f := &u.Fields[i]
+		if f.Name == name {
+			return f
+		}
+	}
+	return nil
+}
+
 type Enum struct {
 	Entries []EnumEntry
 
 	m map[ /* entry name */ string]*EnumEntry
 }
 
-func (Enum) Kind() tpk.Kind {
+func (*Enum) Kind() tpk.Kind {
 	return tpk.Enum
 }
 

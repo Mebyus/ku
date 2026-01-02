@@ -2,3 +2,59 @@ pub
 fun is_whitespace(c: u8) -> bool {
 	ret c == ' ' || c == '\n' || c == '\t' || c == '\r';
 }
+
+const capital_latin_letter_mask := 0xDF;
+
+// CapitalLatinLetter transforms ASCII latin letter character to its upper
+// (capital) form.
+pub
+fun capital_latin_letter(c: u8) -> u8 {
+	ret c & capital_latin_letter_mask;
+}
+
+const lower_latin_letter_mask := 0x20;
+
+pub
+fun lower_latin_letter(c: u8) -> u8 {
+	ret c | lower_latin_letter_mask;
+}
+
+pub
+fun is_latin_letter(c: u8) -> bool {
+	c = capital_latin_letter(c);
+	ret 'A' <= c && c <= 'Z';
+}
+
+pub
+fun is_latin_letter_or_underscore(c: u8) -> bool {
+	ret is_latin_letter(c) || c == '_';
+}
+
+pub
+fun is_dec_digit(c: u8) -> bool {
+	ret '0' <= c && c <= '9';
+}
+
+pub
+fun is_oct_digit(c: u8) -> bool {
+	ret '0' <= c && c <= '7';
+}
+
+pub
+fun is_bin_digit(c: u8) -> bool {
+	ret c == '0' || c == '1';
+}
+
+pub
+fun is_hex_digit(c: u8) -> bool {
+	if is_dec_digit(c) {
+		ret true;
+	}
+	c = capital_latin_letter(c);
+	ret 'A' <= c && c <= 'F';
+}
+
+pub
+fun is_dec_digit_or_period(c: u8) -> bool {
+	ret is_dec_digit(c) || c == '.';
+}

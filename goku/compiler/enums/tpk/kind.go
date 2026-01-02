@@ -128,6 +128,8 @@ const (
 
 	Struct
 
+	Union
+
 	Tuple
 )
 
@@ -147,6 +149,7 @@ var text = [...]string{
 	Enum:   "enum",
 	Custom: "custom",
 	Struct: "struct",
+	Union:  "union",
 	Tuple:  "tuple",
 
 	Ref:          "ref",

@@ -138,7 +138,8 @@ func (t *Typer) translateStatement(stm ast.Statement) (stg.Statement, diag.Error
 }
 
 func (t *Typer) translateAssign(a ast.Assign) (stg.Statement, diag.Error) {
-	switch a.Op.Kind {
+	k := a.Op.Kind
+	switch k {
 	case aok.Simple:
 		return t.translateSimpleAssign(a)
 	case aok.Walrus:
@@ -146,17 +147,23 @@ func (t *Typer) translateAssign(a ast.Assign) (stg.Statement, diag.Error) {
 	case aok.Add, aok.Sub, aok.Mul, aok.Div, aok.And, aok.Or, aok.Rem, aok.LeftShift, aok.RightShift:
 		return t.translateOpAssign(a)
 	default:
-		panic(fmt.Sprintf("unexpected %s (=%d) assign operator", a.Op.Kind))
+		panic(fmt.Sprintf("unexpected %s (=%d) assign operator", k, k))
 	}
 }
 
 func (t *Typer) translateSimpleAssign(a ast.Assign) (stg.Statement, diag.Error) {
-	target, err := t.scope.TranslateExp(a.Target)
+	target, err := t.scope.TranslateExp(&stg.Hint{}, a.Target)
 	if err != nil {
 		return nil, err
 	}
 
-	exp, err := t.translateExp(a.Value)
+	var hint stg.Hint
+	typ := target.Type()
+	if typ.Kind == tpk.Custom && typ.Def.(*stg.Custom).Type.Kind == tpk.Enum {
+		hint.Enum = typ.Def.(*stg.Custom).Type.Def.(*stg.Enum)
+	}
+
+	exp, err := t.scope.TranslateExp(&hint, a.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +199,7 @@ func (t *Typer) translateOpAssign(a ast.Assign) (stg.Statement, diag.Error) {
 		}
 	}
 
-	target, err := t.scope.TranslateExp(a.Target)
+	target, err := t.scope.TranslateExp(&stg.Hint{}, a.Target)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +212,7 @@ func (t *Typer) translateOpAssign(a ast.Assign) (stg.Statement, diag.Error) {
 		}
 	}
 
-	exp, err := t.translateExp(a.Value)
+	exp, err := t.scope.TranslateExp(&stg.Hint{}, a.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +226,7 @@ func (t *Typer) translateOpAssign(a ast.Assign) (stg.Statement, diag.Error) {
 }
 
 func (t *Typer) translateWalrusAssign(a ast.Assign) (stg.Statement, diag.Error) {
-	exp, err := t.translateExp(a.Value)
+	exp, err := t.scope.TranslateExp(&stg.Hint{}, a.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -295,7 +302,7 @@ func (t *Typer) defineOrAssign(target ast.Exp, typ *stg.Type) (stg.Exp, diag.Err
 			Symbol: symbol,
 		}, nil
 	default:
-		exp, err := t.scope.TranslateExp(e)
+		exp, err := t.scope.TranslateExp(&stg.Hint{}, e)
 		if err != nil {
 			return exp, nil
 		}
@@ -307,7 +314,7 @@ func (t *Typer) defineOrAssign(target ast.Exp, typ *stg.Type) (stg.Exp, diag.Err
 }
 
 func (t *Typer) translateInvoke(v ast.Invoke) (*stg.Invoke, diag.Error) {
-	call, err := t.scope.TranslateCall(v.Call)
+	call, err := t.scope.TranslateCall(&stg.Hint{}, v.Call)
 	if err != nil {
 		return nil, err
 	}
@@ -316,7 +323,7 @@ func (t *Typer) translateInvoke(v ast.Invoke) (*stg.Invoke, diag.Error) {
 }
 
 func (t *Typer) translateMust(m ast.Must) (stg.Statement, diag.Error) {
-	exp, err := t.scope.TranslateExp(m.Exp)
+	exp, err := t.scope.TranslateExp(&stg.Hint{}, m.Exp)
 	if err != nil {
 		return nil, err
 	}
@@ -350,7 +357,7 @@ func (t *Typer) translateForRange(r ast.ForRange) (stg.Statement, diag.Error) {
 	var err diag.Error
 
 	if r.Start != nil {
-		start, err = t.scope.TranslateExp(r.Start)
+		start, err = t.scope.TranslateExp(&stg.Hint{}, r.Start)
 		if err != nil {
 			return nil, err
 		}
@@ -363,7 +370,7 @@ func (t *Typer) translateForRange(r ast.ForRange) (stg.Statement, diag.Error) {
 		}
 	}
 
-	end, err := t.scope.TranslateExp(r.End)
+	end, err := t.scope.TranslateExp(&stg.Hint{}, r.End)
 	if err != nil {
 		return nil, err
 	}
@@ -429,7 +436,7 @@ func (t *Typer) translateLoop(l ast.Loop) (stg.Statement, diag.Error) {
 }
 
 func (t *Typer) translateWhile(w ast.While) (stg.Statement, diag.Error) {
-	exp, err := t.scope.TranslateExp(w.Exp)
+	exp, err := t.scope.TranslateExp(&stg.Hint{}, w.Exp)
 	if err != nil {
 		return nil, err
 	}
@@ -483,7 +490,7 @@ func (t *Typer) translateWhile(w ast.While) (stg.Statement, diag.Error) {
 }
 
 func (t *Typer) translateConst(c ast.Const) (stg.Statement, diag.Error) {
-	exp, err := t.scope.TranslateExp(c.Exp)
+	exp, err := t.scope.TranslateExp(&stg.Hint{}, c.Exp)
 	if err != nil {
 		return nil, err
 	}
@@ -528,7 +535,7 @@ func (t *Typer) translateVar(v ast.Var) (*stg.Var, diag.Error) {
 
 	var exp stg.Exp
 	if v.Exp != nil {
-		exp, err = t.scope.TranslateExp(v.Exp)
+		exp, err = t.scope.TranslateExp(&stg.Hint{}, v.Exp)
 		if err != nil {
 			return nil, err
 		}
@@ -653,7 +660,7 @@ func (t *Typer) translateIf(f ast.If) (stg.Statement, diag.Error) {
 func (t *Typer) translateBranch(f ast.IfClause) (*stg.Branch, diag.Error) {
 	var b stg.Branch
 
-	exp, err := t.translateExp(f.Exp)
+	exp, err := t.scope.TranslateExp(&stg.Hint{}, f.Exp)
 	if err != nil {
 		return nil, err
 	}
@@ -699,7 +706,7 @@ func (t *Typer) translateRet(r ast.Ret) (*stg.Ret, diag.Error) {
 		}
 	}
 
-	exp, err := t.translateExp(r.Exp)
+	exp, err := t.scope.TranslateExp(&stg.Hint{}, r.Exp)
 	if err != nil {
 		return nil, err
 	}
@@ -709,10 +716,6 @@ func (t *Typer) translateRet(r ast.Ret) (*stg.Ret, diag.Error) {
 	}
 
 	return &stg.Ret{Exp: exp}, nil
-}
-
-func (t *Typer) translateExp(exp ast.Exp) (stg.Exp, diag.Error) {
-	return t.scope.TranslateExp(exp)
 }
 
 // check that function result and expression types are compatible

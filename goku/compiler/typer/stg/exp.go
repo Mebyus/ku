@@ -22,7 +22,7 @@ type Exp interface {
 	String() string
 }
 
-func (s *Scope) TranslateExp(exp ast.Exp) (Exp, diag.Error) {
+func (s *Scope) TranslateExp(hint *Hint, exp ast.Exp) (Exp, diag.Error) {
 	switch e := exp.(type) {
 	case ast.Nil:
 		return s.Types.MakeNil(e.Pin), nil
@@ -38,31 +38,33 @@ func (s *Scope) TranslateExp(exp ast.Exp) (Exp, diag.Error) {
 		return s.Types.MakeRune(e.Pin, uint32(e.Val)), nil
 	case ast.Symbol:
 		return s.translateSymbolExp(e)
+	case ast.DotName:
+		return s.translateDotName(hint, e)
 	case ast.Paren:
-		return s.TranslateExp(e.Exp)
+		return s.TranslateExp(hint, e.Exp)
 	case ast.Unary:
-		return s.translateUnaryExp(e)
+		return s.translateUnaryExp(hint, e)
 	case ast.Binary:
-		return s.translateBinaryExp(e)
+		return s.translateBinaryExp(hint, e)
 	case ast.Chain:
-		return s.TranslateChain(e)
+		return s.TranslateChain(hint, e)
 	case ast.Call:
-		return s.TranslateCall(e)
+		return s.TranslateCall(hint, e)
 	case ast.Slice:
-		return s.translateSlice(e)
+		return s.translateSlice(hint, e)
 	case ast.Pack:
-		return s.translatePackExp(e)
+		return s.translatePackExp(hint, e)
 	case ast.Cast:
-		return s.translateCast(e)
+		return s.translateCast(hint, e)
 	case ast.DerefSlice:
-		return s.translateDerefSlice(e)
+		return s.translateDerefSlice(hint, e)
 	default:
 		panic(fmt.Sprintf("unexpected %s (=%d) expression (%T)", e.Kind(), e.Kind(), e))
 	}
 }
 
-func (s *Scope) translateUnaryExp(u ast.Unary) (Exp, diag.Error) {
-	exp, err := s.TranslateExp(u.Exp)
+func (s *Scope) translateUnaryExp(hint *Hint, u ast.Unary) (Exp, diag.Error) {
+	exp, err := s.TranslateExp(hint, u.Exp)
 	if err != nil {
 		return nil, err
 	}
@@ -109,16 +111,16 @@ func (s *Scope) translateUnaryExp(u ast.Unary) (Exp, diag.Error) {
 	}
 }
 
-func (s *Scope) translateDerefSlice(d ast.DerefSlice) (Exp, diag.Error) {
+func (s *Scope) translateDerefSlice(hint *Hint, d ast.DerefSlice) (Exp, diag.Error) {
 	if d.End == nil {
-		return s.translateSliceArrayRef(d.Chain, d.Start)
+		return s.translateSliceArrayRef(hint, d.Chain, d.Start)
 	}
 
-	return s.translateMakeSpan(d)
+	return s.translateMakeSpan(hint, d)
 }
 
-func (s *Scope) translateMakeSpan(d ast.DerefSlice) (Exp, diag.Error) {
-	c, err := s.TranslateChain(d.Chain)
+func (s *Scope) translateMakeSpan(hint *Hint, d ast.DerefSlice) (Exp, diag.Error) {
+	c, err := s.TranslateChain(hint, d.Chain)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +141,7 @@ func (s *Scope) translateMakeSpan(d ast.DerefSlice) (Exp, diag.Error) {
 
 	var start Exp
 	if d.Start != nil {
-		start, err := s.TranslateExp(d.Start)
+		start, err := s.TranslateExp(hint, d.Start)
 		if err != nil {
 			return nil, err
 		}
@@ -153,7 +155,7 @@ func (s *Scope) translateMakeSpan(d ast.DerefSlice) (Exp, diag.Error) {
 		// TODO: add static negative integer check
 	}
 
-	end, err := s.TranslateExp(d.End)
+	end, err := s.TranslateExp(hint, d.End)
 	if err != nil {
 		return nil, err
 	}
@@ -172,8 +174,8 @@ func (s *Scope) translateMakeSpan(d ast.DerefSlice) (Exp, diag.Error) {
 	}, nil
 }
 
-func (s *Scope) translateSliceArrayRef(chain ast.Chain, start ast.Exp) (Exp, diag.Error) {
-	c, err := s.TranslateChain(chain)
+func (s *Scope) translateSliceArrayRef(hint *Hint, chain ast.Chain, start ast.Exp) (Exp, diag.Error) {
+	c, err := s.TranslateChain(hint, chain)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +192,7 @@ func (s *Scope) translateSliceArrayRef(chain ast.Chain, start ast.Exp) (Exp, dia
 		return c, nil
 	}
 
-	index, err := s.TranslateExp(start)
+	index, err := s.TranslateExp(hint, start)
 	if err != nil {
 		return nil, err
 	}
@@ -221,8 +223,8 @@ func (s *Scope) translateSliceArrayRef(chain ast.Chain, start ast.Exp) (Exp, dia
 	}, nil
 }
 
-func (s *Scope) translateCast(c ast.Cast) (Exp, diag.Error) {
-	exp, err := s.TranslateExp(c.Exp)
+func (s *Scope) translateCast(hint *Hint, c ast.Cast) (Exp, diag.Error) {
+	exp, err := s.TranslateExp(hint, c.Exp)
 	if err != nil {
 		return nil, err
 	}
@@ -248,10 +250,10 @@ func (s *Scope) translateCast(c ast.Cast) (Exp, diag.Error) {
 	}, nil
 }
 
-func (s *Scope) translatePackExp(exp ast.Pack) (*Pack, diag.Error) {
+func (s *Scope) translatePackExp(hint *Hint, exp ast.Pack) (*Pack, diag.Error) {
 	list := make([]Exp, 0, len(exp.List))
 	for _, e := range exp.List {
-		x, err := s.TranslateExp(e)
+		x, err := s.TranslateExp(hint, e)
 		if err != nil {
 			return nil, err
 		}
@@ -261,15 +263,15 @@ func (s *Scope) translatePackExp(exp ast.Pack) (*Pack, diag.Error) {
 	return s.Types.MakePack(list), nil
 }
 
-func (s *Scope) translateSlice(slice ast.Slice) (Exp, diag.Error) {
-	exp, err := s.TranslateChain(slice.Chain)
+func (s *Scope) translateSlice(hint *Hint, slice ast.Slice) (Exp, diag.Error) {
+	exp, err := s.TranslateChain(hint, slice.Chain)
 	if err != nil {
 		return nil, err
 	}
 
 	var start Exp
 	if slice.Start != nil {
-		start, err = s.TranslateExp(slice.Start)
+		start, err = s.TranslateExp(hint, slice.Start)
 		if err != nil {
 			return nil, err
 		}
@@ -294,7 +296,7 @@ func (s *Scope) translateSlice(slice ast.Slice) (Exp, diag.Error) {
 
 	var end Exp
 	if slice.End != nil {
-		end, err = s.TranslateExp(slice.End)
+		end, err = s.TranslateExp(hint, slice.End)
 		if err != nil {
 			return nil, err
 		}
@@ -335,13 +337,13 @@ func (s *Scope) translateSlice(slice ast.Slice) (Exp, diag.Error) {
 	}
 }
 
-func (s *Scope) TranslateCall(exp ast.Call) (Exp, diag.Error) {
+func (s *Scope) TranslateCall(hint *Hint, exp ast.Call) (Exp, diag.Error) {
 	var args []Exp
 	if len(exp.Args) != 0 {
 		args = make([]Exp, 0, len(exp.Args))
 
 		for _, arg := range exp.Args {
-			a, err := s.TranslateExp(arg)
+			a, err := s.TranslateExp(hint, arg)
 			if err != nil {
 				return nil, err
 			}
@@ -349,7 +351,7 @@ func (s *Scope) TranslateCall(exp ast.Call) (Exp, diag.Error) {
 		}
 	}
 
-	chain, err := s.TranslateChain(exp.Chain)
+	chain, err := s.TranslateChain(hint, exp.Chain)
 	if err != nil {
 		return nil, err
 	}
@@ -395,7 +397,7 @@ func (s *Scope) TranslateCall(exp ast.Call) (Exp, diag.Error) {
 	return call, nil
 }
 
-func (s *Scope) TranslateChain(exp ast.Chain) (Exp, diag.Error) {
+func (s *Scope) TranslateChain(hint *Hint, exp ast.Chain) (Exp, diag.Error) {
 	name := exp.Start.Str
 	pin := exp.Start.Pin
 
@@ -477,7 +479,7 @@ func (s *Scope) TranslateChain(exp ast.Chain) (Exp, diag.Error) {
 
 	for _, p := range exp.Parts {
 		var err diag.Error
-		e, err = s.applyChainPart(e, p)
+		e, err = s.applyChainPart(hint, e, p)
 		if err != nil {
 			return nil, err
 		}
@@ -485,21 +487,21 @@ func (s *Scope) TranslateChain(exp ast.Chain) (Exp, diag.Error) {
 	return e, nil
 }
 
-func (s *Scope) applyChainPart(exp Exp, part ast.Part) (Exp, diag.Error) {
+func (s *Scope) applyChainPart(hint *Hint, exp Exp, part ast.Part) (Exp, diag.Error) {
 	switch p := part.(type) {
 	case ast.Select:
 		return s.applySelectPart(exp, p)
 	case ast.DerefIndex:
-		return s.applyDerefIndexPart(exp, p)
+		return s.applyDerefIndexPart(hint, exp, p)
 	case ast.Index:
-		return s.applyIndexPart(exp, p)
+		return s.applyIndexPart(hint, exp, p)
 	default:
 		panic(fmt.Sprintf("unexpected %s (=%d) chain part (%T)", p.Kind(), p.Kind(), p))
 	}
 }
 
-func (s *Scope) applyIndexPart(exp Exp, part ast.Index) (Exp, diag.Error) {
-	index, err := s.TranslateExp(part.Exp)
+func (s *Scope) applyIndexPart(hint *Hint, exp Exp, part ast.Index) (Exp, diag.Error) {
+	index, err := s.TranslateExp(hint, part.Exp)
 	if err != nil {
 		return nil, err
 	}
@@ -542,8 +544,8 @@ func (s *Scope) applyIndexPart(exp Exp, part ast.Index) (Exp, diag.Error) {
 	}
 }
 
-func (s *Scope) applyDerefIndexPart(exp Exp, part ast.DerefIndex) (*DerefIndex, diag.Error) {
-	index, err := s.TranslateExp(part.Exp)
+func (s *Scope) applyDerefIndexPart(hint *Hint, exp Exp, part ast.DerefIndex) (*DerefIndex, diag.Error) {
+	index, err := s.TranslateExp(hint, part.Exp)
 	if err != nil {
 		return nil, err
 	}
@@ -693,6 +695,29 @@ func bindMethodToPointerReceiver(r Exp, m *Symbol) (*BoundMethod, diag.Error) {
 	}, nil
 }
 
+func (s *Scope) translateDotName(hint *Hint, d ast.DotName) (Exp, diag.Error) {
+	name := d.Name
+	pin := d.Pin
+
+	entry := hint.lookupDotName(name)
+	if entry == nil {
+		if hint.Enum == nil {
+			return nil, &diag.SimpleMessageError{
+				Pin:  pin,
+				Text: fmt.Sprintf("expression context does not have enum type hint to resolve \".%s\"", name),
+			}
+		}
+
+		// TODO: supply enum type name to error
+		return nil, &diag.SimpleMessageError{
+			Pin:  pin,
+			Text: fmt.Sprintf("enum does not have \"%s\" entry", name),
+		}
+	}
+
+	return entry.Value.WithPin(pin), nil
+}
+
 func (s *Scope) translateSymbolExp(sym ast.Symbol) (Exp, diag.Error) {
 	name := sym.Name
 	pin := sym.Pin
@@ -718,12 +743,12 @@ func (s *Scope) translateSymbolExp(sym ast.Symbol) (Exp, diag.Error) {
 	}
 }
 
-func (s *Scope) translateBinaryExp(exp ast.Binary) (Exp, diag.Error) {
-	a, err := s.TranslateExp(exp.A)
+func (s *Scope) translateBinaryExp(hint *Hint, exp ast.Binary) (Exp, diag.Error) {
+	a, err := s.TranslateExp(hint, exp.A)
 	if err != nil {
 		return nil, err
 	}
-	b, err := s.TranslateExp(exp.B)
+	b, err := s.TranslateExp(hint, exp.B)
 	if err != nil {
 		return nil, err
 	}

@@ -3,7 +3,7 @@ import {
 }
 
 pub
-fun (&Lexer) read_token(tok: &tokens.Token) {
+fun (&Lexer) lex(tok: &tokens.Token) {
 	if g.eof() {
 		g.emit_eof(tok);
         ret;
@@ -15,7 +15,7 @@ fun (&Lexer) read_token(tok: &tokens.Token) {
         ret;
 	}
 
-	g.lex(tok);
+	g.emit(tok);
 }
 
 fun (&Lexer) emit_eof(tok: &tokens.Token) {
@@ -23,6 +23,46 @@ fun (&Lexer) emit_eof(tok: &tokens.Token) {
     tok.kind = .EOF;
 }
 
-fun (&Lexer) lex(tok: &tokens.Token) {
+fun (&Lexer) emit(tok: &tokens.Token) {
+	if g.peek() == 'c' && g.next() == '"' {
+		g.emit_cstr(tok);
+        ret;
+	}
+
+	if chars.is_latin_letter_or_underscore(g.peek()) {
+		g.emit_word(tok);
+        ret;
+	}
+
+	if chars.is_dec_digit(g.peek()) {
+		g.emit_number(tok);
+        ret;
+	}
+
+	if g.peek() == '"' {
+		g.emit_str(tok);
+        ret;
+	}
+
+    g.emit_other(tok);
+}
+
+fun (&Lexer) emit_cstr(tok: &tokens.Token) {
+
+}
+
+fun (&Lexer) emit_word(tok: &tokens.Token) {
+
+}
+
+fun (&Lexer) emit_str(tok: &tokens.Token) {
+
+}
+
+fun (&Lexer) emit_number(tok: &tokens.Token) {
+
+}
+
+fun (&Lexer) emit_other(tok: &tokens.Token) {
 
 }
