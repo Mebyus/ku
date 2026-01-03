@@ -67,4 +67,6 @@ type Kind u8 {
     STRING
     FLOAT
     RUNE
+
+    C_STRING
 }

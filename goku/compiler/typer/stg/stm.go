@@ -136,3 +136,19 @@ type ForRange struct {
 	// Loop variable.
 	Var *Symbol
 }
+
+type MatchInteger struct {
+	Cases []*MatchCase
+
+	// Expression being matched. Always has integer or enum type.
+	Exp Exp
+
+	Else *Block
+}
+
+type MatchCase struct {
+	Body Block
+
+	// Always has at least one element.
+	List []Exp
+}

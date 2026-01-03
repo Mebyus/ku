@@ -338,36 +338,24 @@ func (s *Scope) translateSlice(hint *Hint, slice ast.Slice) (Exp, diag.Error) {
 }
 
 func (s *Scope) TranslateCall(hint *Hint, exp ast.Call) (Exp, diag.Error) {
-	var args []Exp
-	if len(exp.Args) != 0 {
-		args = make([]Exp, 0, len(exp.Args))
-
-		for _, arg := range exp.Args {
-			a, err := s.TranslateExp(hint, arg)
-			if err != nil {
-				return nil, err
-			}
-			args = append(args, a)
-		}
-	}
-
 	chain, err := s.TranslateChain(hint, exp.Chain)
 	if err != nil {
 		return nil, err
 	}
 
-	var call Exp
+	var call *Call
 	var sig *Signature
+	var args []Exp
 	switch c := chain.(type) {
 	case *SymExp:
 		symbol := c.Symbol
+		args = make([]Exp, 0, len(exp.Args))
 
 		switch symbol.Kind {
 		case smk.Fun:
 			call = &Call{
 				Pin:    exp.Span().Pin,
 				Symbol: symbol,
-				Args:   args,
 			}
 			sig = &symbol.Def.(*Fun).Signature
 		default:
@@ -376,16 +364,39 @@ func (s *Scope) TranslateCall(hint *Hint, exp ast.Call) (Exp, diag.Error) {
 	case *BoundMethod:
 		symbol := c.Symbol
 		fun := symbol.Def.(*Fun)
+		args = make([]Exp, 0, len(exp.Args))
+		args = append(args, c.Receiver)
 
-		args = append([]Exp{c.Receiver}, args...)
 		call = &Call{
 			Pin:    exp.Span().Pin,
 			Symbol: symbol,
-			Args:   args,
 		}
 		sig = &fun.Signature
 	default:
 		panic(fmt.Sprintf("unexpected (%T) chain expression in call", c))
+	}
+
+	if len(exp.Args) != len(sig.Params) {
+		return nil, &diag.SimpleMessageError{
+			Pin:  exp.Span().Pin,
+			Text: fmt.Sprintf("call requires %d argument(s), but got %d", len(sig.Params), len(exp.Args)),
+		}
+	}
+
+	for i, arg := range exp.Args {
+		var h *Hint
+		typ := sig.Params[i]
+		if typ.Kind == tpk.Custom && typ.Def.(*Custom).Type.Kind == tpk.Enum {
+			h = &Hint{Enum: typ.Def.(*Custom).Type.Def.(*Enum)}
+		} else {
+			h = hint
+		}
+
+		a, err := s.TranslateExp(h, arg)
+		if err != nil {
+			return nil, err
+		}
+		args = append(args, a)
 	}
 
 	err = CheckCall(sig, args)
@@ -394,6 +405,7 @@ func (s *Scope) TranslateCall(hint *Hint, exp ast.Call) (Exp, diag.Error) {
 		return nil, err
 	}
 
+	call.Args = args
 	return call, nil
 }
 

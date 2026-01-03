@@ -100,6 +100,8 @@ func (t *Typer) translateStatement(stm ast.Statement) (stg.Statement, diag.Error
 		return t.translateConst(s)
 	case ast.If:
 		return t.translateIf(s)
+	case ast.Match:
+		return t.translateMatch(s)
 	case ast.Assign:
 		return t.translateAssign(s)
 	case ast.Invoke:
@@ -561,6 +563,80 @@ func (t *Typer) translateVar(v ast.Var) (*stg.Var, diag.Error) {
 		Symbol: s,
 		Exp:    exp,
 	}, nil
+}
+
+func (t *Typer) translateMatch(m ast.Match) (stg.Statement, diag.Error) {
+	exp, err := t.scope.TranslateExp(&stg.Hint{}, m.Exp)
+	if err != nil {
+		return nil, err
+	}
+
+	typ := exp.Type()
+	if typ.Kind == tpk.Integer || (typ.Kind == tpk.Custom && typ.Def.(*stg.Custom).Type.Kind == tpk.Enum) {
+		return t.translateMatchInteger(exp, m)
+	}
+
+	panic(fmt.Sprintf("not implemented for %s type", typ))
+}
+
+func (t *Typer) translateMatchInteger(exp stg.Exp, m ast.Match) (stg.Statement, diag.Error) {
+	var cases []*stg.MatchCase
+	if len(m.Cases) != 0 {
+		typ := exp.Type()
+		cases = make([]*stg.MatchCase, 0, len(m.Cases))
+		for _, mc := range m.Cases {
+			c, err := t.translateMatchCase(typ, mc)
+			if err != nil {
+				return nil, err
+			}
+			cases = append(cases, c)
+		}
+	}
+
+	var elseBlock *stg.Block
+	if m.Else != nil && len(m.Else.Nodes) != 0 {
+		var block stg.Block
+		block.Scope.Init(sck.Case, t.scope)
+		err := t.translateBlock(&block, *m.Else)
+		if err != nil {
+			return nil, err
+		}
+		if len(block.Nodes) != 0 {
+			elseBlock = &block
+		}
+	}
+
+	return &stg.MatchInteger{
+		Exp:   exp,
+		Cases: cases,
+		Else:  elseBlock,
+	}, nil
+}
+
+func (t *Typer) translateMatchCase(want *stg.Type, mc ast.MatchCase) (*stg.MatchCase, diag.Error) {
+	var c stg.MatchCase
+	c.List = make([]stg.Exp, 0, len(mc.List))
+	for _, exp := range mc.List {
+		e, err := t.scope.TranslateExp(&stg.Hint{}, exp)
+		if err != nil {
+			return nil, err
+		}
+
+		err = stg.CheckAssign(want, e)
+		if err != nil {
+			return nil, err
+		}
+
+		c.List = append(c.List, e)
+	}
+
+	c.Body.Scope.Init(sck.Case, t.scope)
+	err := t.translateBlock(&c.Body, mc.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return &c, nil
 }
 
 func (t *Typer) translateIf(f ast.If) (stg.Statement, diag.Error) {

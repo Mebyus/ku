@@ -48,7 +48,9 @@ fun (&Lexer) emit(tok: &tokens.Token) {
 }
 
 fun (&Lexer) emit_cstr(tok: &tokens.Token) {
-
+	g.advance();
+	g.emit_str(tok);	
+	tok.kind = .C_STRING;
 }
 
 fun (&Lexer) emit_word(tok: &tokens.Token) {
@@ -64,5 +66,21 @@ fun (&Lexer) emit_number(tok: &tokens.Token) {
 }
 
 fun (&Lexer) emit_other(tok: &tokens.Token) {
+	if g.peek()
+	-> '(' { g.emit_byte_token(tok, .LEFT_PAREN); }
+	-> ')' { g.emit_byte_token(tok, .RIGHT_PAREN); }
+	else { g.emit_illegal_byte(tok); }
+}
 
+fun (&Lexer) emit_byte_token(tok: &tokens.Token, kind: tokens.Kind) {
+    tok.pin = g.pin();
+    tok.kind = kind;
+	
+	g.advance();
+}
+
+fun (&Lexer) emit_illegal_byte(tok: &tokens.Token) {
+	tok.pin = g.pin();
+
+	g.advance();
 }
