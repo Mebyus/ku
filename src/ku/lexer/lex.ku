@@ -62,7 +62,66 @@ fun (&Lexer) emit_str(tok: &tokens.Token) {
 }
 
 fun (&Lexer) emit_number(tok: &tokens.Token) {
+	if g.peek() != '0' {
+		g.emit_dec_number(tok);
+		ret;
+	}
 
+	if g.next() == 'x' {
+		g.emit_hex_number(tok);
+		ret;
+	}
+}
+
+fun (&Lexer) emit_dec_number(tok: &tokens.Token) {
+	tok.pin = g.pin();
+
+}
+
+fun (&Lexer) emit_hex_number(tok: &tokens.Token) {
+	tok.pin = g.pin();
+
+	g.advance(); // skip "0"
+	g.advance(); // skip "x"
+
+	g.start();
+	g.skip_hex_digits();
+
+	if chars.is_alphanum(g.peek()) {
+		g.skip_word();
+		data, ok := g.take();
+		if ok {
+			tok.set_error(.Malformed_Hex_Integer);
+			tok.data.(lit) = data;
+		} else {
+			tok.set_error(.LENGTH_OVERFLOW);
+		}
+		ret;
+	}
+
+	if g.is_length_overflow() {
+		tok.set_error(.LENGTH_OVERFLOW);
+		ret;
+	}
+	if g.length() == 0 {
+		tok.set_error(.Malformed_Hex_Integer);
+		tok.data.(lit) = "0x";
+		ret;
+	}
+
+	tok.kind = .INTEGER;
+	if g.length() > 16 {
+		stub;
+		// lit, ok := g.take()
+		// if !ok {
+		// 	panic("unreachable due to previous checks")
+		// }
+		// tok.data.(lit) = lit;
+		// ret;
+	}
+
+	tok.data.(val) = chars.parse_hex_digits(lx.View());
+	ret;
 }
 
 fun (&Lexer) emit_other(tok: &tokens.Token) {

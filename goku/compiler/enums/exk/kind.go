@@ -218,6 +218,8 @@ const (
 	//	a[0].foo  // Chain(a, Index(Integer(0)), Select(foo))
 	Select
 
+	BagSelect
+
 	// Chain part.
 	//
 	// AST only.
@@ -410,6 +412,7 @@ var text = [...]string{
 
 	DerefIndex:  "deref.index",
 	DerefSelect: "deref.select",
+	BagSelect:   "bag select",
 	DerefSlice:  "deref.slice",
 	SelectTest:  "select.test",
 	DotName:     "dot.name",

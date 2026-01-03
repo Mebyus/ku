@@ -58,3 +58,8 @@ pub
 fun is_dec_digit_or_period(c: u8) -> bool {
 	ret is_dec_digit(c) || c == '.';
 }
+
+pub
+fun is_alphanum(c: u8) -> bool {
+	ret is_latin_letter_or_underscore(c) || is_dec_digit(c);
+}

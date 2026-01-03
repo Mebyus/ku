@@ -17,6 +17,39 @@ fun (&Lexer) view() -> []u8 {
 	ret g.text[g.mark:g.pos];
 }
 
+// Returns recorded token data string (lit, true).
+//
+// Returns ("", false) in case token length overflowed max length.
+fun (&Lexer) take() -> (str, bool) {
+	if g.is_length_overflow() {
+		ret "", false;
+	}
+	ret cast(str, g.view()), true;
+}
+
+// Returns byte length of recorded token data.
+fun (&Lexer) len() -> u32 {
+	ret lx.pos - lx.mark;
+}
+
+const max_token_byte_length := 1 << 12;
+
+fun (&Lexer) is_length_overflow() -> bool {
+	ret g.len() > max_token_byte_length;
+}
+
+fun (&Lexer) skip_word() {
+	for !g.eof() && chars.is_alphanum(g.peek()) {
+		g.advance();
+	}
+}
+
+fun (&Lexer) skip_hex_digits() {
+	for !g.eof() && chars.is_hex_digit(g.peek()) {
+		g.advance();
+	}
+}
+
 fun (&Lexer) skip_line_comment() {
 	g.advance(); // skip '/'
 	g.advance(); // skip '/'

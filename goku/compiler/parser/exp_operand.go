@@ -171,6 +171,8 @@ func (p *Parser) Chain() (ast.Operand, diag.Error) {
 			}
 		case token.DerefSelect:
 			part, err = p.DerefSelect()
+		case token.BagSelect:
+			part, err = p.BagSelect()
 		case token.Deref:
 			part = p.Deref()
 		case token.Address:
@@ -256,6 +258,22 @@ func (p *Parser) DerefSelect() (ast.DerefSelect, diag.Error) {
 	name := p.word()
 
 	return ast.DerefSelect{Name: name}, nil
+}
+
+func (p *Parser) BagSelect() (ast.BagSelect, diag.Error) {
+	p.advance() // skip ".("
+
+	if p.peek.Kind != token.Word {
+		return ast.BagSelect{}, p.unexpected()
+	}
+	name := p.word()
+
+	if p.peek.Kind != token.RightParen {
+		return ast.BagSelect{}, p.unexpected()
+	}
+	p.advance() // skip ")"
+
+	return ast.BagSelect{Name: name}, nil
 }
 
 func (p *Parser) Select() ast.Select {

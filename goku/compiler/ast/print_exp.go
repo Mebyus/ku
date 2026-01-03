@@ -210,6 +210,12 @@ func (g *Printer) Select(s Select) {
 	g.puts(s.Name.Str)
 }
 
+func (g *Printer) BagSelect(s BagSelect) {
+	g.puts(".(")
+	g.puts(s.Name.Str)
+	g.puts(")")
+}
+
 func (g *Printer) Unsafe(u Unsafe) {
 	g.puts(".unsafe.")
 	g.puts(u.Name)
