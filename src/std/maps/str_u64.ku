@@ -1,0 +1,65 @@
+import std {
+    mem -> "mem"
+}
+
+type SlotStrU64 struct {
+    key:  str,
+    hash: u64,
+    val:  u64,
+
+    // Probe sequence length. Probe distance of entry from slot computed
+    // based on hash value.
+    psl: u32,
+
+    flags: u32,
+}
+
+pub
+type MapStrU64 struct {
+    // Received from allocator to hold {slots} span.
+    block: mem.Block
+
+    al: mem.Allocator
+
+    slots: []SlotStrU64
+
+    // Number of alive keys stored inside the map.
+    num: uint
+}
+
+fun (&MapStrU64) calc_pos(hash: u64) -> uint {
+    ret cast(uint, hash % cast(u64, g.slots.len));
+}
+
+fun (&MapStrU64) get_index(key: str, hash: u64) -> (uint, bool) {
+    if g.num == 0 {
+        ret 0, false;
+    }
+
+    pos := g.calc_pos(hash);
+    var psl: u32 = 0;
+
+    for {
+        slot := g.slots[pos];
+        if slot.flags == 0 {
+            // found empty slot
+            ret 0, false;
+        }
+
+        if psl > slot.psl {
+            // due to insertion rules this condition means
+            // that there is no entry with such hash in map
+            ret 0, false;
+        }
+
+        if (slot.hash == hash) && (slot.key == key) {
+            ret pos, true;
+        }
+
+        pos += 1;
+        if pos >= g.slots.len {
+            pos = 0;
+        }
+        psl += 1;
+    }
+}

@@ -1,0 +1,14 @@
+pub
+type Allocator struct {
+    ptr:  *void
+    kind: uint
+}
+
+pub
+type Block struct {
+	span: []u8
+
+	// Keeps track of block origin and generation.
+	// Used for runtime checks and debug purposes.
+	id: u64
+}

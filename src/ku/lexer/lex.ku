@@ -48,7 +48,7 @@ fun (&Lexer) emit(tok: &tokens.Token) {
 }
 
 fun (&Lexer) emit_cstr(tok: &tokens.Token) {
-	g.advance();
+	g.advance(); // skip 'c'
 	g.emit_str(tok);	
 	tok.kind = .C_STRING;
 }
@@ -134,6 +134,8 @@ fun (&Lexer) emit_byte_token(tok: &tokens.Token, kind: tokens.Kind) {
 
 fun (&Lexer) emit_illegal_byte(tok: &tokens.Token) {
 	tok.pin = g.pin();
-
+	tok.data.(val) = g.peek();
+	tok.set_error(.ILLEGAL_BYTE);
+	
 	g.advance();
 }

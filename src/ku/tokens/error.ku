@@ -7,5 +7,7 @@ fun (&Token) set_error(e: Error) {
 type Error u16 {
     LENGTH_OVERFLOW = 1
 
+    ILLEGAL_BYTE
+
     MALFORMED_HEX_INTEGER
 }
