@@ -29,7 +29,7 @@ fun (&Lexer) take() -> (str, bool) {
 
 // Returns byte length of recorded token data.
 fun (&Lexer) len() -> u32 {
-	ret lx.pos - lx.mark;
+	ret g.pos - g.mark;
 }
 
 const max_token_byte_length := 1 << 12;

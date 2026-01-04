@@ -109,11 +109,20 @@ type KnownTypes struct {
 	// &void
 	VoidRef *Type
 
+	// u8
+	U8 *Type
+
 	// uint
 	Uint *Type
 
+	// str
+	Str *Type
+
 	// bool
 	Bool *Type
+
+	// []u8
+	SpanU8 *Type
 }
 
 func (t *KnownTypes) Init() {
@@ -132,15 +141,30 @@ func (t *KnownTypes) Init() {
 		Flags: TypeFlagBuiltin,
 		Kind:  tpk.VoidRef,
 	}
+	t.U8 = &Type{
+		Size:  1,
+		Flags: TypeFlagBuiltin,
+		Kind:  tpk.Integer,
+	}
 	t.Uint = &Type{
 		Size:  archPointerSize,
 		Flags: TypeFlagBuiltin,
 		Kind:  tpk.Integer,
 	}
+	t.Str = &Type{
+		Size:  2 * archPointerSize,
+		Flags: TypeFlagBuiltin,
+		Kind:  tpk.String,
+	}
 	t.Bool = &Type{
 		Size:  1,
 		Flags: TypeFlagBuiltin,
 		Kind:  tpk.Boolean,
+	}
+	t.SpanU8 = &Type{
+		Def:  Span{Type: t.U8},
+		Size: 2 * archPointerSize,
+		Kind: tpk.Span,
 	}
 }
 
@@ -160,6 +184,8 @@ func (x *TypeIndex) Init() {
 	x.Arrays = make(map[Array]*Type)
 
 	x.un = make(map[string]struct{})
+
+	x.Spans[x.Known.U8] = x.Known.SpanU8
 }
 
 func (s *Scope) LookupType(spec ast.TypeSpec) (*Type, diag.Error) {

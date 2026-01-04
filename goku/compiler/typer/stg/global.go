@@ -14,7 +14,8 @@ func (s *Scope) InitGlobal(types *TypeIndex) {
 const archPointerSize = 8
 
 func addBuiltinTypes(c *Context) {
-	addUnsignedIntegerType(c, "u8", 1)
+	addBuiltinType(c, "u8", c.Types.Known.U8)
+
 	addUnsignedIntegerType(c, "u16", 2)
 	addUnsignedIntegerType(c, "u32", 4)
 	addUnsignedIntegerType(c, "u64", 8)
@@ -29,15 +30,15 @@ func addBuiltinTypes(c *Context) {
 	addBuiltinType(c, "uint", c.Types.Known.Uint)
 	addSignedIntegerType(c, "sint", archPointerSize)
 
-	addBoolType(c)
+	addBuiltinType(c, "bool", c.Types.Known.Bool)
 	addUnsignedIntegerType(c, "rune", 4)
-	addUnsignedIntegerType(c, "error_id", archPointerSize)
+	addUnsignedIntegerType(c, "errid", archPointerSize)
 
 	addFloatType(c, "f32", 4)
 	addFloatType(c, "f64", 8)
 	addFloatType(c, "f128", 16)
 
-	addStringType(c)
+	addBuiltinType(c, "str", c.Types.Known.Str)
 }
 
 func addBuiltinType(c *Context, name string, t *Type) {
@@ -45,20 +46,6 @@ func addBuiltinType(c *Context, name string, t *Type) {
 		Name:  name,
 		Kind:  smk.Type,
 		Flags: SymbolBuiltin,
-	}
-	c.addType(s, t)
-}
-
-func addStringType(c *Context) {
-	s := &Symbol{
-		Name:  "str",
-		Kind:  smk.Type,
-		Flags: SymbolBuiltin,
-	}
-	t := &Type{
-		Size:  2 * archPointerSize,
-		Flags: TypeFlagBuiltin,
-		Kind:  tpk.String,
 	}
 	c.addType(s, t)
 }

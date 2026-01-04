@@ -1,0 +1,23 @@
+fun dec_digit_num(c: u8) -> u8 {
+	ret c - '0';
+}
+
+// Transforms ASCII hexadecimal digit character (0 - 9, A - F, a - f)
+// to its number value. Small (a - f) and capital (A - F) letters produce
+// identical results.
+fun hex_digit_num(c: u8) -> u8 {
+	if c <= '9' {
+		ret dec_digit_num(c);
+	}
+	ret capital_latin_letter(c) - 'A' + 10;
+}
+
+pub
+fun parse_hex_digits(s: []u8) -> u64 {
+	var v: u64;
+	for i = [:s.len] {
+		v <<= 4;
+		v += hex_digit_num(s[i]);
+	}
+	ret v;
+}

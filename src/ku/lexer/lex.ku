@@ -91,7 +91,7 @@ fun (&Lexer) emit_hex_number(tok: &tokens.Token) {
 		g.skip_word();
 		data, ok := g.take();
 		if ok {
-			tok.set_error(.Malformed_Hex_Integer);
+			tok.set_error(.MALFORMED_HEX_INTEGER);
 			tok.data.(lit) = data;
 		} else {
 			tok.set_error(.LENGTH_OVERFLOW);
@@ -103,24 +103,18 @@ fun (&Lexer) emit_hex_number(tok: &tokens.Token) {
 		tok.set_error(.LENGTH_OVERFLOW);
 		ret;
 	}
-	if g.length() == 0 {
-		tok.set_error(.Malformed_Hex_Integer);
+	if g.len() == 0 {
+		tok.set_error(.MALFORMED_HEX_INTEGER);
 		tok.data.(lit) = "0x";
 		ret;
 	}
 
 	tok.kind = .INTEGER;
-	if g.length() > 16 {
+	if g.len() > 16 {
 		stub;
-		// lit, ok := g.take()
-		// if !ok {
-		// 	panic("unreachable due to previous checks")
-		// }
-		// tok.data.(lit) = lit;
-		// ret;
 	}
 
-	tok.data.(val) = chars.parse_hex_digits(lx.View());
+	tok.data.(val) = chars.parse_hex_digits(g.view());
 	ret;
 }
 

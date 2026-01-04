@@ -238,7 +238,7 @@ func (s *Scope) translateCast(hint *Hint, c ast.Cast) (Exp, diag.Error) {
 		// cast is not needed, simplify expression
 		return exp, nil
 	}
-	err = CheckCast(want, exp)
+	err = s.Types.CheckCast(want, exp)
 	if err != nil {
 		return nil, err
 	}
@@ -507,9 +507,52 @@ func (s *Scope) applyChainPart(hint *Hint, exp Exp, part ast.Part) (Exp, diag.Er
 		return s.applyDerefIndexPart(hint, exp, p)
 	case ast.Index:
 		return s.applyIndexPart(hint, exp, p)
+	case ast.BagSelect:
+		return s.applyBagSelectPart(exp, p)
 	default:
 		panic(fmt.Sprintf("unexpected %s (=%d) chain part (%T)", p.Kind(), p.Kind(), p))
 	}
+}
+
+func (s *Scope) applyBagSelectPart(exp Exp, part ast.BagSelect) (Exp, diag.Error) {
+	typ := exp.Type()
+
+	switch typ.Kind {
+	case tpk.Custom:
+		if typ.Def.(*Custom).Type.Kind == tpk.Union {
+			return s.applySelectFieldToUnion(exp, part)
+		}
+		return nil, &diag.SimpleMessageError{
+			Pin:  part.Name.Pin,
+			Text: fmt.Sprintf("cannot apply bag select to %s type which is a %s", typ, typ.Def.(*Custom).Type.Kind),
+		}
+	// case tpk.Pointer, tpk.Ref:
+	// 	return s.applySelectToPointer(exp, part)
+	default:
+		panic(fmt.Sprintf("unexpected %s type", typ))
+	}
+
+}
+
+func (s *Scope) applySelectFieldToUnion(exp Exp, part ast.BagSelect) (Exp, diag.Error) {
+	name := part.Name.Str
+	pin := part.Name.Pin
+
+	typ := exp.Type()
+	c := typ.Def.(*Custom).Type.Def.(*Union)
+	f := c.getField(name)
+	if f == nil {
+		return nil, &diag.SimpleMessageError{
+			Pin:  pin,
+			Text: fmt.Sprintf("type %s does not have field %s", typ, name),
+		}
+	}
+
+	return &SelectField{
+		Exp:   exp,
+		Pin:   pin,
+		Field: f,
+	}, nil
 }
 
 func (s *Scope) applyIndexPart(hint *Hint, exp Exp, part ast.Index) (Exp, diag.Error) {

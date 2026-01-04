@@ -5,10 +5,10 @@ import "github.com/mebyus/ku/goku/compiler/sm"
 // DerefSelectField represents expression which selects a struct field
 // via pointer dereference.
 type DerefSelectField struct {
-	Pin sm.Pin
-
 	// Select target. Always contains a pointer value.
 	Exp Exp
+
+	Pin sm.Pin
 
 	Field *Field
 }

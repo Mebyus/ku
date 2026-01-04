@@ -39,6 +39,12 @@ func CheckAssign(want *Type, exp Exp) diag.Error {
 		}
 	}
 
+	if typ.Kind == tpk.Integer && want.Kind == tpk.Integer {
+		if typ.IsSigned() == want.IsSigned() && want.Size > typ.Size {
+			return nil
+		}
+	}
+
 	if typ.IsStatic() && typ.Size == 0 {
 		return nil
 	}
@@ -81,13 +87,21 @@ func CheckCall(sig *Signature, args []Exp) diag.Error {
 	return nil
 }
 
-func CheckCast(want *Type, exp Exp) diag.Error {
+func (x *TypeIndex) CheckCast(want *Type, exp Exp) diag.Error {
 	typ := exp.Type()
 	if typ.Kind == tpk.Integer && want.Kind == tpk.Integer {
 		return nil
 	}
 
-	if want.Kind == tpk.Custom && want.Def.(*Custom).Type.Kind == tpk.Integer {
+	if want.Kind == tpk.Integer && typ.Kind == tpk.Custom && typ.Def.(*Custom).Type.Kind == tpk.Enum {
+		return nil
+	}
+
+	if want.Kind == tpk.Custom && want.Def.(*Custom).Type.Kind == tpk.Integer && typ.Kind == tpk.Integer {
+		return nil
+	}
+
+	if want == x.Known.Str && typ == x.Known.SpanU8 {
 		return nil
 	}
 

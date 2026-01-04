@@ -69,4 +69,7 @@ type Kind u8 {
     RUNE
 
     C_STRING
+
+    // Bad, unrecognized token.
+    MALFORMED
 }

@@ -1,0 +1,11 @@
+fun (&Token) set_error(e: Error) {
+    g.data.(val) = cast(u64, e);
+    g.kind = .MALFORMED;
+}
+
+// Error code for malformed tokens.
+type Error u16 {
+    LENGTH_OVERFLOW = 1
+
+    MALFORMED_HEX_INTEGER
+}
