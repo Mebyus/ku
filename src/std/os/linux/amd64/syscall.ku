@@ -1,0 +1,20 @@
+const SYS_READ := 0;
+
+fun sys_read(fd: uint, buf: [*]u8, size: uint) -> sint {
+    var r: sint;
+    asm amd64 (
+        rax = SYS_READ;
+        rdi = fd;
+        rsi = buf;
+        rdx = size;
+    
+        rax -> r;
+
+        ? -> rcx;
+        ? -> r11;
+        ? -> mem;
+    ) {
+        syscall;
+    }
+    ret r;
+}

@@ -20,6 +20,8 @@ func (p *Parser) Statement() (ast.Statement, diag.Error) {
 		return p.If()
 	case token.Ret:
 		return p.Ret()
+	case token.Asm:
+		return p.Asm()
 	case token.For:
 		return p.For()
 	case token.Jump:

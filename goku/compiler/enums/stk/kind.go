@@ -11,6 +11,7 @@ const (
 
 	Block
 	Assign
+	Asm
 	Ret
 	Const
 	Alias
@@ -49,6 +50,7 @@ var text = [...]string{
 	Block:     "block",
 	Assign:    "assign",
 	Ret:       "ret",
+	Asm:       "asm",
 	Const:     "const",
 	Alias:     "alias",
 	Var:       "var",

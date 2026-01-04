@@ -65,7 +65,7 @@ const (
 	And        // &&
 	Or         // ||
 	LeftArrow  // <-
-	RightArrow // =>
+	RightArrow // ->
 
 	// Brackets
 
@@ -107,6 +107,7 @@ const (
 	Gen
 	Bag
 
+	Asm
 	Ret
 
 	Struct

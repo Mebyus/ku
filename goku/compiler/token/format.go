@@ -110,6 +110,7 @@ var literal = [...]string{
 	Stub:   "stub",
 	Cast:   "cast",
 	Tint:   "tint",
+	Asm:    "asm",
 
 	// Special literals
 

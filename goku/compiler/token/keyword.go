@@ -23,6 +23,7 @@ var kw = map[string]Kind{
 	"unsafe": Unsafe,
 	"never":  Never,
 	"stub":   Stub,
+	"asm":    Asm,
 
 	"must":  Must,
 	"panic": Panic,
