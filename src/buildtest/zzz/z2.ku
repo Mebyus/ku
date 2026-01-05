@@ -1,0 +1,8 @@
+fun check2(x: uint) -> bool {
+    ret x == 1;
+}
+
+fun test_check2() {
+    const a := 1;
+    b := a == 1 && check2(2);
+}

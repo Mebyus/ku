@@ -814,6 +814,66 @@ func (s *Scope) translateBinaryExp(hint *Hint, exp ast.Binary) (Exp, diag.Error)
 		return s.evalConstBinaryExp(a, b, exp.Op)
 	}
 
+	// boolean simplification when one side of expression is static
+	if ta.Kind == tpk.Boolean && ta.IsStatic() {
+		// tb is not static here
+		if tb.Kind != tpk.Boolean {
+			return nil, &diag.SimpleMessageError{
+				Pin:  b.Span().Pin,
+				Text: fmt.Sprintf("incompatible types in binary expression bool and %s", tb),
+			}
+		}
+
+		v := a.(*Boolean).Val
+		op := exp.Op
+		switch op.Kind {
+		case bok.And:
+			if !v {
+				return a, nil
+			}
+			return b, nil
+		case bok.Or:
+			if v {
+				return a, nil
+			}
+			return b, nil
+		default:
+			return nil, &diag.SimpleMessageError{
+				Pin:  op.Pin,
+				Text: fmt.Sprintf("operation %s is not defined for boolean type", op.Kind),
+			}
+		}
+	}
+	if tb.Kind == tpk.Boolean && tb.IsStatic() {
+		// ta is not static here
+		if ta.Kind != tpk.Boolean {
+			return nil, &diag.SimpleMessageError{
+				Pin:  a.Span().Pin,
+				Text: fmt.Sprintf("incompatible types in binary expression %s and bool", ta),
+			}
+		}
+
+		v := b.(*Boolean).Val
+		op := exp.Op
+		switch op.Kind {
+		case bok.And:
+			if v {
+				return a, nil
+			}
+			return s.Types.MakeBoolExp(a.Span().Pin, a, false), nil
+		case bok.Or:
+			if !v {
+				return a, nil
+			}
+			return s.Types.MakeBoolExp(a.Span().Pin, a, true), nil
+		default:
+			return nil, &diag.SimpleMessageError{
+				Pin:  op.Pin,
+				Text: fmt.Sprintf("operation %s is not defined for boolean type", op.Kind),
+			}
+		}
+	}
+
 	typ, err := s.Types.deduceBinaryExpType(a, b, exp.Op)
 	if err != nil {
 		return nil, err
