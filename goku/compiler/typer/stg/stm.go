@@ -152,3 +152,10 @@ type MatchCase struct {
 	// Always has at least one element.
 	List []Exp
 }
+
+type Panic struct {
+	// Only string expression is supported for now.
+	Exp Exp
+
+	Pin sm.Pin
+}

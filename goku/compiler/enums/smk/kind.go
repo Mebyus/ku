@@ -34,6 +34,9 @@ const (
 
 	Alias
 
+	// Builtin generic function.
+	BgenFun
+
 	Gen
 
 	// Runtime function or method parameter.

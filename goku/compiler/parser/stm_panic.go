@@ -15,11 +15,10 @@ func (p *Parser) Panic() (ast.Panic, diag.Error) {
 	}
 	p.advance() // skip "("
 
-	if p.peek.Kind != token.String {
-		return ast.Panic{}, p.unexpected()
+	exp, err := p.Exp()
+	if err != nil {
+		return ast.Panic{}, err
 	}
-	msg := p.peek.Data
-	p.advance() // skip string
 
 	if p.peek.Kind != token.RightParen {
 		return ast.Panic{}, p.unexpected()
@@ -33,6 +32,6 @@ func (p *Parser) Panic() (ast.Panic, diag.Error) {
 
 	return ast.Panic{
 		Pin: pin,
-		Msg: msg,
+		Exp: exp,
 	}, nil
 }

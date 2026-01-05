@@ -50,9 +50,9 @@ fun (&FixedBuffer) take() -> str {
 
     var s: str;
     if !g.eof {
-        s = body[:g.len];
+        s = cast(str, body[:g.len]);
     } else {
-        var pos: uint = min_uint(g.len, g.cap - buffer_eof.len);
+        var pos: uint = min(g.len, g.cap - buffer_eof.len);
         var tail: []u8 = body[pos:];
         copy(tail, buffer_eof);
         s = body[:pos + buffer_eof.len];

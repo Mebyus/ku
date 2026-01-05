@@ -227,7 +227,7 @@ func (g *Printer) Assign(a Assign) {
 
 func (g *Printer) Panic(p Panic) {
 	g.puts("panic(\"")
-	g.puts(p.Msg)
+	g.Exp(p.Exp)
 	g.puts("\");")
 }
 

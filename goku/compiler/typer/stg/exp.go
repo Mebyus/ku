@@ -655,9 +655,43 @@ func (s *Scope) applySelectPart(exp Exp, part ast.Select) (Exp, diag.Error) {
 		return s.applySelectToSpan(exp, part)
 	case tpk.Pointer, tpk.Ref:
 		return s.applySelectToPointer(exp, part)
+	case tpk.Custom:
+		if typ.Def.(*Custom).Type.Kind == tpk.Struct {
+			return s.applySelectToStruct(exp, part)
+		}
+		return nil, &diag.SimpleMessageError{
+			Pin:  exp.Span().Pin,
+			Text: fmt.Sprintf("cannot apply select part to %s type", typ),
+		}
 	default:
 		panic(fmt.Sprintf("unexpected %s type", typ))
 	}
+}
+
+func (s *Scope) applySelectToStruct(exp Exp, part ast.Select) (Exp, diag.Error) {
+	name := part.Name.Str
+	pin := part.Name.Pin
+
+	typ := exp.Type()
+	c := typ.Def.(*Custom)
+	m := c.getMethod(name)
+	if m != nil {
+		panic("not implemented")
+	}
+
+	f := c.Type.Def.(*Struct).getField(name)
+	if f == nil {
+		return nil, &diag.SimpleMessageError{
+			Pin:  pin,
+			Text: fmt.Sprintf("type %s does not have field or method named \"%s\"", typ, name),
+		}
+	}
+
+	return &SelectField{
+		Exp:   exp,
+		Pin:   pin,
+		Field: f,
+	}, nil
 }
 
 func (s *Scope) applySelectToSpan(exp Exp, part ast.Select) (Exp, diag.Error) {

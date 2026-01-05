@@ -7,9 +7,9 @@ import (
 
 // Formal definition:
 //
-//	Panic => "panic" "(" String ")" ";"
+//	Panic => "panic" "(" Exp ")" ";"
 type Panic struct {
-	Msg string
+	Exp Exp
 
 	Pin sm.Pin
 }

@@ -114,6 +114,8 @@ func (t *Typer) translateStatement(stm ast.Statement) (stg.Statement, diag.Error
 		return t.translateForRange(s)
 	case ast.Must:
 		return t.translateMust(s)
+	case ast.Panic:
+		return t.translatePanic(s)
 	case ast.Stub:
 		return &stg.Stub{Pin: s.Pin}, nil
 	case ast.Never:
@@ -137,6 +139,23 @@ func (t *Typer) translateStatement(stm ast.Statement) (stg.Statement, diag.Error
 	default:
 		panic(fmt.Sprintf("unexpected %s (=%d) statement (%T)", s.Kind(), s.Kind(), s))
 	}
+}
+
+func (t *Typer) translatePanic(p ast.Panic) (stg.Statement, diag.Error) {
+	exp, err := t.scope.TranslateExp(&stg.Hint{}, p.Exp)
+	if err != nil {
+		return nil, err
+	}
+
+	typ := exp.Type()
+	if typ.Kind != tpk.String {
+		panic(fmt.Sprintf("not implemented for %s type", typ))
+	}
+
+	return &stg.Panic{
+		Exp: exp,
+		Pin: p.Pin,
+	}, nil
 }
 
 func (t *Typer) translateAssign(a ast.Assign) (stg.Statement, diag.Error) {

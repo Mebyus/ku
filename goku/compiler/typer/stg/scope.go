@@ -15,6 +15,8 @@ type Scope struct {
 
 	Types *TypeIndex
 
+	Gens *GenIndex
+
 	// Symbol map. Maps name to its local symbol.
 	m map[string]*Symbol
 
@@ -63,6 +65,7 @@ func (s *Scope) Init(kind sck.Kind, parent *Scope) {
 			panic("no parent scope")
 		}
 		s.Types = parent.Types
+		s.Gens = parent.Gens
 	}
 
 	s.Kind = kind

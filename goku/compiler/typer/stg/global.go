@@ -1,6 +1,7 @@
 package stg
 
 import (
+	"github.com/mebyus/ku/goku/compiler/enums/bgk"
 	"github.com/mebyus/ku/goku/compiler/enums/sck"
 	"github.com/mebyus/ku/goku/compiler/enums/smk"
 	"github.com/mebyus/ku/goku/compiler/enums/tpk"
@@ -78,15 +79,6 @@ func addSignedIntegerType(c *Context, name string, size uint32) {
 	c.addType(s, t)
 }
 
-func addBoolType(c *Context) {
-	s := &Symbol{
-		Name:  "bool",
-		Kind:  smk.Type,
-		Flags: SymbolBuiltin,
-	}
-	c.addType(s, c.Types.Known.Bool)
-}
-
 func addFloatType(c *Context, name string, size uint32) {
 	s := &Symbol{
 		Name:  name,
@@ -104,4 +96,20 @@ func addFloatType(c *Context, name string, size uint32) {
 func (c *Context) addType(s *Symbol, t *Type) {
 	s.Def = SymDefType{Type: t}
 	c.Global.Bind(s)
+}
+
+func (c *Context) addGenFun(name string, kind bgk.Kind) {
+	s := &Symbol{
+		Name:  name,
+		Kind:  smk.BgenFun,
+		Flags: SymbolBuiltin,
+	}
+	c.Global.Bind(s)
+}
+
+func addBuiltinGens(c *Context) {
+	c.addGenFun("min", bgk.Min)
+	c.addGenFun("max", bgk.Max)
+	c.addGenFun("copy", bgk.Copy)
+	c.addGenFun("clear", bgk.Clear)
 }

@@ -294,7 +294,7 @@ func (g *Gen) Stub(s ast.Stub) {
 
 func (g *Gen) Panic(p ast.Panic) {
 	g.puts("panic_pos(")
-	g.str(p.Msg)
+	g.Exp(p.Exp)
 	g.puts(", ")
 	g.textPosArgs(p.Pin)
 	g.puts(");")
