@@ -37,6 +37,8 @@ const (
 	// Builtin generic function.
 	BgenFun
 
+	BgenFunInst
+
 	Gen
 
 	// Runtime function or method parameter.
@@ -80,6 +82,9 @@ var text = [...]string{
 	Receiver:  "receiver",
 	OmitParam: "param.omit",
 	Loop:      "var.loop",
+
+	BgenFun:     "builtin generic function",
+	BgenFunInst: "builtin generic function instance",
 }
 
 func (k Kind) String() string {

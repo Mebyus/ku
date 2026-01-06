@@ -7,9 +7,10 @@ import (
 	"github.com/mebyus/ku/goku/compiler/enums/tpk"
 )
 
-func (s *Scope) InitGlobal(types *TypeIndex) {
+func (s *Scope) InitGlobal(types *TypeIndex, gens *GenIndex) {
 	s.Init(sck.Global, nil)
 	s.Types = types
+	s.Gens = gens
 }
 
 const archPointerSize = 8
@@ -103,6 +104,7 @@ func (c *Context) addGenFun(name string, kind bgk.Kind) {
 		Name:  name,
 		Kind:  smk.BgenFun,
 		Flags: SymbolBuiltin,
+		Aux:   uint32(kind),
 	}
 	c.Global.Bind(s)
 }

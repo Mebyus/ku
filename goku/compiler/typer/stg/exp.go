@@ -353,11 +353,14 @@ func (s *Scope) TranslateCall(hint *Hint, exp ast.Call) (Exp, diag.Error) {
 
 		switch symbol.Kind {
 		case smk.Fun:
+			sig = &symbol.Def.(*Fun).Signature
 			call = &Call{
 				Pin:    exp.Span().Pin,
 				Symbol: symbol,
+				typ:    sig.Result,
 			}
-			sig = &symbol.Def.(*Fun).Signature
+		case smk.BgenFun:
+			return s.translateBgenFunCall(c, exp.Args)
 		default:
 			panic(fmt.Sprintf("unexpected %s (=%d) symbol \"%s\"", symbol.Kind, symbol.Kind, symbol.Name))
 		}
@@ -367,11 +370,12 @@ func (s *Scope) TranslateCall(hint *Hint, exp ast.Call) (Exp, diag.Error) {
 		args = make([]Exp, 0, len(exp.Args))
 		args = append(args, c.Receiver)
 
+		sig = &fun.Signature
 		call = &Call{
 			Pin:    exp.Span().Pin,
 			Symbol: symbol,
+			typ:    sig.Result,
 		}
-		sig = &fun.Signature
 	default:
 		panic(fmt.Sprintf("unexpected (%T) chain expression in call", c))
 	}
@@ -482,6 +486,18 @@ func (s *Scope) TranslateChain(hint *Hint, exp ast.Chain) (Exp, diag.Error) {
 			Symbol: symbol,
 			Pin:    p.Name.Pin,
 		}, nil
+	case smk.BgenFun:
+		if len(exp.Parts) != 0 {
+			return nil, &diag.SimpleMessageError{
+				Pin:  pin,
+				Text: fmt.Sprintf("builtin generic function \"%s\" cannot start a chain", name),
+			}
+		}
+
+		e = &SymExp{
+			Pin:    pin,
+			Symbol: start,
+		}
 	default:
 		return nil, &diag.SimpleMessageError{
 			Pin:  pin,

@@ -50,7 +50,7 @@ type Symbol struct {
 
 	// Link name. Not empty only if it differs from standard link name
 	// mangling algorithm.
-	Link string
+	// Link string
 
 	// Source position of symbol origin (where this symbol was declared).
 	Pin sm.Pin
@@ -66,6 +66,8 @@ type Symbol struct {
 	//
 	// After indexing phase this field contains corresponding AST node index
 	// for nodes inside unit scope.
+	//
+	// For builtin generic function contains its kind.
 	Aux uint32
 
 	Flags SymbolFlag

@@ -14,7 +14,7 @@ type Context struct {
 func (c *Context) Init() {
 	c.Types.Init()
 	c.Gens.Init()
-	c.Global.InitGlobal(&c.Types)
+	c.Global.InitGlobal(&c.Types, &c.Gens)
 
 	if c.Map == nil {
 		c.Map = make(map[sm.UnitPath]*Unit)

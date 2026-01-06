@@ -15,10 +15,13 @@ type Call struct {
 	Pin sm.Pin
 
 	Symbol *Symbol
+
+	// Call result type.
+	typ *Type
 }
 
 func (c *Call) Type() *Type {
-	return c.Symbol.Def.(*Fun).Result
+	return c.typ
 }
 
 func (c *Call) Span() sm.Span {
