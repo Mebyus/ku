@@ -2,6 +2,7 @@ package builder
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -165,6 +166,8 @@ func build(c *Config) error {
 	if err != nil {
 		return diag.Format(pool, err)
 	}
+
+	_ = sm.Encode(io.Discard, pool)
 
 	err = CompileBundle(bundle)
 	if err != nil {
