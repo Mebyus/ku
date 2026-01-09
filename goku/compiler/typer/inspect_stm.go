@@ -38,6 +38,8 @@ func (t *Typer) inspectStatement(stm ast.Statement) diag.Error {
 		return t.inspectLoop(s)
 	case ast.Match:
 		return t.inspectMatch(s)
+	case ast.DeferCall:
+		return t.inspectInvoke(ast.Invoke{Call: s.Call})
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) statement (%T)", s.Kind(), s.Kind(), s))
 	}

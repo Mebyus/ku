@@ -42,8 +42,11 @@ func (p *Parser) Statement() (ast.Statement, diag.Error) {
 		return p.Test()
 	case token.Debug:
 		return p.Debug()
-	// case token.Defer:
-	// 	return p.deferStatement()
+	case token.Defer:
+		if p.next.Kind == token.LeftCurly {
+			return p.DeferBlock()
+		}
+		return p.DeferCall()
 	case token.Word, token.Unsafe, token.Underscore:
 		return p.AssignOrInvoke()
 	default:

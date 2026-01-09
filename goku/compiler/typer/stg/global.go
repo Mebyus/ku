@@ -34,7 +34,9 @@ func addBuiltinTypes(c *Context) {
 
 	addBuiltinType(c, "bool", c.Types.Known.Bool)
 	addUnsignedIntegerType(c, "rune", 4)
-	addUnsignedIntegerType(c, "errid", archPointerSize)
+
+	addBuiltinType(c, "errid", c.Types.Known.ErrId)
+	addBuiltinType(c, "error", c.Types.Known.Error)
 
 	addFloatType(c, "f32", 4)
 	addFloatType(c, "f64", 8)

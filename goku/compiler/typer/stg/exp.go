@@ -1018,7 +1018,7 @@ func (x *TypeIndex) deduceBinaryExpTypeA(a, b Exp, op BinOp) (*Type, diag.Error)
 				Text: fmt.Sprintf("binary operation on incompatible types %s and %s", ta, tb),
 			}
 		}
-	case tpk.Pointer, tpk.ArrayPointer:
+	case tpk.Pointer, tpk.ArrayPointer, tpk.VoidPointer:
 		if ta.Kind != tpk.Nil {
 			return nil, &diag.SimpleMessageError{
 				Pin:  op.Pin,

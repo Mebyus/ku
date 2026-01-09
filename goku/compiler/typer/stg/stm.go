@@ -159,3 +159,8 @@ type Panic struct {
 
 	Pin sm.Pin
 }
+
+type DeferCall struct {
+	// Must be one of call expressions.
+	Call Exp
+}

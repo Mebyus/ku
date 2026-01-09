@@ -38,8 +38,8 @@ const (
 	StaticMust
 	StaticIf
 
-	// Defer function or method call.
-	Defer
+	// DeferCall function or method call.
+	DeferCall
 
 	maxKind
 )
@@ -61,7 +61,7 @@ var text = [...]string{
 	ForRange:  "for.range",
 	Match:     "match",
 	MatchBool: "match.bool",
-	Defer:     "defer",
+	DeferCall: "defer call",
 	Jump:      "jump",
 	Never:     "never",
 	Stub:      "stub",

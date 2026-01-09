@@ -86,6 +86,9 @@ const (
 	VoidPointer
 	VoidRef
 
+	ErrId
+	Error
+
 	// Types which are defined as continuous region of memory holding
 	// fixed number of elements of another Type
 	//
@@ -143,6 +146,9 @@ var text = [...]string{
 	Boolean: "bool",
 	Float:   "float",
 	Rune:    "rune",
+
+	ErrId: "errid",
+	Error: "error",
 
 	Array:  "array",
 	Span:   "span",

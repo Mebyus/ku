@@ -7,3 +7,10 @@ fun test_check2() {
     b := a == 1 && check2(2);
     panic("something bad happened");
 }
+
+fun test_defer(p: *void) {
+    defer test_check2();
+    if p == nil {
+        ret;
+    }
+}

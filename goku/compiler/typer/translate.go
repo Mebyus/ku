@@ -106,6 +106,8 @@ func (t *Typer) translateStatement(stm ast.Statement) (stg.Statement, diag.Error
 		return t.translateAssign(s)
 	case ast.Invoke:
 		return t.translateInvoke(s)
+	case ast.DeferCall:
+		return t.translateDeferCall(s)
 	case ast.Loop:
 		return t.translateLoop(s)
 	case ast.While:
@@ -332,6 +334,16 @@ func (t *Typer) defineOrAssign(target ast.Exp, typ *stg.Type) (stg.Exp, diag.Err
 		// err = stg.CheckAssign(exp.Type(), )
 		return exp, nil
 	}
+}
+
+func (t *Typer) translateDeferCall(c ast.DeferCall) (*stg.DeferCall, diag.Error) {
+	call, err := t.scope.TranslateCall(&stg.Hint{}, c.Call)
+	if err != nil {
+		return nil, err
+	}
+
+	return &stg.DeferCall{Call: call}, nil
+
 }
 
 func (t *Typer) translateInvoke(v ast.Invoke) (*stg.Invoke, diag.Error) {

@@ -123,6 +123,12 @@ type KnownTypes struct {
 
 	// []u8
 	SpanU8 *Type
+
+	// errid
+	ErrId *Type
+
+	// error
+	Error *Type
 }
 
 func (t *KnownTypes) Init() {
@@ -165,6 +171,16 @@ func (t *KnownTypes) Init() {
 		Def:  Span{Type: t.U8},
 		Size: 2 * archPointerSize,
 		Kind: tpk.Span,
+	}
+	t.ErrId = &Type{
+		Size:  archPointerSize,
+		Flags: TypeFlagBuiltin,
+		Kind:  tpk.ErrId,
+	}
+	t.Error = &Type{
+		Size:  2 * archPointerSize,
+		Flags: TypeFlagBuiltin,
+		Kind:  tpk.Error,
 	}
 }
 

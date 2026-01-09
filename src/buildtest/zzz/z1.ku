@@ -29,7 +29,12 @@ fun load(path: str) -> ([]u8, error) {
     ret nil, nil;
 }
 
-type error struct {
+fun create(path: str) -> errid {
+    load(path);
+    ret nil;
+}
+
+type AltError struct {
     id:  uint
     obj: *void
 }
