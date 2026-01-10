@@ -66,6 +66,12 @@ func (s *Scope) Init(kind sck.Kind, parent *Scope) {
 		}
 		s.Types = parent.Types
 		s.Gens = parent.Gens
+		s.LoopLevel = parent.LoopLevel
+
+		switch kind {
+		case sck.Loop:
+			s.LoopLevel += 1
+		}
 	}
 
 	s.Kind = kind

@@ -28,10 +28,10 @@ func (g *Printer) Statement(s Statement) {
 		g.While(s)
 	case If:
 		g.If(s)
-	case JumpNext:
-		g.JumpNext(s)
-	case JumpOut:
-		g.JumpOut(s)
+	case Gonext:
+		g.Gonext(s)
+	case Break:
+		g.Break(s)
 	case Stub:
 		g.Stub(s)
 	case Never:
@@ -249,10 +249,16 @@ func (g *Printer) StaticMust(m StaticMust) {
 	g.puts(");")
 }
 
-func (g *Printer) JumpNext(j JumpNext) {
-	g.puts("jump @.next;")
+func (g *Printer) Goto(t Goto) {
+	g.puts("goto @.")
+	g.puts(t.Name)
+	g.semi()
 }
 
-func (g *Printer) JumpOut(j JumpOut) {
-	g.puts("jump @.out;")
+func (g *Printer) Gonext(j Gonext) {
+	g.puts("gonext;")
+}
+
+func (g *Printer) Break(j Break) {
+	g.puts("break;")
 }

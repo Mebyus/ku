@@ -131,6 +131,8 @@ func (n *Inspector) inspectBlock(block *Block) {
 
 func (n *Inspector) inspectStatement(stm Statement) {
 	switch s := stm.(type) {
+	case *Break, *Stub, *Never:
+		// do nothing
 	case *Var:
 		if s.Exp != nil {
 			n.inspectExp(s.Exp)
@@ -147,6 +149,8 @@ func (n *Inspector) inspectStatement(stm Statement) {
 	case *If:
 		n.inspectIf(s)
 	case *Invoke:
+		n.inspectExp(s.Call)
+	case *DeferCall:
 		n.inspectExp(s.Call)
 	case *Loop:
 		n.inspectBlock(&s.Body)

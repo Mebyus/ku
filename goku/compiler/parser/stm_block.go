@@ -24,8 +24,12 @@ func (p *Parser) Statement() (ast.Statement, diag.Error) {
 		return p.Asm()
 	case token.For:
 		return p.For()
-	case token.Jump:
-		return p.Jump()
+	case token.Goto:
+		return p.Goto()
+	case token.Gonext:
+		return p.Gonext()
+	case token.Break:
+		return p.Break()
 	case token.Never:
 		return p.Never()
 	case token.Stub:

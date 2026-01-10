@@ -25,7 +25,11 @@ fun ret_tuple1() -> (uint) {
 
     for k != 0 {
         k = k + 1;
+        if k > 10 {
+            break;
+        }
     }
+    defer ret_tuple2();
 
     for 1 == 1 {
         ret 1;

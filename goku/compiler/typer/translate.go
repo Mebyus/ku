@@ -118,6 +118,8 @@ func (t *Typer) translateStatement(stm ast.Statement) (stg.Statement, diag.Error
 		return t.translateMust(s)
 	case ast.Panic:
 		return t.translatePanic(s)
+	case ast.Break:
+		return t.translateBreak(s)
 	case ast.Stub:
 		return &stg.Stub{Pin: s.Pin}, nil
 	case ast.Never:
@@ -141,6 +143,17 @@ func (t *Typer) translateStatement(stm ast.Statement) (stg.Statement, diag.Error
 	default:
 		panic(fmt.Sprintf("unexpected %s (=%d) statement (%T)", s.Kind(), s.Kind(), s))
 	}
+}
+
+func (t *Typer) translateBreak(b ast.Break) (*stg.Break, diag.Error) {
+	if t.scope.LoopLevel == 0 {
+		return nil, &diag.SimpleMessageError{
+			Pin:  b.Pin,
+			Text: "scope has loop to break",
+		}
+	}
+
+	return &stg.Break{Pin: b.Pin}, nil
 }
 
 func (t *Typer) translatePanic(p ast.Panic) (stg.Statement, diag.Error) {
@@ -337,6 +350,13 @@ func (t *Typer) defineOrAssign(target ast.Exp, typ *stg.Type) (stg.Exp, diag.Err
 }
 
 func (t *Typer) translateDeferCall(c ast.DeferCall) (*stg.DeferCall, diag.Error) {
+	if t.scope.LoopLevel != 0 {
+		return nil, &diag.SimpleMessageError{
+			Pin:  c.Span().Pin,
+			Text: "cannot use defer inside loop",
+		}
+	}
+
 	call, err := t.scope.TranslateCall(&stg.Hint{}, c.Call)
 	if err != nil {
 		return nil, err

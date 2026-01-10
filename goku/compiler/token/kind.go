@@ -97,7 +97,9 @@ const (
 	Else
 	In
 	For
-	Jump
+	Goto
+	Break
+	Gonext
 
 	Defer
 	Fun
@@ -151,9 +153,6 @@ const (
 	Check // #check
 	Len   // #len
 
-	LabelNext // @.next
-	LabelOut  // @.out
-
 	DirName    // #name
 	DirInclude // #include
 	DirDefine  // #define
@@ -178,6 +177,7 @@ const (
 	Rune       // 'a', '\t', 'p'
 	String     // "abc", "", "\t\n  42Hello\n"
 	CString    // c"Hello" - C string literal (that is translated to naked .rodata pointer during compilation), terminated with zero byte.
+	Label      // @.label
 
 	// Custom tokens
 

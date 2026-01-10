@@ -107,6 +107,11 @@ type Loop struct {
 	Body Block
 }
 
+// Break represents loop break statement.
+type Break struct {
+	Pin sm.Pin
+}
+
 // Must represents must statement.
 type Must struct {
 	// Always not nil.

@@ -10,7 +10,7 @@ import (
 
 func (t *Typer) inspectStatement(stm ast.Statement) diag.Error {
 	switch s := stm.(type) {
-	case ast.JumpNext, ast.JumpOut, ast.Never, ast.Stub, ast.Panic:
+	case ast.Gonext, ast.Break, ast.Never, ast.Stub, ast.Panic:
 		return nil
 	case ast.Var:
 		return t.inspectVarStatement(s)

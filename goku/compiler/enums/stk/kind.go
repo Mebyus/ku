@@ -23,14 +23,14 @@ const (
 	ForRange
 	Match
 	MatchBool
-	Jump
+	Goto
 	Never
 	Stub
 	Lookup
 	Debug
 
-	JumpNext
-	JumpOut
+	Break
+	Gonext
 
 	Panic
 	Must
@@ -62,14 +62,13 @@ var text = [...]string{
 	Match:     "match",
 	MatchBool: "match.bool",
 	DeferCall: "defer call",
-	Jump:      "jump",
+	Goto:      "goto",
 	Never:     "never",
 	Stub:      "stub",
 	Debug:     "debug",
 	Lookup:    "lookup",
-
-	JumpNext: "jump.next",
-	JumpOut:  "jump.out",
+	Break:     "break",
+	Gonext:    "gonext",
 
 	Must:       "must",
 	Test:       "test",

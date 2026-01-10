@@ -33,9 +33,9 @@ func (g *Gen) Statement(s ast.Statement) {
 		g.ForRange(s)
 	case ast.If:
 		g.If(s)
-	case ast.JumpNext:
+	case ast.Gonext:
 		g.JumpNext(s)
-	case ast.JumpOut:
+	case ast.Break:
 		g.JumpOut(s)
 	case ast.Match:
 		g.Match(s)
@@ -332,10 +332,10 @@ func (g *Gen) Test(t ast.Test) {
 	g.puts("}")
 }
 
-func (g *Gen) JumpNext(j ast.JumpNext) {
+func (g *Gen) JumpNext(j ast.Gonext) {
 	g.puts("continue;")
 }
 
-func (g *Gen) JumpOut(j ast.JumpOut) {
+func (g *Gen) JumpOut(j ast.Break) {
 	g.puts("break;")
 }

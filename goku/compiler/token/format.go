@@ -86,7 +86,7 @@ var literal = [...]string{
 
 	Import: "import",
 	Fun:    "fun",
-	Jump:   "jump",
+	Goto:   "goto",
 	Ret:    "ret",
 	For:    "for",
 	Else:   "else",
@@ -111,6 +111,8 @@ var literal = [...]string{
 	Cast:   "cast",
 	Tint:   "tint",
 	Asm:    "asm",
+	Break:  "break",
+	Gonext: "gonext",
 
 	// Special literals
 
@@ -135,9 +137,6 @@ var literal = [...]string{
 	Check: "#check",
 	Len:   "#len",
 
-	LabelNext: "@.next",
-	LabelOut:  "@.out",
-
 	DirName:    "#name",
 	DirInclude: "#include",
 	DirDefine:  "#define",
@@ -149,6 +148,7 @@ var literal = [...]string{
 	Word:       "WORD",
 	String:     "STR",
 	CString:    "STR.C",
+	Label:      "LABEL",
 	RawString:  "STR.RAW",
 	FillString: "STR.FILL",
 	Rune:       "RUNE",

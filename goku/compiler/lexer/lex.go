@@ -394,10 +394,6 @@ func (lx *Lexer) label() token.Token {
 	}
 
 	switch data {
-	case "next":
-		tok.Kind = token.LabelNext
-	case "out":
-		tok.Kind = token.LabelOut
 	default:
 		tok.Data = data
 		panic("arbitrary labels not implemented: " + data)
