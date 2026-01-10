@@ -8,6 +8,7 @@ import (
 
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/enums/bk"
+	"github.com/mebyus/ku/goku/compiler/enums/bm"
 	"github.com/mebyus/ku/goku/compiler/sm"
 )
 
@@ -89,12 +90,19 @@ type Config struct {
 	Phase Phase
 
 	BuildKind bk.Kind
+
+	Mode bm.Mode
 }
 
 // SetDefaults set default values for empty fields and check provided values.
-func (c *Config) SetDefaults() error {
+func (c *Config) SetDefaults(mode bm.Mode) error {
 	if c.Unit == "" {
 		panic("empty unit path")
+	}
+
+	err := mode.Valid()
+	if err != nil {
+		panic(err)
 	}
 
 	if c.RootDir == "" {
@@ -106,7 +114,14 @@ func (c *Config) SetDefaults() error {
 	}
 
 	if c.Phase == 0 {
-		c.Phase = PhaseObj
+		switch mode {
+		case bm.TestExe:
+			c.Phase = PhaseTest
+		case bm.Exe:
+			c.Phase = PhaseExe
+		default:
+			c.Phase = PhaseObj
+		}
 	}
 	if c.BuildKind == 0 {
 		c.BuildKind = bk.Debug
@@ -124,6 +139,7 @@ func (c *Config) SetDefaults() error {
 		c.OutPath = filepath.Join(c.GenDir, c.Phase.String(), name+c.Phase.Suffix())
 	}
 
+	c.Mode = mode
 	return nil
 }
 
@@ -141,7 +157,19 @@ func GetRootDir() (string, error) {
 }
 
 func Build(c *Config) error {
-	err := c.SetDefaults()
+	err := c.SetDefaults(bm.Auto)
+	if err != nil {
+		return err
+	}
+	err = build(c)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func Test(c *Config) error {
+	err := c.SetDefaults(bm.TestExe)
 	if err != nil {
 		return err
 	}
@@ -172,6 +200,10 @@ func build(c *Config) error {
 	err = CompileBundle(bundle)
 	if err != nil {
 		return diag.Format(pool, err)
+	}
+
+	if c.Mode == bm.TestExe {
+		// TODO: generate test driver code, compile it into executable and run
 	}
 
 	return nil

@@ -8,6 +8,7 @@ import (
 	"github.com/mebyus/ku/goku/cmd/ku/build"
 	"github.com/mebyus/ku/goku/cmd/ku/compile"
 	"github.com/mebyus/ku/goku/cmd/ku/lex"
+	"github.com/mebyus/ku/goku/cmd/ku/test"
 )
 
 func main() {
@@ -33,5 +34,6 @@ var root = &butler.Butler{
 		lex.Butler,
 		compile.Butler,
 		build.Butler,
+		test.Butler,
 	},
 }

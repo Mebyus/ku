@@ -18,6 +18,9 @@ const (
 	// Build test executable.
 	TestExe
 
+	// Determine build mode (Obj or Exe) based on main function existence.
+	Auto
+
 	num
 )
 
@@ -27,6 +30,7 @@ var buildModeText = [...]string{
 	Obj:     "obj",
 	Exe:     "exe",
 	TestExe: "exe.test",
+	Auto:    "auto",
 }
 
 func (m Mode) String() string {
