@@ -43,8 +43,15 @@ fun ret_tuple1() -> (uint) {
 }
 
 fun ret_tuple2() -> (uint, sint) {
+    my_print(unit_var);
     ret 0, 1;
 }
+
+fun my_print(s: str) {}
+
+const unit_var_init := "hello unit variable";
+
+var unit_var: str = unit_var_init;
 
 // #export
 fun use_tuple() -> uint {

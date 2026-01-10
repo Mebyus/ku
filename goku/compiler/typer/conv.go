@@ -42,7 +42,7 @@ func (t *Typer) convSymbol(s *stg.Symbol) diag.Error {
 	case smk.Type:
 		return t.convTypeSymbol(s)
 	case smk.Var:
-		return nil
+		return t.convVarSymbol(s)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) symbol (%s)", s.Kind, s.Kind, s.Name))
 	}

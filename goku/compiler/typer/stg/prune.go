@@ -112,6 +112,11 @@ func (n *Inspector) GetUsedSymbols(symbol *Symbol) []*Symbol {
 	switch symbol.Kind {
 	case smk.Fun, smk.Method:
 		n.inspectFun(symbol.Def.(*Fun))
+	case smk.Var:
+		// do nothing
+		//
+		// unit variables can only use constant init expressions and thus do not
+		// use other symbols
 	default:
 		panic(fmt.Sprintf("unexpected %s (=%d) symbol \"%s\"", symbol.Kind, symbol.Kind, symbol.Name))
 	}

@@ -8,6 +8,39 @@ import (
 	"github.com/mebyus/ku/goku/compiler/typer/stg"
 )
 
+func (t *Typer) convVarSymbol(s *stg.Symbol) diag.Error {
+	const debug = false
+
+	v := t.box.Var(s.Aux)
+	name := v.Name.Str
+
+	typ, err := t.unit.Scope.LookupType(v.Type)
+	if err != nil {
+		return err
+	}
+
+	var exp stg.Exp
+	if v.Exp != nil {
+		exp, err = t.unit.Scope.EvalConstExp(v.Exp)
+		if err != nil {
+			return err
+		}
+		err = stg.CheckAssign(typ, exp)
+		if err != nil {
+			return err
+		}
+	}
+
+	s.Type = typ
+	s.Def = stg.StaticValue{Exp: exp}
+
+	if debug {
+		fmt.Printf("var %s: %s = %s\n", name, typ, exp)
+	}
+
+	return nil
+}
+
 func (t *Typer) convConstSymbol(s *stg.Symbol) diag.Error {
 	const debug = false
 
