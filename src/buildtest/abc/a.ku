@@ -10,6 +10,28 @@ type String struct {
     len: u32
 }
 
+type Text struct {
+    data: []u8
+    path: str
+    hash: u64
+}
+
+type Pool struct {
+    m: map(str, *Text)
+}
+
+fun make_map(m: &map(str, uint)) -> (uint, bool) {
+    var s: str = "hello";
+    m.set(s, 1);
+    a, ok := m.get(s);
+    
+    if !m.has("abc") {
+        ret 0, false;
+    }
+    
+    ret a, ok; 
+}
+
 fun (&String) len0() -> u32 {
     ret 0;
 }

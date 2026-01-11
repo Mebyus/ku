@@ -91,6 +91,8 @@ func (p *Parser) TypeSpec() (ast.TypeSpec, diag.Error) {
 		return p.Array()
 	case token.CapBuf:
 		return p.CapBuf()
+	case token.Map:
+		return p.Map()
 	case token.AutoLen:
 		return p.AutoLenArray()
 	case token.Type:

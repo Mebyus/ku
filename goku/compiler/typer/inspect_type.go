@@ -167,9 +167,19 @@ func (t *Typer) inspectType(spec ast.TypeSpec) diag.Error {
 		return t.linkArray(p)
 	case ast.ArrayRef:
 		return t.linkArrayRef(p)
+	case ast.Map:
+		return t.inspectMap(p)
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) type specifier (%T)", p.Kind(), p.Kind(), p))
 	}
+}
+
+func (t *Typer) inspectMap(m ast.Map) diag.Error {
+	err := t.inspectType(m.Key)
+	if err != nil {
+		return err
+	}
+	return t.inspectType(m.Value)
 }
 
 func (t *Typer) linkPointer(p ast.Pointer) diag.Error {

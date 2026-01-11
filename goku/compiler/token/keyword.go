@@ -20,6 +20,7 @@ var kw = map[string]Kind{
 	"const":  Const,
 	"union":  Union,
 	"struct": Struct,
+	"map":    Map,
 	"pub":    Pub,
 	"gen":    Gen,
 	"unsafe": Unsafe,

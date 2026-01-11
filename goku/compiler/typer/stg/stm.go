@@ -112,6 +112,11 @@ type Break struct {
 	Pin sm.Pin
 }
 
+// Gonext represents go to next loop iteration statement (continue).
+type Gonext struct {
+	Pin sm.Pin
+}
+
 // Must represents must statement.
 type Must struct {
 	// Always not nil.

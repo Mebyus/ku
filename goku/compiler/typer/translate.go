@@ -120,6 +120,8 @@ func (t *Typer) translateStatement(stm ast.Statement) (stg.Statement, diag.Error
 		return t.translatePanic(s)
 	case ast.Break:
 		return t.translateBreak(s)
+	case ast.Gonext:
+		return t.translateGonext(s)
 	case ast.Stub:
 		return &stg.Stub{Pin: s.Pin}, nil
 	case ast.Never:
@@ -149,11 +151,22 @@ func (t *Typer) translateBreak(b ast.Break) (*stg.Break, diag.Error) {
 	if t.scope.LoopLevel == 0 {
 		return nil, &diag.SimpleMessageError{
 			Pin:  b.Pin,
-			Text: "scope has loop to break",
+			Text: "scope has no loop to break",
 		}
 	}
 
 	return &stg.Break{Pin: b.Pin}, nil
+}
+
+func (t *Typer) translateGonext(n ast.Gonext) (*stg.Gonext, diag.Error) {
+	if t.scope.LoopLevel == 0 {
+		return nil, &diag.SimpleMessageError{
+			Pin:  n.Pin,
+			Text: "scope has no loop to continue",
+		}
+	}
+
+	return &stg.Gonext{Pin: n.Pin}, nil
 }
 
 func (t *Typer) translatePanic(p ast.Panic) (stg.Statement, diag.Error) {

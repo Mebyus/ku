@@ -134,6 +134,8 @@ const (
 	Union
 
 	Tuple
+
+	Map
 )
 
 var text = [...]string{
@@ -157,6 +159,7 @@ var text = [...]string{
 	Struct: "struct",
 	Union:  "union",
 	Tuple:  "tuple",
+	Map:    "map",
 
 	Ref:          "ref",
 	Pointer:      "pointer",

@@ -136,7 +136,7 @@ func (n *Inspector) inspectBlock(block *Block) {
 
 func (n *Inspector) inspectStatement(stm Statement) {
 	switch s := stm.(type) {
-	case *Break, *Stub, *Never:
+	case *Break, *Gonext, *Stub, *Never:
 		// do nothing
 	case *Var:
 		if s.Exp != nil {

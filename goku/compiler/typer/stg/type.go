@@ -2,6 +2,7 @@ package stg
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/mebyus/ku/goku/compiler/enums/tpk"
 )
@@ -103,6 +104,12 @@ func (t *Type) String() string {
 	case tpk.Custom:
 		c := t.Def.(*Custom)
 		s = c.Symbol.Name
+	case tpk.Array:
+		a := t.Def.(Array)
+		return "[" + strconv.FormatUint(uint64(a.Len), 10) + "]" + a.Type.String()
+	case tpk.Map:
+		m := t.Def.(Map)
+		return "map(" + m.Key.String() + ", " + m.Value.String() + ")"
 	default:
 		return fmt.Sprintf("???(%d)", t.Kind)
 	}
@@ -302,6 +309,18 @@ var _ TypeDef = Array{}
 
 func (Array) Kind() tpk.Kind {
 	return tpk.Array
+}
+
+type Map struct {
+	Key   *Type
+	Value *Type
+}
+
+// Explicit interface implementation check.
+var _ TypeDef = Map{}
+
+func (Map) Kind() tpk.Kind {
+	return tpk.Map
 }
 
 type Field struct {

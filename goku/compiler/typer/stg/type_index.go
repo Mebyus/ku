@@ -48,6 +48,9 @@ type TypeIndex struct {
 	// Maps array type definition (element type + size) to the corresponding array type.
 	Arrays map[Array]*Type
 
+	// Maps map type definition (key type + value type) to the corresponding map type.
+	Maps map[Map]*Type
+
 	// Set for checking names for uniqueness. Reused between calls.
 	un map[string]struct{}
 }
@@ -198,6 +201,7 @@ func (x *TypeIndex) Init() {
 	x.Unions = make(map[string][]*Type)
 	x.Tuples = make(map[string]*Type)
 	x.Arrays = make(map[Array]*Type)
+	x.Maps = make(map[Map]*Type)
 
 	x.un = make(map[string]struct{})
 
@@ -236,6 +240,8 @@ func (s *Scope) LookupType(spec ast.TypeSpec) (*Type, diag.Error) {
 		return s.lookupUnion(p)
 	case ast.Tuple:
 		return s.lookupTuple(p)
+	case ast.Map:
+		return s.lookupMap(p)
 	case ast.Enum:
 		// each enum is created as distinct type
 		return s.createEnumType(p)
@@ -539,6 +545,18 @@ func (s *Scope) lookupUnion(u ast.Union) (*Type, diag.Error) {
 	return typ, nil
 }
 
+func (s *Scope) lookupMap(m ast.Map) (*Type, diag.Error) {
+	key, err := s.LookupType(m.Key)
+	if err != nil {
+		return nil, err
+	}
+	value, err := s.LookupType(m.Value)
+	if err != nil {
+		return nil, err
+	}
+	return s.Types.getMap(key, value), nil
+}
+
 func (s *Scope) lookupTuple(tuple ast.Tuple) (*Type, diag.Error) {
 	if len(tuple.Types) == 0 {
 		return s.Types.Known.Void, nil
@@ -677,6 +695,24 @@ func (s *Scope) createEnumEntry(typ *Type, i int, exp ast.Exp) (EnumEntry, diag.
 		Value: val,
 		Index: uint32(i),
 	}, nil
+}
+
+func (x *TypeIndex) getMap(key, value *Type) *Type {
+	m := Map{
+		Key:   key,
+		Value: value,
+	}
+	typ, ok := x.Maps[m]
+	if ok {
+		return typ
+	}
+	typ = &Type{
+		// TODO: calculate size
+		Def:  m,
+		Kind: tpk.Map,
+	}
+	x.Maps[m] = typ
+	return typ
 }
 
 func (x *TypeIndex) getTuple(types []*Type) *Type {

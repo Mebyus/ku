@@ -114,6 +114,7 @@ const (
 
 	Struct
 	Union
+	Map
 
 	Const
 	Type

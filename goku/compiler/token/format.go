@@ -100,6 +100,7 @@ var literal = [...]string{
 	Test:   "test",
 	Union:  "union",
 	Struct: "struct",
+	Map:    "map",
 	Pub:    "pub",
 	Unsafe: "unsafe",
 	Never:  "never",

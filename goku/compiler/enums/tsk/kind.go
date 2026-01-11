@@ -13,6 +13,7 @@ const (
 	FullName
 	Struct
 	Union
+	Map
 	Ref
 	Pointer
 	VoidRef
@@ -38,6 +39,7 @@ var text = [...]string{
 	FullName:     "full name",
 	Struct:       "struct",
 	Union:        "union",
+	Map:          "map",
 	Ref:          "ref",
 	Pointer:      "pointer",
 	Array:        "array",
