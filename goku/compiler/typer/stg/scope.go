@@ -29,8 +29,7 @@ type Scope struct {
 	//
 	//	- global     -> 0
 	//	- unit       -> 1
-	//	- test       -> 2
-	//	- node       -> 3
+	//	- node       -> 2
 	//
 	// Subsequent levels are created inside function and method bodies by means of
 	// various language constructs.
@@ -56,28 +55,29 @@ type Scope struct {
 }
 
 func (s *Scope) Init(kind sck.Kind, parent *Scope) {
-	if kind == sck.Global {
-		if parent != nil {
-			panic("global scope with parent")
-		}
-	} else {
-		if parent == nil {
-			panic("no parent scope")
-		}
-		s.Types = parent.Types
-		s.Gens = parent.Gens
-		s.LoopLevel = parent.LoopLevel
+	s.Parent = parent
+	s.Types = parent.Types
+	s.Gens = parent.Gens
+	s.Level = parent.Level + 1
+	s.LoopLevel = parent.LoopLevel
 
-		switch kind {
-		case sck.Loop:
-			s.LoopLevel += 1
-		}
+	switch kind {
+	case sck.Loop:
+		s.LoopLevel += 1
 	}
 
-	s.Kind = kind
-	s.Parent = parent
+	s.init(kind)
+}
 
+func (s *Scope) init(kind sck.Kind) {
+	s.Kind = kind
 	s.m = make(map[string]*Symbol)
+}
+
+// IsLocal returns true for local scopes.
+// Non-local scopes are global and unit-level scopes.
+func (s *Scope) IsLocal() bool {
+	return s.Level >= 2
 }
 
 // Has checks if symbol with a given name already exists inside the scope.
@@ -97,6 +97,9 @@ func (s *Scope) Alloc(kind smk.Kind, name string, pin sm.Pin) *Symbol {
 }
 
 func (s *Scope) Bind(symbol *Symbol) {
+	if s.IsLocal() {
+		symbol.Flags |= SymbolLocal
+	}
 	symbol.Scope = s
 	s.Symbols = append(s.Symbols, symbol)
 	s.m[symbol.Name] = symbol

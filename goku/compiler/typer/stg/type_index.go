@@ -49,7 +49,7 @@ type TypeIndex struct {
 	Arrays map[Array]*Type
 
 	// Maps map type definition (key type + value type) to the corresponding map type.
-	Maps map[Map]*Type
+	Maps map[mapkv]*Type
 
 	// Set for checking names for uniqueness. Reused between calls.
 	un map[string]struct{}
@@ -201,7 +201,7 @@ func (x *TypeIndex) Init() {
 	x.Unions = make(map[string][]*Type)
 	x.Tuples = make(map[string]*Type)
 	x.Arrays = make(map[Array]*Type)
-	x.Maps = make(map[Map]*Type)
+	x.Maps = make(map[mapkv]*Type)
 
 	x.un = make(map[string]struct{})
 
@@ -409,18 +409,7 @@ func (s *Scope) lookupRef(p ast.Ref) (*Type, diag.Error) {
 		return nil, err
 	}
 
-	typ, ok := s.Types.Refs[t]
-	if ok {
-		return typ, nil
-	}
-	typ = &Type{
-		Def:  Ref{Type: t},
-		Size: archPointerSize,
-		Kind: tpk.Ref,
-	}
-	s.Types.Refs[t] = typ
-
-	return typ, nil
+	return s.Types.getRef(t), nil
 }
 
 func (s *Scope) lookupSpan(p ast.Span) (*Type, diag.Error) {
@@ -698,20 +687,16 @@ func (s *Scope) createEnumEntry(typ *Type, i int, exp ast.Exp) (EnumEntry, diag.
 }
 
 func (x *TypeIndex) getMap(key, value *Type) *Type {
-	m := Map{
+	kv := mapkv{
 		Key:   key,
 		Value: value,
 	}
-	typ, ok := x.Maps[m]
+	typ, ok := x.Maps[kv]
 	if ok {
 		return typ
 	}
-	typ = &Type{
-		// TODO: calculate size
-		Def:  m,
-		Kind: tpk.Map,
-	}
-	x.Maps[m] = typ
+	typ = x.newMapType(kv)
+	x.Maps[kv] = typ
 	return typ
 }
 
@@ -727,6 +712,20 @@ func (x *TypeIndex) getTuple(types []*Type) *Type {
 		Kind: tpk.Tuple,
 	}
 	x.Tuples[key] = typ
+	return typ
+}
+
+func (x *TypeIndex) getRef(t *Type) *Type {
+	typ, ok := x.Refs[t]
+	if ok {
+		return typ
+	}
+	typ = &Type{
+		Def:  Ref{Type: t},
+		Size: archPointerSize,
+		Kind: tpk.Ref,
+	}
+	x.Refs[t] = typ
 	return typ
 }
 

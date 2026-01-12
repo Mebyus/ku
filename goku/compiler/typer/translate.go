@@ -341,9 +341,19 @@ func (t *Typer) defineOrAssign(target ast.Exp, typ *stg.Type) (stg.Exp, diag.Err
 		pin := e.Pin
 
 		symbol := t.scope.Lookup(name)
-		if symbol == nil {
+		if symbol == nil || !symbol.IsLocal() {
 			symbol = t.scope.Alloc(smk.Var, name, pin)
 			symbol.Type = typ
+		} else {
+			switch symbol.Kind {
+			case smk.Var, smk.Param:
+				// do nothing
+			default:
+				return nil, &diag.SimpleMessageError{
+					Pin:  pin,
+					Text: fmt.Sprintf("%s symbol \"%s\" cannot be target of assignment", symbol.Kind, name),
+				}
+			}
 		}
 
 		return &stg.SymExp{

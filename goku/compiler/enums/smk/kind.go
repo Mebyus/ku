@@ -39,6 +39,9 @@ const (
 
 	BgenFunInst
 
+	// Map method (before monomorphization).
+	MapMethod
+
 	Gen
 
 	// Runtime function or method parameter.
@@ -85,6 +88,7 @@ var text = [...]string{
 
 	BgenFun:     "builtin generic function",
 	BgenFunInst: "builtin generic function instance",
+	MapMethod:   "map method",
 }
 
 func (k Kind) String() string {

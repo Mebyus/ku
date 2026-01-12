@@ -40,8 +40,17 @@ func CheckAssign(want *Type, exp Exp) diag.Error {
 	}
 
 	if typ.Kind == tpk.Integer && want.Kind == tpk.Integer {
-		if typ.IsSigned() == want.IsSigned() && want.Size > typ.Size {
+		if typ.IsSigned() == want.IsSigned() && want.Size >= typ.Size {
 			return nil
+		}
+		if !want.IsSigned() && typ.IsStatic() {
+			v := exp.(*Integer)
+			if v.Neg {
+				return &diag.SimpleMessageError{
+					Pin:  v.Pin,
+					Text: fmt.Sprintf("unsigned integer type %s is incompatible with compile-time negative integer -%d", want, v.Val),
+				}
+			}
 		}
 	}
 

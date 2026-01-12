@@ -22,8 +22,15 @@ type Pool struct {
 
 fun make_map(m: &map(str, uint)) -> (uint, bool) {
     var s: str = "hello";
+
+    if m.num != 0 {
+        ret m.num, true;
+    }
+
     m.set(s, 1);
     a, ok := m.get(s);
+
+    a = 10;
     
     if !m.has("abc") {
         ret 0, false;

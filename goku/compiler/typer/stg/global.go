@@ -8,7 +8,7 @@ import (
 )
 
 func (s *Scope) InitGlobal(types *TypeIndex, gens *GenIndex) {
-	s.Init(sck.Global, nil)
+	s.init(sck.Global)
 	s.Types = types
 	s.Gens = gens
 }

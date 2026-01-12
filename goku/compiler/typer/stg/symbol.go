@@ -86,6 +86,7 @@ const (
 	SymbolStub
 
 	// Symbol is declared as public.
+	// Applicable only to unit-level symbols.
 	SymbolPublic
 
 	// Symbol should be skipped during compilation.
@@ -94,6 +95,10 @@ const (
 
 	// Only applicable for functions. Symbol should be exported in produced binary object file.
 	SymbolExport
+
+	// Local symbols are the ones created in function or method bodies (as well as their parameters).
+	// Non-local symbols are global or unit-level.
+	SymbolLocal
 )
 
 func (s *Symbol) IsPublic() bool {
@@ -102,6 +107,10 @@ func (s *Symbol) IsPublic() bool {
 
 func (s *Symbol) IsExport() bool {
 	return s.Flags*SymbolExport != 0
+}
+
+func (s *Symbol) IsLocal() bool {
+	return s.Flags&SymbolLocal != 0
 }
 
 func (s *Symbol) MarkSkip() {

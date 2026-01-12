@@ -766,9 +766,40 @@ func (s *Scope) applySelectToPointer(exp Exp, part ast.Select) (Exp, diag.Error)
 			Exp:   exp,
 			Field: f,
 		}, nil
+	case tpk.Map:
+		return s.applySelectToMapPointer(exp, part)
 	default:
 		panic(fmt.Sprintf("unexpected %s type", typ))
 	}
+}
+
+func (s *Scope) applySelectToMapPointer(exp Exp, part ast.Select) (Exp, diag.Error) {
+	typ := exp.Type().getDerefType()
+	m := typ.Def.(*Map)
+	name := part.Name.Str
+	pin := part.Name.Pin
+
+	switch name {
+	case "num":
+		return &DerefSelectMapNum{
+			Exp: exp,
+			Pin: pin,
+			typ: s.Types.Known.Uint,
+		}, nil
+	}
+
+	sym := m.getMethod(name)
+	if sym == nil {
+		return nil, &diag.SimpleMessageError{
+			Pin:  pin,
+			Text: fmt.Sprintf("type %s does not have field or method named \"%s\"", typ, name),
+		}
+	}
+
+	return &BoundMethod{
+		Receiver: exp,
+		Symbol:   sym,
+	}, nil
 }
 
 func bindMethodToPointerReceiver(r Exp, m *Symbol) (*BoundMethod, diag.Error) {
