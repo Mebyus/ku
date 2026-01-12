@@ -1,0 +1,9 @@
+test add {
+    var a: uint = 1;
+    var b: uint = 2;
+    
+    if a + b != 3 {
+        g.fail();
+        ret;
+    }
+}

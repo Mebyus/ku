@@ -112,6 +112,8 @@ const (
 	//	p = nil;
 	Nil
 
+	Pin
+
 	// Special form.
 	//
 	// AST only.
@@ -427,6 +429,7 @@ var text = [...]string{
 	Nil:     "nil",
 	Dirty:   "dirty",
 	Blank:   "blank",
+	Pin:     "pin",
 }
 
 func (k Kind) String() string {

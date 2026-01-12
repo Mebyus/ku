@@ -198,7 +198,7 @@ func (t *Typer) inspectVarInitExp(exp ast.Exp) diag.Error {
 
 func (t *Typer) inspectExp(exp ast.Exp) diag.Error {
 	switch e := exp.(type) {
-	case ast.Integer, ast.String, ast.Rune, ast.True, ast.False, ast.Nil, ast.Dirty, ast.ErrorId, ast.EnumMacro, ast.DotName:
+	case ast.Integer, ast.String, ast.Rune, ast.True, ast.False, ast.Nil, ast.PinExp, ast.Dirty, ast.ErrorId, ast.EnumMacro, ast.DotName:
 		return nil
 	case ast.Symbol:
 		return t.linkExpSymbol(e)

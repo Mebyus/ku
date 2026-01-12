@@ -31,6 +31,7 @@ fun make_map(m: &map(str, uint)) -> (uint, bool) {
     a, ok := m.get(s);
 
     a = 10;
+    a = #pin;
     
     if !m.has("abc") {
         ret 0, false;

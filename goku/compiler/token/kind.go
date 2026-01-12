@@ -150,6 +150,7 @@ const (
 	TypeId  // #typeid
 	ErrorId // #error
 	Enum    // #enum
+	Pin     // #pin
 
 	Check // #check
 	Len   // #len

@@ -75,6 +75,10 @@ func (p *Parser) Operand() (ast.Operand, diag.Error) {
 		pin := p.peek.Pin
 		p.advance() // skip "nil"
 		return ast.Nil{Pin: pin}, nil
+	case token.Pin:
+		pin := p.peek.Pin
+		p.advance() // skip "#pin"
+		return ast.PinExp{Pin: pin}, nil
 	case token.TypeId:
 		return p.TypeId()
 	case token.ErrorId:

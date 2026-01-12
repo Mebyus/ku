@@ -225,6 +225,8 @@ func (lx *Lexer) static() token.Token {
 		tok.Kind = token.ErrorId
 	case "export":
 		tok.Kind = token.Export
+	case "pin":
+		tok.Kind = token.Pin
 	case "enum":
 		tok.Kind = token.Enum
 	case "size":
