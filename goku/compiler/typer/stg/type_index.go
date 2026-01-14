@@ -17,6 +17,8 @@ type TypeIndex struct {
 
 	Known KnownTypes
 
+	Prelude PreludeTypes
+
 	// Maps span element type to the corresponding span type.
 	Spans map[ /* span element type */ *Type]*Type
 
@@ -53,6 +55,15 @@ type TypeIndex struct {
 
 	// Set for checking names for uniqueness. Reused between calls.
 	un map[string]struct{}
+}
+
+// PreludeTypes collection of types partially recognized by compiler.
+//
+// They are not builtin, instead they are loaded from standard library
+// during prelude phase.
+type PreludeTypes struct {
+	// &stf.Context
+	TestContext *Type
 }
 
 // StaticTypes contains instances of various predefined (builtin) static types.

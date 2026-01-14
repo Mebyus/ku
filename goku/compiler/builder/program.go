@@ -21,6 +21,8 @@ type Bundle struct {
 
 	Context stg.Context
 
+	Prelude PreludeUnits
+
 	// List of all program units sorted by import path.
 	Units []*stg.Unit
 
@@ -33,6 +35,19 @@ type Bundle struct {
 
 	// Contains all source files discovered during uwalk phase.
 	Pool *sm.Pool
+}
+
+type PreludeUnits struct {
+	//	"fmt"
+	Format *stg.Unit
+
+	//	"mem"
+	Memory *stg.Unit
+
+	// Testing framework unit from standard library.
+	//
+	//	"stf"
+	Test *stg.Unit
 }
 
 func (b *Bundle) GetUnitParsers(unit *stg.Unit) ParserSet {
@@ -49,6 +64,7 @@ func CompileBundle(b *Bundle) diag.Error {
 	b.Context.Init()
 
 	exportCount := 0
+	testCount := 0
 	for _, cohort := range b.Graph.Cohorts {
 		for _, i := range cohort {
 			unit := b.Units[i]
@@ -62,7 +78,12 @@ func CompileBundle(b *Bundle) diag.Error {
 			}
 
 			exportCount += len(unit.Export)
+			testCount += len(unit.Tests)
 		}
+	}
+
+	if testCount != 0 {
+		fmt.Printf("found %d test function(s)\n", testCount)
 	}
 
 	if exportCount == 0 {

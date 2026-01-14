@@ -2,7 +2,6 @@ package builder
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 
@@ -180,6 +179,26 @@ func Test(c *Config) error {
 	return nil
 }
 
+func std(s string) QueueItem {
+	return QueueItem{
+		Path: sm.UnitPath{
+			Import: s,
+			Origin: sm.Std,
+		},
+	}
+}
+
+func getInitItems(start string) []QueueItem {
+	items := make([]QueueItem, 0, 4)
+
+	items = append(items, std("mem"))
+	items = append(items, std("fmt"))
+	items = append(items, std("stf"))
+	items = append(items, QueueItem{Path: sm.Local(start)})
+
+	return items
+}
+
 func build(c *Config) error {
 	pool := sm.New()
 	bundle, err := Walk(WalkConfig{
@@ -188,14 +207,10 @@ func build(c *Config) error {
 			Std: filepath.Join(c.RootDir, "src/std"),
 			Loc: c.SourceDir,
 		},
-	}, QueueItem{
-		Path: sm.Local(c.Unit),
-	})
+	}, getInitItems(c.Unit)...)
 	if err != nil {
 		return diag.Format(pool, err)
 	}
-
-	_ = sm.Encode(io.Discard, pool)
 
 	err = CompileBundle(bundle)
 	if err != nil {

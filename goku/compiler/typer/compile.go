@@ -70,7 +70,7 @@ func Compile(c *stg.Context, unit *stg.Unit, texts []*ast.Text) diag.Error {
 		panic("no texts")
 	}
 
-	unit.InitScopes(&c.Global)
+	unit.Init(&c.Global)
 	t := Typer{
 		ctx:  c,
 		unit: unit,
@@ -482,15 +482,16 @@ func (t *Typer) addMethod(m ast.Method) diag.Error {
 }
 
 func (t *Typer) addTest(test ast.TestFun) diag.Error {
-	name := test.Name.Str
 	pin := test.Name.Pin
+	name := "test." + test.Name.Str
 
-	if t.unit.TestScope.Has(name) {
+	if t.unit.Scope.Has(name) {
 		return errMultDef(name, pin)
 	}
 
-	symbol := t.unit.TestScope.Alloc(smk.Test, name, pin)
+	symbol := t.unit.Scope.Alloc(smk.Test, name, pin)
 	symbol.Aux = t.box.addTest(test)
+	t.unit.Tests = append(t.unit.Tests, symbol)
 	return nil
 }
 

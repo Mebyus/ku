@@ -110,6 +110,8 @@ func (t *Typer) inspectSymbol(s *stg.Symbol) diag.Error {
 		return t.inspectConstSymbol(s)
 	case smk.Var:
 		return t.inspectVarSymbol(s)
+	case smk.Test:
+		return nil
 	default:
 		panic(fmt.Sprintf("unexpected \"%s\" (=%d) symbol kind", k, k))
 	}

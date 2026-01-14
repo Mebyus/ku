@@ -12,11 +12,6 @@ type Unit struct {
 	// Unit top level scope.
 	Scope Scope
 
-	// Scope that holds all unit test symbols from all unit texts.
-	//
-	// This field is always not nil and Scope.Kind is always equal to sck.Test.
-	TestScope Scope
-
 	// Unit path of this unit.
 	Path sm.UnitPath
 
@@ -25,6 +20,9 @@ type Unit struct {
 
 	// List of exported symbols inside this unit.
 	Export []*Symbol
+
+	// List of test functions inside this unit.
+	Tests []*Symbol
 
 	// Unit index assigned by order in which units are discovered
 	// during unit discovery phase (uwalk).
@@ -85,7 +83,6 @@ func (u *Unit) FindImportSite(path sm.UnitPath) (sm.ImportSite, bool) {
 	return sm.ImportSite{}, false
 }
 
-func (u *Unit) InitScopes(global *Scope) {
+func (u *Unit) Init(global *Scope) {
 	u.Scope.Init(sck.Unit, global)
-	u.TestScope.Init(sck.Test, &u.Scope)
 }

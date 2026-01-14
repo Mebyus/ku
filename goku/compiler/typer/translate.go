@@ -26,6 +26,12 @@ func (t *Typer) translateSymbols() diag.Error {
 			return err
 		}
 	}
+	for _, ut := range t.unit.Tests {
+		err := t.translateSymbolBody(ut)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -36,6 +42,8 @@ func (t *Typer) getBody(s *stg.Symbol) ast.Block {
 		return t.box.Fun(s.Aux).Body
 	case smk.Method:
 		return t.box.Method(s.Aux).Body
+	case smk.Test:
+		return t.box.Test(s.Aux).Body
 	default:
 		panic(fmt.Sprintf("unexpected %s (=%d) symbol", s.Kind, s.Kind))
 	}

@@ -71,6 +71,17 @@ func (w *Walker) WalkFrom(init ...QueueItem) diag.Error {
 			return err
 		}
 
+		if u.Path.Origin == sm.Std {
+			switch u.Path.Import {
+			case "fmt":
+				w.Bundle.Prelude.Format = u
+			case "mem":
+				w.Bundle.Prelude.Memory = u
+			case "stf":
+				w.Bundle.Prelude.Test = u
+			}
+		}
+
 		if u.HasMain() {
 			if u.DiscoveryIndex != 0 {
 				panic("not implemented")

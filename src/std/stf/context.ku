@@ -1,0 +1,13 @@
+import std {
+    mem -> "mem"
+    fmt -> "fmt"
+}
+
+pub
+type Context struct {
+    out: fmt.FixedBuffer
+
+    al: mem.Allocator
+
+    err: error
+}

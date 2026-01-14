@@ -110,3 +110,19 @@ func (t *Typer) createFun(sname string, sig ast.Signature) (*stg.Fun, diag.Error
 
 	return def, nil
 }
+
+func (t *Typer) convTestSymbol(s *stg.Symbol) diag.Error {
+	def := &stg.Fun{}
+	scope := &def.Body.Scope
+	scope.Init(sck.Node, &t.unit.Scope)
+
+	const name = "g"
+	ps := scope.Alloc(smk.Param, name, s.Pin)
+	ps.Type = t.ctx.Types.Prelude.TestContext
+
+	params := []*stg.Type{ps.Type}
+	def.Params = params
+
+	s.Def = def
+	return nil
+}
