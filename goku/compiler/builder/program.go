@@ -7,7 +7,6 @@ import (
 	"github.com/mebyus/ku/goku/compiler/diag"
 	"github.com/mebyus/ku/goku/compiler/parser"
 	"github.com/mebyus/ku/goku/compiler/sm"
-	"github.com/mebyus/ku/goku/compiler/typer"
 	"github.com/mebyus/ku/goku/compiler/typer/stg"
 	"github.com/mebyus/ku/goku/graphs"
 )
@@ -19,7 +18,7 @@ type ParserSet []*parser.Parser
 type Bundle struct {
 	Graph graphs.Graph
 
-	Context stg.Context
+	Common stg.Common
 
 	Prelude PreludeUnits
 
@@ -61,7 +60,8 @@ func (b *Bundle) makeGraph() *graphs.Cycle {
 }
 
 func CompileBundle(b *Bundle) diag.Error {
-	b.Context.Init()
+	b.Common.Init(b.Pool)
+	p := stg.NewPool(&b.Common)
 
 	exportCount := 0
 	testCount := 0
@@ -72,7 +72,8 @@ func CompileBundle(b *Bundle) diag.Error {
 			if err != nil {
 				return err
 			}
-			err = typer.Compile(&b.Context, unit, texts)
+			typer := p.Get(unit)
+			err = typer.Translate(texts)
 			if err != nil {
 				return err
 			}
@@ -119,7 +120,7 @@ func (b *Bundle) mapGraphNodes() {
 	m := make(map[sm.UnitPath]*stg.Unit, len(b.Units))
 	b.Graph.Nodes = make([]graphs.Node, len(b.Units))
 	b.Graph.Rank = make([]uint32, len(b.Units))
-	b.Context.Map = m
+	b.Common.Map = m
 
 	for _, unit := range b.Units {
 		m[unit.Path] = unit

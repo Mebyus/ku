@@ -85,8 +85,8 @@ func (s *Scope) Has(name string) bool {
 	return s.m[name] != nil
 }
 
-// Alloc allocates new symbol inside the scope.
-func (s *Scope) Alloc(kind smk.Kind, name string, pin sm.Pin) *Symbol {
+// New allocates new symbol inside the scope.
+func (s *Scope) New(kind smk.Kind, name string, pin sm.Pin) *Symbol {
 	symbol := &Symbol{
 		Name: name,
 		Pin:  pin,
@@ -94,6 +94,11 @@ func (s *Scope) Alloc(kind smk.Kind, name string, pin sm.Pin) *Symbol {
 	}
 	s.Bind(symbol)
 	return symbol
+}
+
+// Alloc allocates new symbol inside the scope.
+func (s *Scope) Alloc(kind smk.Kind, name string, pin sm.Pin) *Symbol {
+	return s.New(kind, name, pin)
 }
 
 func (s *Scope) Bind(symbol *Symbol) {

@@ -15,7 +15,7 @@ func (s *Scope) InitGlobal(types *TypeIndex, gens *GenIndex) {
 
 const archPointerSize = 8
 
-func addBuiltinTypes(c *Context) {
+func addBuiltinTypes(c *Common) {
 	addBuiltinType(c, "u8", c.Types.Known.U8)
 
 	addUnsignedIntegerType(c, "u16", 2)
@@ -45,7 +45,7 @@ func addBuiltinTypes(c *Context) {
 	addBuiltinType(c, "str", c.Types.Known.Str)
 }
 
-func addBuiltinType(c *Context, name string, t *Type) {
+func addBuiltinType(c *Common, name string, t *Type) {
 	s := &Symbol{
 		Name:  name,
 		Kind:  smk.Type,
@@ -54,7 +54,7 @@ func addBuiltinType(c *Context, name string, t *Type) {
 	c.addType(s, t)
 }
 
-func addUnsignedIntegerType(c *Context, name string, size uint32) {
+func addUnsignedIntegerType(c *Common, name string, size uint32) {
 	s := &Symbol{
 		Name:  name,
 		Kind:  smk.Type,
@@ -68,7 +68,7 @@ func addUnsignedIntegerType(c *Context, name string, size uint32) {
 	c.addType(s, t)
 }
 
-func addSignedIntegerType(c *Context, name string, size uint32) {
+func addSignedIntegerType(c *Common, name string, size uint32) {
 	s := &Symbol{
 		Name:  name,
 		Kind:  smk.Type,
@@ -82,7 +82,7 @@ func addSignedIntegerType(c *Context, name string, size uint32) {
 	c.addType(s, t)
 }
 
-func addFloatType(c *Context, name string, size uint32) {
+func addFloatType(c *Common, name string, size uint32) {
 	s := &Symbol{
 		Name:  name,
 		Kind:  smk.Type,
@@ -96,12 +96,12 @@ func addFloatType(c *Context, name string, size uint32) {
 	c.addType(s, t)
 }
 
-func (c *Context) addType(s *Symbol, t *Type) {
+func (c *Common) addType(s *Symbol, t *Type) {
 	s.Def = SymDefType{Type: t}
 	c.Global.Bind(s)
 }
 
-func (c *Context) addGenFun(name string, kind bgk.Kind) {
+func (c *Common) addGenFun(name string, kind bgk.Kind) {
 	s := &Symbol{
 		Name:  name,
 		Kind:  smk.BgenFun,
@@ -111,7 +111,7 @@ func (c *Context) addGenFun(name string, kind bgk.Kind) {
 	c.Global.Bind(s)
 }
 
-func addBuiltinGens(c *Context) {
+func addBuiltinGens(c *Common) {
 	c.addGenFun("min", bgk.Min)
 	c.addGenFun("max", bgk.Max)
 	c.addGenFun("copy", bgk.Copy)

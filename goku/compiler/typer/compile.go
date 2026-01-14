@@ -34,7 +34,7 @@ type Typer struct {
 
 	unit *stg.Unit
 
-	ctx *stg.Context
+	ctx *stg.Common
 
 	graph *Graph
 
@@ -59,7 +59,7 @@ type Typer struct {
 	scope *stg.Scope
 }
 
-func Compile(c *stg.Context, unit *stg.Unit, texts []*ast.Text) diag.Error {
+func Compile(c *stg.Common, unit *stg.Unit, texts []*ast.Text) diag.Error {
 	if c == nil {
 		panic("nil context")
 	}
