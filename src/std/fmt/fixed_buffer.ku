@@ -1,3 +1,4 @@
+pub
 type FixedBuffer struct {
 	// Pointer to buffer memory.
 	// Always not nil for initialized struct.

@@ -2,6 +2,7 @@ package stg
 
 import (
 	"fmt"
+	"unsafe"
 
 	"github.com/mebyus/ku/goku/compiler/enums/smk"
 	"github.com/mebyus/ku/goku/compiler/sm"
@@ -100,6 +101,12 @@ const (
 	// Non-local symbols are global or unit-level.
 	SymbolLocal
 )
+
+// RawID returns integer which uniquely identifies a Symbol accross whole program.
+// This id may not be stable, meaning its value may change between compiler runs.
+func (s *Symbol) RawID() uint {
+	return uint(uintptr(unsafe.Pointer(s)))
+}
 
 func (s *Symbol) IsPublic() bool {
 	return s.Flags&SymbolPublic != 0

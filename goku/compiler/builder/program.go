@@ -74,6 +74,7 @@ func CompileBundle(b *Bundle) diag.Error {
 			}
 			typer := p.Get(unit)
 			err = typer.Translate(texts)
+			p.Put(typer)
 			if err != nil {
 				return err
 			}

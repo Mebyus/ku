@@ -107,7 +107,7 @@ type Typer struct {
 	// Filled during index phase.
 	mr map[ /* receiver type symbol */ *Symbol][]*Symbol
 
-	dep DepSet
+	deps DepSet
 
 	state State
 }
@@ -117,7 +117,7 @@ func NewTyper(c *Common) *Typer {
 		com: c,
 		mr:  make(map[*Symbol][]*Symbol),
 	}
-	t.dep.init()
+	t.deps.init()
 	return t
 }
 
@@ -148,6 +148,11 @@ func (t *Typer) Translate(texts []*ast.Text) diag.Error {
 	t.init()
 
 	err := t.Index()
+	if err != nil {
+		return err
+	}
+
+	err = t.Scan()
 	if err != nil {
 		return err
 	}
@@ -199,9 +204,9 @@ func (t *Typer) Index() diag.Error {
 func (t *Typer) Scan() diag.Error {
 	t.state = StateScan
 
-	t.scanConsts()
-	t.scanVars()
-	t.scanTypes()
+	t.scanConstSymbols()
+	t.scanVarSymbols()
+	t.scanTypeSymbols()
 
 	if len(t.errors) != 0 {
 		// need to refactor this to enable reporting multiple errors at once

@@ -120,6 +120,8 @@ fun (&String) klen() -> u32 {
 
 const k := 10;
 
+var kk: uint = a;
+
 const a := 1 + 2;
 
 const b := -0x1;
