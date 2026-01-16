@@ -82,6 +82,8 @@ const (
 type Typer struct {
 	box NodeBox
 
+	gb GraphBuilder
+
 	warns  []diag.Error
 	errors []diag.Error
 
@@ -117,6 +119,7 @@ func NewTyper(c *Common) *Typer {
 		com: c,
 		mr:  make(map[*Symbol][]*Symbol),
 	}
+	t.gb.init()
 	t.deps.init()
 	return t
 }
@@ -204,9 +207,21 @@ func (t *Typer) Index() diag.Error {
 func (t *Typer) Scan() diag.Error {
 	t.state = StateScan
 
-	t.scanConstSymbols()
-	t.scanVarSymbols()
-	t.scanTypeSymbols()
+	num := len(t.consts) + len(t.types)
+	if num != 0 {
+		t.gb.reset(num)
+		t.deps.discard = false
+
+		t.scanConstSymbols()
+		t.scanTypeSymbols()
+
+		t.gb.Build()
+	}
+
+	if len(t.vars) != 0 {
+		t.deps.discard = true
+		t.scanVarSymbols()
+	}
 
 	if len(t.errors) != 0 {
 		// need to refactor this to enable reporting multiple errors at once

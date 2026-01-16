@@ -17,6 +17,19 @@ type DepSet struct {
 	// Currently we store symbol raw ids to avoid GC scans of constructed
 	// dependency graph.
 	m map[ /* symbol id */ uint]struct{}
+
+	// Symbol id which is currently being scanned.
+	sid uint
+
+	// Symbol has self-loop i.e. it directly depends on itself.
+	loop bool
+
+	// If true then all additions to set will be discarded.
+	//
+	// Used for scanning variables as we do not need to store
+	// their dependencies, only check that they have proper
+	// compile-time definition.
+	discard bool
 }
 
 func (g *DepSet) init() {
@@ -25,9 +38,13 @@ func (g *DepSet) init() {
 
 func (g *DepSet) reset() {
 	clear(g.m)
+	g.loop = false
 }
 
 func (g *DepSet) has(s *Symbol) bool {
+	if g.loop {
+		return true
+	}
 	_, ok := g.m[s.RawID()]
 	return ok
 }
@@ -51,13 +68,22 @@ func (g *DepSet) take() []uint {
 
 // Add dependency between the given symbol and the one currently under inspection.
 func (g *DepSet) add(s *Symbol) {
+	if g.discard {
+		return
+	}
 	if s.Scope.Kind != sck.Unit {
 		// do not link global symbols, they are defined implicitly
 		// before everything else
 		return
 	}
 
-	g.m[s.RawID()] = struct{}{}
+	sid := s.RawID()
+	if sid == g.sid {
+		g.loop = true
+		return
+	}
+
+	g.m[sid] = struct{}{}
 }
 
 func (t *Typer) scanConstSymbols() {
@@ -67,7 +93,11 @@ func (t *Typer) scanConstSymbols() {
 			t.report(err)
 		}
 
-		_ = t.deps.take()
+		if t.deps.loop {
+			t.gb.AddWithLoop(s.RawID(), t.deps.take())
+		} else {
+			t.gb.Add(s.RawID(), t.deps.take())
+		}
 	}
 }
 
@@ -77,10 +107,6 @@ func (t *Typer) scanVarSymbols() {
 		if err != nil {
 			t.report(err)
 		}
-
-		// TODO: we can avoid map insteraction when scanning
-		// variables, just need to verify type spec and init expression
-		_ = t.deps.take()
 	}
 }
 
@@ -91,7 +117,11 @@ func (t *Typer) scanTypeSymbols() {
 			t.report(err)
 		}
 
-		_ = t.deps.take()
+		if t.deps.loop {
+			t.gb.AddWithLoop(s.RawID(), t.deps.take())
+		} else {
+			t.gb.Add(s.RawID(), t.deps.take())
+		}
 	}
 }
 
