@@ -1,7 +1,6 @@
 package stg
 
 import (
-	"fmt"
 	"slices"
 )
 
@@ -102,10 +101,16 @@ type GraphComp struct {
 
 type ClusterId uint32
 
-type Cluster struct {
-	verts []VertId
+// cluster element
+type celem struct {
+	// symbol id
+	sid uint
 
-	id ClusterId
+	vert VertId
+}
+
+type Cluster struct {
+	elems []celem
 }
 
 // GraphBuilder helper object for building and ranking dependency graph.
@@ -128,6 +133,13 @@ type GraphBuilder struct {
 	// We keep them separated from non-trivial components for the sake of
 	// building algorithm efficiency.
 	isolated []NodeId
+
+	// List of self-loop symbol ids.
+	loops []uint
+
+	// Buffer for returning list of symbol ids to client code.
+	// It is reused between various calls and should be used carefully.
+	sl []uint
 
 	// Stores visited flag for each node during BFS.
 	// Index directly corresponds to node id (index).
@@ -153,6 +165,12 @@ type GraphBuilder struct {
 	// Max component size among those that could have
 	// clusters in them.
 	maxCompSize uint32
+
+	// Cluster iterator index for component inside graph.
+	ci CompId
+
+	// Cluster iterator index for cluster inside component.
+	ck ClusterId
 }
 
 func (g *GraphBuilder) init() {
@@ -163,10 +181,14 @@ func (g *GraphBuilder) init() {
 // of nodes.
 func (g *GraphBuilder) reset(num int) {
 	g.nodes = make([]GraphNode, 0, num)
+	g.comps = nil
 
 	g.vn = 0
 	g.maxCompSize = 0
+	g.ci = 0
+	g.ck = 0
 	clear(g.m)
+	g.loops = g.loops[:0]
 	g.visited = reset(g.visited, num)
 	g.rm = reset(g.rm, num)
 }
@@ -176,10 +198,11 @@ func (g *GraphBuilder) Add(sid uint, deps []uint) {
 	g.add(sid, deps)
 }
 
-// AddWithLoop same as Add, but mark corresponding node as self-loop.
-func (g *GraphBuilder) AddWithLoop(sid uint, deps []uint) {
+// AddLoop same as Add, but mark corresponding node as self-loop.
+func (g *GraphBuilder) AddLoop(sid uint, deps []uint) {
 	id := g.add(sid, deps)
 	g.nodes[id].flags |= NodeLoop
+	g.loops = append(g.loops, sid)
 }
 
 func (g *GraphBuilder) add(sid uint, deps []uint) NodeId {
@@ -217,6 +240,44 @@ func (g *GraphBuilder) getList(sids []uint) []NodeId {
 	}
 	slices.Sort(list)
 	return list
+}
+
+// Returns list of self-loop symbol ids.
+//
+// Callers must not write to or take ownership of returned slice.
+func (g *GraphBuilder) getLoops() []uint {
+	if len(g.loops) == 0 {
+		return nil
+	}
+	return g.loops
+}
+
+// Iterator over clusters inside the graph.
+//
+// Each call returns a list of symbol ids which form non-trivial
+// (with at least 2 symbols) cluster.
+//
+// Iterator stops when empty slice is returned.
+func (g *GraphBuilder) cluster() []uint {
+	for {
+		if int(g.ci) >= len(g.comps) {
+			return nil
+		}
+		if int(g.ck) >= len(g.comps[g.ci].clusters) {
+			g.ci += 1
+			g.ck = 0
+			continue
+		}
+
+		elems := g.comps[g.ci].clusters[g.ck].elems
+		g.ck += 1
+
+		g.sl = slices.Grow(g.sl[:0], len(elems))
+		for _, elem := range elems {
+			g.sl = append(g.sl, elem.sid)
+		}
+		return g.sl
+	}
 }
 
 func (g *GraphBuilder) fillDescendants() {
@@ -563,21 +624,22 @@ func (w *CompWalker) walk(v VertId) {
 		// w.comp.verts[id].cluster = num
 
 		// cluster has at least 2 vertices by definition
-		list := make([]VertId, 0, 2)
-		list = append(list, id)
+		list := make([]celem, 0, 2)
+		list = append(list, celem{sid: w.comp.verts[id].sid, vert: id})
 
 		for id != v {
 			id = w.path.pop()
 			// w.comp.verts[id].cluster = num
-			list = append(list, id)
+			list = append(list, celem{sid: w.comp.verts[id].sid, vert: id})
 		}
-		slices.Sort(list)
+
+		// TODO: do we need to sort this list for consistent testing?
+		// slices.Sort(list)
+		_ = cid
 
 		w.comp.clusters = append(w.comp.clusters, Cluster{
-			id:    cid,
-			verts: list,
+			elems: list,
 		})
-		fmt.Printf("cluster (%d): %v\n", w.low[v], list)
 	}
 }
 

@@ -54,6 +54,7 @@ func (g *DepSet) has(s *Symbol) bool {
 // used again for scanning another symbol.
 func (g *DepSet) take() []uint {
 	if len(g.m) == 0 {
+		g.loop = false
 		return nil
 	}
 
@@ -86,24 +87,30 @@ func (g *DepSet) add(s *Symbol) {
 	g.m[sid] = struct{}{}
 }
 
+func (t *Typer) dumpDeps() {
+	if t.deps.loop {
+		t.gb.AddLoop(t.deps.sid, t.deps.take())
+	} else {
+		t.gb.Add(t.deps.sid, t.deps.take())
+	}
+}
+
 func (t *Typer) scanConstSymbols() {
 	for i, s := range t.consts {
+		t.deps.sid = s.RawID()
+
 		err := t.scanConstSymbol(i, s)
 		if err != nil {
 			t.report(err)
 		}
 
-		if t.deps.loop {
-			t.gb.AddWithLoop(s.RawID(), t.deps.take())
-		} else {
-			t.gb.Add(s.RawID(), t.deps.take())
-		}
+		t.dumpDeps()
 	}
 }
 
 func (t *Typer) scanVarSymbols() {
-	for i, s := range t.vars {
-		err := t.scanVarSymbol(i, s)
+	for i := range t.vars {
+		err := t.scanVarSymbol(i)
 		if err != nil {
 			t.report(err)
 		}
@@ -112,16 +119,14 @@ func (t *Typer) scanVarSymbols() {
 
 func (t *Typer) scanTypeSymbols() {
 	for i, s := range t.types {
-		err := t.scanTypeSymbol(i, s)
+		t.deps.sid = s.RawID()
+
+		err := t.scanTypeSymbol(i)
 		if err != nil {
 			t.report(err)
 		}
 
-		if t.deps.loop {
-			t.gb.AddWithLoop(s.RawID(), t.deps.take())
-		} else {
-			t.gb.Add(s.RawID(), t.deps.take())
-		}
+		t.dumpDeps()
 	}
 }
 
@@ -150,9 +155,8 @@ func (t *Typer) scanConstSymbol(i int, s *Symbol) diag.Error {
 	return nil
 }
 
-func (t *Typer) scanVarSymbol(i int, s *Symbol) diag.Error {
+func (t *Typer) scanVarSymbol(i int) diag.Error {
 	v := t.box.vars[i]
-	_ = v
 
 	err := t.scanType(v.Type)
 	if err != nil {
@@ -167,9 +171,8 @@ func (t *Typer) scanVarSymbol(i int, s *Symbol) diag.Error {
 	return nil
 }
 
-func (t *Typer) scanTypeSymbol(i int, s *Symbol) diag.Error {
+func (t *Typer) scanTypeSymbol(i int) diag.Error {
 	typ := t.box.types[i]
-	_ = typ
 
 	err := t.scanCustomTypeSpec(typ.Spec)
 	if err != nil {
@@ -402,4 +405,44 @@ func (t *Typer) scanArray(a ast.Array) diag.Error {
 	}
 
 	return t.scanType(a.Type)
+}
+
+// Check dependency graph between unit-level symbols.
+func (t *Typer) checkDepGraph() {
+	list := t.gb.getLoops()
+	for _, sid := range list {
+		s := getSymbol(sid)
+
+		_ = s
+		if s.Kind != smk.Type {
+			// Due to how graph is constructed this symbol must be a type.
+			panic(fmt.Sprintf("unexpected %s symbol \"%s\"", s.Kind, s.Name))
+		}
+	}
+
+	for {
+		cluster := t.gb.cluster()
+		if len(cluster) == 0 {
+			return
+		}
+
+		err := t.checkCluster(cluster)
+		if err != nil {
+			t.report(err)
+		}
+	}
+}
+
+func (t *Typer) checkCluster(cluster []uint) diag.Error {
+	for _, sid := range cluster {
+		s := getSymbol(sid)
+
+		if s.Kind == smk.Const {
+			return &diag.SimpleMessageError{
+				Pin:  s.Pin,
+				Text: fmt.Sprintf("constant \"%s\" has recursive definition", s.Name),
+			}
+		}
+	}
+	return nil
 }

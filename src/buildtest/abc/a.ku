@@ -130,11 +130,15 @@ const c := 1 + (3 - 4);
 
 const debug := true;
 
-const a1 := a2;
+const a1 := 0x11;
 const a2 := a1;
 
+type Self struct {
+    s: Self
+}
+
 type Array struct {
-    bots: []Bot
+    bots: [a2]Bot
 }
 
 type Bot struct {

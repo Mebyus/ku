@@ -108,6 +108,11 @@ func (s *Symbol) RawID() uint {
 	return uint(uintptr(unsafe.Pointer(s)))
 }
 
+// Get symbol by its raw id.
+func getSymbol(sid uint) *Symbol {
+	return (*Symbol)(unsafe.Pointer(uintptr(sid)))
+}
+
 func (s *Symbol) IsPublic() bool {
 	return s.Flags&SymbolPublic != 0
 }

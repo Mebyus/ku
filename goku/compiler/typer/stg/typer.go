@@ -216,6 +216,7 @@ func (t *Typer) Scan() diag.Error {
 		t.scanTypeSymbols()
 
 		t.gb.Build()
+		t.checkDepGraph()
 	}
 
 	if len(t.vars) != 0 {
