@@ -20,19 +20,21 @@ func (e *SimpleMessageError) Error() string {
 }
 
 func (e *SimpleMessageError) Render(w io.Writer, m sm.PinMap) error {
-	pos, err := m.DecodePin(e.Pin)
-	if err != nil {
-		return err
+	if e.Pin != 0 {
+		pos, err := m.DecodePin(e.Pin)
+		if err != nil {
+			return err
+		}
+		_, err = io.WriteString(w, pos.String())
+		if err != nil {
+			return err
+		}
+		_, err = io.WriteString(w, " ")
+		if err != nil {
+			return err
+		}
 	}
-	_, err = io.WriteString(w, pos.String())
-	if err != nil {
-		return err
-	}
-	_, err = io.WriteString(w, " ")
-	if err != nil {
-		return err
-	}
-	_, err = io.WriteString(w, e.Error())
+	_, err := io.WriteString(w, e.Error())
 	return err
 }
 
