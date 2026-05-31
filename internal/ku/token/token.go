@@ -29,8 +29,8 @@ type Token struct {
 }
 
 const (
-	// Illegal token.
-	ILG Kind = iota
+	// Invalid token.
+	INV Kind = iota
 
 	// End of source text.
 	EOF
@@ -41,6 +41,9 @@ const (
 	Comma // ,
 
 	RightArrow // ->
+
+	Plus  // +
+	Minus // -
 
 	LeftCurly  // {
 	RightCurly // }

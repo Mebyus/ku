@@ -17,6 +17,6 @@ const (
 )
 
 func (t *Token) SetError(code uint64) {
-	t.Kind = ILG
+	t.Kind = INV
 	t.Val = code
 }

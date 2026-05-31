@@ -26,8 +26,10 @@ type Buffer struct {
 }
 
 func (g *Buffer) Gen(prog *stg.Program) {
+	stg.AssignLinkNames(prog.Units)
+
 	for _, u := range prog.Units {
-		g.prefix = u.Name + "_"
+		g.prefix = u.LinkName + "_"
 
 		for _, f := range u.Funs {
 			g.fun(f)

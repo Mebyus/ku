@@ -165,14 +165,30 @@ func (lx *Lexer) other(tok *token.Token) {
 		lx.emitOneByteToken(tok, token.Colon)
 	case ',':
 		lx.emitOneByteToken(tok, token.Comma)
+	case '+':
+		lx.emitOneByteToken(tok, token.Plus)
+	case '-':
+		if lx.next() == '>' {
+			lx.emitTwoBytesToken(tok, token.RightArrow)
+			return
+		}
+		lx.emitOneByteToken(tok, token.Minus)
 	default:
-		lx.emitIllegalByteToken(tok)
+		// TODO: consume all non-printable bytes here
+		lx.emitInvalidByteToken(tok)
 	}
 }
 
 func (lx *Lexer) emitOneByteToken(tok *token.Token, kind token.Kind) {
 	tok.Kind = kind
 
+	lx.advance()
+}
+
+func (lx *Lexer) emitTwoBytesToken(tok *token.Token, kind token.Kind) {
+	tok.Kind = kind
+
+	lx.advance()
 	lx.advance()
 }
 
@@ -189,7 +205,7 @@ func (lx *Lexer) emitIllegalWord(tok *token.Token, code uint64) {
 	tok.Data = data
 }
 
-func (lx *Lexer) emitIllegalByteToken(tok *token.Token) {
+func (lx *Lexer) emitInvalidByteToken(tok *token.Token) {
 	tok.Val = uint64(lx.peek())
 	tok.SetError(token.NonPrintableByte)
 

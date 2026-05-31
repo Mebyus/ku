@@ -19,7 +19,7 @@ type Error struct {
 //
 // Can act as expression.
 type ErrorExp struct {
-	exp
+	operand
 	Error
 }
 

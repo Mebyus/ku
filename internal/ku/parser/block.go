@@ -49,6 +49,13 @@ func (p *Parser) Return() (ast.Statement, bool) {
 	pin := p.peek.Pin
 	p.advance() // skip "return"
 
+	if p.peek.Kind == token.Semicolon {
+		p.advance() // skip ";"
+		return &ast.Return{Pin: pin}, true
+	}
+
+	exp := p.Exp()
+
 	if p.peek.Kind != token.Semicolon {
 		p.report(p.peek.Pin, "missing \";\" after return statement")
 		// continue parsing, not a serious error
@@ -58,5 +65,6 @@ func (p *Parser) Return() (ast.Statement, bool) {
 
 	return &ast.Return{
 		Pin: pin,
+		Exp: exp,
 	}, true
 }

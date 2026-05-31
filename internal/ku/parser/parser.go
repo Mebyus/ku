@@ -18,8 +18,8 @@ type Parser struct {
 	// next token after peek
 	next token.Token
 
-	// total number of illegal tokens encountered
-	illegals uint32
+	// total number of invalid tokens encountered
+	invalids uint32
 
 	// parsing should stop when this is set to true
 	stop bool
@@ -48,9 +48,9 @@ func (p *Parser) advance() {
 
 	var tok token.Token
 	p.lx.Lex(&tok)
-	if tok.Kind == token.ILG {
-		p.illegals += 1
-		if p.illegals > 32 {
+	if tok.Kind == token.INV {
+		p.invalids += 1
+		if p.invalids > 32 {
 			setEOF(&p.peek, 1) // TODO: specify EOF error code
 			p.abort(ast.ErrorIllegalTokens)
 			return
