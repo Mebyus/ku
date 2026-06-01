@@ -2,7 +2,13 @@ package stg
 
 import "github.com/mebyus/ku/internal/ku/sx"
 
+// Statement node that represents statement of any kind.
 type Statement interface {
+	// Discriminator method for interface implementations.
+	// Only serves as a trick to enhance Go typechecking in
+	// type assertions.
+	//
+	// Does nothing when called.
 	_stm()
 }
 

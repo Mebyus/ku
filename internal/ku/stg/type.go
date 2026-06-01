@@ -16,8 +16,27 @@ type Type struct {
 	// consecutive elements of this type inside an array.
 	Size uint32
 
+	Flags TypeFlag
+
 	Kind typk.Kind
 }
+
+// TypeFlag bit flags for specifing additional type properties.
+type TypeFlag uint16
+
+const (
+	// Static variant of the type.
+	TypeStatic TypeFlag = 1 << iota
+
+	// Type is a builtin.
+	TypeBuiltin
+
+	// Type has recursive definition.
+	TypeRecursive
+
+	// Signed integer type.
+	TypeSigned
+)
 
 func (t *Typer) LookupType(s *Scope, spec ast.TypeSpec) *Type {
 	switch p := spec.(type) {
@@ -52,14 +71,44 @@ func (t *Typer) lookupTypeName(s *Scope, p *ast.TypeName) *Type {
 }
 
 type TypeIndex struct {
-	Known KnownTypes
+	Static StaticTypes
+	Known  KnownTypes
 
 	Invalid *Type
 }
 
 func (x *TypeIndex) init() {
+	x.Static.init()
 	x.Known.init()
 	x.Invalid = &Type{Kind: typk.Invalid}
+}
+
+// StaticTypes contains instances of various predefined (builtin) static types.
+type StaticTypes struct {
+	// For nil literal.
+	// Nil *Type
+
+	// Unsized.
+	Integer *Type
+
+	// String *Type
+
+	// Boolean *Type
+
+	// Rune *Type
+}
+
+func (t *StaticTypes) init() {
+	// t.Nil = &Type{
+	// 	Flags: TypeFlagBuiltin | TypeFlagStatic,
+	// 	Kind:  tpk.Nil,
+	// }
+
+	t.Integer = &Type{
+		Size:  0, // unsized static integer can hold arbitrary large integer number
+		Flags: TypeBuiltin | TypeSigned | TypeStatic,
+		Kind:  typk.Integer,
+	}
 }
 
 // KnownTypes contains instances of various primitive runtime types and their derivatives

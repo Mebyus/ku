@@ -54,10 +54,10 @@ func (t *Typer) convertBlock(block *Block, b *ast.Block) {
 //
 // if exit return value equals true it means that the statement exits
 // function execution (or it never stops like endless loop)
-func (t *Typer) convertNode(scope *Scope, s ast.Statement) (stm Statement, exit bool) {
+func (t *Typer) convertNode(c *Scope, s ast.Statement) (stm Statement, exit bool) {
 	switch s := s.(type) {
 	case *ast.Return:
-		return t.convertReturn(s), true
+		return t.convertReturn(c, s), true
 	// case ast.Var:
 	// 	return t.translateVar(s)
 	// case ast.Const:
@@ -96,7 +96,7 @@ func (t *Typer) convertNode(scope *Scope, s ast.Statement) (stm Statement, exit 
 			return nil, false
 		}
 		var block Block
-		block.Scope.Init(scok.Block, scope)
+		block.Scope.Init(scok.Block, c)
 		t.convertBlock(&block, s)
 		if len(block.Nodes) == 0 {
 			// non empty AST block can still result in empty block
@@ -110,7 +110,7 @@ func (t *Typer) convertNode(scope *Scope, s ast.Statement) (stm Statement, exit 
 	}
 }
 
-func (t *Typer) convertReturn(r *ast.Return) Statement {
+func (t *Typer) convertReturn(c *Scope, r *ast.Return) Statement {
 	pin := r.Pin
 
 	if t.sig.Never {
@@ -129,21 +129,25 @@ func (t *Typer) convertReturn(r *ast.Return) Statement {
 
 	var exp Exp
 	if r.Exp != nil {
-		// TODO: assign expression here
+		exp = t.convertExp(c, r.Exp)
+		if t.sig.Result != nil {
+			// TODO: typecheck return type against function result type
+			// maybe we also need to adjust type of static values here?
+		}
 	}
 	return &Return{
-		Pin: r.Pin,
+		Pin: pin,
 		Exp: exp,
 	}
+}
 
-	// exp, err := t.scope.TranslateExp(&stg.Hint{}, r.Exp)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// err = t.checkResultExp(t.sig.Result, exp)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// return &stg.Ret{Exp: exp}, nil
+func (t *Typer) convertExp(c *Scope, exp ast.Exp) Exp {
+	switch e := exp.(type) {
+	// case ast.Nil:
+	// return s.Types.MakeNil(e.Pin), nil
+	case *ast.Integer:
+		return t.makeInteger(e.Pin, e.Val)
+	default:
+		panic(fmt.Sprintf("unexpected %T expression", e))
+	}
 }

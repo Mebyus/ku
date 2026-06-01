@@ -41,6 +41,6 @@ func (g *Buffer) ret(r *stg.Return) {
 	}
 
 	g.puts("return ")
-	panic("stub")
+	g.exp(r.Exp)
 	g.semi()
 }
