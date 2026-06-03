@@ -1,6 +1,9 @@
 package stg
 
-import "github.com/mebyus/ku/internal/ku/sx"
+import (
+	"github.com/mebyus/ku/internal/ku/enums/bop"
+	"github.com/mebyus/ku/internal/ku/sx"
+)
 
 // Exp node that represents an arbitrary (but not empty) expression.
 type Exp interface {
@@ -68,3 +71,19 @@ func (t *Typer) makeInteger(pin sx.Pin, v uint64) *Integer {
 		typ: t.common.Types.Static.Integer,
 	}
 }
+
+// BinExp represents binary expression.
+type BinExp struct {
+	exp
+
+	// Left side of binary expression.
+	A Exp
+
+	// Right side of binary expression.
+	B Exp
+
+	Op bop.Op
+}
+
+// Explicit interface implementation check.
+var _ Exp = &BinExp{}

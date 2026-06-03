@@ -4,11 +4,57 @@ import (
 	"fmt"
 
 	"github.com/mebyus/ku/internal/ku/ast"
+	"github.com/mebyus/ku/internal/ku/enums/bop"
+	"github.com/mebyus/ku/internal/ku/enums/uop"
 	"github.com/mebyus/ku/internal/ku/token"
 )
 
 func (p *Parser) Exp() ast.Exp {
-	return p.operand()
+	return p.pratt(0)
+}
+
+func (p *Parser) pratt(power int) ast.Exp {
+	a := p.primary()
+	if a == nil {
+		// TODO: should be an error here?
+		return nil
+	}
+
+	for {
+		k, ok := bop.FromToken(p.peek.Kind)
+		if !ok || k.Power() <= power {
+			return a
+		}
+		op := bop.Op{Pin: p.peek.Pin, Kind: k}
+		p.advance() // skip binary operator
+
+		b := p.pratt(k.Power())
+		if b == nil {
+			// TODO: should be an error here?
+			return nil
+		}
+
+		a = &ast.BinExp{Op: op, A: a, B: b}
+	}
+}
+
+func (p *Parser) primary() ast.Exp {
+	k, ok := uop.FromToken(p.peek.Kind)
+	if !ok {
+		return p.operand()
+	}
+
+	op := uop.Op{Pin: p.peek.Pin, Kind: k}
+	p.advance() // skip unary operator
+
+	exp := p.primary()
+	if exp == nil {
+		return nil
+	}
+	return &ast.UnExp{
+		Op: op,
+		A:  exp,
+	}
 }
 
 func (p *Parser) operand() ast.Operand {

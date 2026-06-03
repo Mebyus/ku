@@ -1,5 +1,10 @@
 package ast
 
+import (
+	"github.com/mebyus/ku/internal/ku/enums/bop"
+	"github.com/mebyus/ku/internal/ku/enums/uop"
+)
+
 // Exp node that represents an arbitrary (but not empty) expression.
 type Exp interface {
 	// Discriminator method for interface implementations.
@@ -44,3 +49,41 @@ var _ Operand = operand{}
 
 func (operand) _exp()     {}
 func (operand) _operand() {}
+
+// Unary represents unary expression.
+//
+// Formal definition:
+//
+//	Unary -> UnaryOp ( Operand | Unary )
+type UnExp struct {
+	operand
+
+	// Expression to which operator applies.
+	//
+	// Can be either:
+	//	- operand (majority of cases in practice)
+	//	- another unary expression
+	A Exp
+
+	// Operator in unary expression.
+	Op uop.Op
+}
+
+// Explicit interface implementation check.
+var _ Operand = &UnExp{}
+
+// BinExp represents binary expression.
+type BinExp struct {
+	exp
+
+	// Left side of binary expression.
+	A Exp
+
+	// Right side of binary expression.
+	B Exp
+
+	Op bop.Op
+}
+
+// Explicit interface implementation check.
+var _ Exp = &BinExp{}
