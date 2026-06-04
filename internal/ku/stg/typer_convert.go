@@ -147,8 +147,14 @@ func (t *Typer) convertExp(c *Scope, exp ast.Exp) Exp {
 	// return s.Types.MakeNil(e.Pin), nil
 	case *ast.Integer:
 		return t.makeInteger(e.Pin, e.Val)
+	case *ast.True:
+		return t.makeBoolean(e.Pin, true)
+	case *ast.False:
+		return t.makeBoolean(e.Pin, false)
 	case *ast.BinExp:
 		return t.convertBinExp(c, e)
+	case *ast.ErrorExp:
+		return &InvExp{Pin: e.Pin}
 	default:
 		panic(fmt.Sprintf("unexpected %T expression", e))
 	}

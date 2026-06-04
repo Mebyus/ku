@@ -64,6 +64,7 @@ type Integer struct {
 	Neg bool
 }
 
+// create static integer value.
 func (t *Typer) makeInteger(pin sx.Pin, v uint64) *Integer {
 	return &Integer{
 		Pin: pin,
@@ -87,3 +88,27 @@ type BinExp struct {
 
 // Explicit interface implementation check.
 var _ Exp = &BinExp{}
+
+// Boolean represents a boolean constant true/false (directly from source or evaluated)
+// which value is known at compile time.
+type Boolean struct {
+	operand
+
+	Pin sx.Pin
+
+	typ *Type
+
+	Val bool
+}
+
+// Explicit interface implementation check.
+var _ Operand = &Boolean{}
+
+// create static boolean value.
+func (t *Typer) makeBoolean(pin sx.Pin, v bool) *Boolean {
+	return &Boolean{
+		Pin: pin,
+		Val: v,
+		typ: t.common.Types.Static.Boolean,
+	}
+}

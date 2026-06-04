@@ -8,3 +8,13 @@ func (t *Typer) report(pin sx.Pin, msg string) {
 		Short: msg,
 	})
 }
+
+// InvExp represents invalid expression. It can be syntactically malformed or
+// semantically invalid expression.
+//
+// Can act as expression or operand.
+type InvExp struct {
+	operand
+
+	Pin sx.Pin
+}

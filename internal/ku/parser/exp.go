@@ -67,6 +67,14 @@ func (p *Parser) operand() ast.Operand {
 			Val: tok.Val,
 			Aux: tok.Flags,
 		}
+	case token.True:
+		tok := p.peek
+		p.advance() // skip "true"
+		return &ast.True{Pin: tok.Pin}
+	case token.False:
+		tok := p.peek
+		p.advance() // skip "false"
+		return &ast.False{Pin: tok.Pin}
 	default:
 		pin := p.peek.Pin
 		er := ast.Error{

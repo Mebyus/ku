@@ -13,6 +13,8 @@ func (g *Buffer) getTypeName(t *stg.Type) string {
 	switch t.Kind {
 	case typk.Integer:
 		return "u32"
+	case typk.Boolean:
+		return "bool"
 	default:
 		return "invalid"
 	}

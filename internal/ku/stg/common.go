@@ -19,14 +19,15 @@ type Common struct {
 }
 
 func (c *Common) Init(pool *sx.Pool) {
+	c.Pool = pool
 	c.Types.init()
 	c.Global.InitGlobal()
 	c.bindBuiltinSymbols()
-	c.Pool = pool
 }
 
 func (c *Common) bindBuiltinSymbols() {
 	c.bindBuiltinTypeSymbol("u32", c.Types.Known.U32)
+	c.bindBuiltinTypeSymbol("bool", c.Types.Known.Bool)
 }
 
 func (c *Common) bindBuiltinTypeSymbol(name string, t *Type) {

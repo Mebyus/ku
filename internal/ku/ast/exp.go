@@ -3,6 +3,7 @@ package ast
 import (
 	"github.com/mebyus/ku/internal/ku/enums/bop"
 	"github.com/mebyus/ku/internal/ku/enums/uop"
+	"github.com/mebyus/ku/internal/ku/sx"
 )
 
 // Exp node that represents an arbitrary (but not empty) expression.
@@ -87,3 +88,19 @@ type BinExp struct {
 
 // Explicit interface implementation check.
 var _ Exp = &BinExp{}
+
+type True struct {
+	operand
+
+	Pin sx.Pin
+}
+
+type False struct {
+	operand
+
+	Pin sx.Pin
+}
+
+// Explicit interface implementation check.
+var _ Operand = &True{}
+var _ Operand = &False{}

@@ -54,6 +54,9 @@ const (
 	Fun
 	Return
 
+	True
+	False
+
 	// Identifiers and basic type literals.
 	Word
 	Integer

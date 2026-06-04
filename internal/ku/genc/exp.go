@@ -13,7 +13,14 @@ func (g *Buffer) exp(exp stg.Exp) {
 			g.putb('-')
 		}
 		g.putn(e.Val)
+	case *stg.Boolean:
+		if e.Val {
+			g.puts("true")
+		} else {
+			g.puts("false")
+		}
 	case *stg.BinExp:
+		// TODO: analyze precedence and place parenthesis when needed
 		g.exp(e.A)
 		g.space()
 		g.puts(e.Op.Kind.String())

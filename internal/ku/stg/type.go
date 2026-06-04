@@ -93,7 +93,7 @@ type StaticTypes struct {
 
 	// String *Type
 
-	// Boolean *Type
+	Boolean *Type
 
 	// Rune *Type
 }
@@ -108,6 +108,11 @@ func (t *StaticTypes) init() {
 		Size:  0, // unsized static integer can hold arbitrary large integer number
 		Flags: TypeBuiltin | TypeSigned | TypeStatic,
 		Kind:  typk.Integer,
+	}
+
+	t.Boolean = &Type{
+		Flags: TypeBuiltin | TypeStatic,
+		Kind:  typk.Boolean,
 	}
 }
 
@@ -127,12 +132,20 @@ type KnownTypes struct {
 
 	// u8
 	U32 *Type
+
+	Bool *Type
 }
 
 func (t *KnownTypes) init() {
 	t.U32 = &Type{
-		Size: 1,
-		// Flags: TypeFlagBuiltin,
-		Kind: typk.Integer,
+		Size:  1,
+		Flags: TypeBuiltin,
+		Kind:  typk.Integer,
+	}
+
+	t.Bool = &Type{
+		Size:  1,
+		Flags: TypeBuiltin,
+		Kind:  typk.Boolean,
 	}
 }
