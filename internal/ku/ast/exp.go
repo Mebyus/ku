@@ -104,3 +104,34 @@ type False struct {
 // Explicit interface implementation check.
 var _ Operand = &True{}
 var _ Operand = &False{}
+
+// SymExp represents expression operand formed by usage of symbol name.
+type SymExp struct {
+	operand
+
+	Name string
+
+	Pin sx.Pin
+}
+
+// Explicit interface implementation check.
+var _ Operand = &SymExp{}
+
+// ParenExp represents an expression which consists of another expression and
+// parenthesis surrounding it.
+//
+// Formal definition:
+//
+//	ParenExp -> "(" Exp ")"
+type ParenExp struct {
+	operand
+
+	// Expression surrounded by parenthesis.
+	Exp Exp
+
+	// Pin of opening (left) parenthesis.
+	Pin sx.Pin
+}
+
+// Explicit interface implementation check.
+var _ Operand = &ParenExp{}

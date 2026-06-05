@@ -75,6 +75,15 @@ func (p *Parser) operand() ast.Operand {
 		tok := p.peek
 		p.advance() // skip "false"
 		return &ast.False{Pin: tok.Pin}
+	case token.Word:
+		tok := p.peek
+		p.advance() // skip word (symbol name)
+		return &ast.SymExp{
+			Pin:  tok.Pin,
+			Name: tok.Data,
+		}
+	case token.LeftParen:
+		return p.parenExp()
 	default:
 		pin := p.peek.Pin
 		er := ast.Error{
@@ -84,5 +93,30 @@ func (p *Parser) operand() ast.Operand {
 		p.addError(&er)
 		p.advance() // TODO: we should do a sync here
 		return &ast.ErrorExp{Error: er}
+	}
+}
+
+func (p *Parser) parenExp() ast.Operand {
+	pin := p.peek.Pin
+	p.advance() // skip "("
+
+	exp := p.Exp()
+	if exp == nil {
+		return nil
+	}
+	if p.peek.Kind != token.RightParen {
+		pin := p.peek.Pin
+		er := ast.Error{
+			Pin:   pin,
+			Short: fmt.Sprintf("expected \")\" to close parenthesized expression, found %s token instead", p.peek.Kind),
+		}
+		p.addError(&er)
+		p.advance() // TODO: we should do a sync here
+		return &ast.ErrorExp{Error: er}
+	}
+	p.advance() // skip ")"
+	return &ast.ParenExp{
+		Pin: pin,
+		Exp: exp,
 	}
 }

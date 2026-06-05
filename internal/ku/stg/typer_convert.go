@@ -5,6 +5,7 @@ import (
 
 	"github.com/mebyus/ku/internal/ku/ast"
 	"github.com/mebyus/ku/internal/ku/enums/scok"
+	"github.com/mebyus/ku/internal/ku/enums/symk"
 )
 
 func (t *Typer) convert() {
@@ -151,12 +152,44 @@ func (t *Typer) convertExp(c *Scope, exp ast.Exp) Exp {
 		return t.makeBoolean(e.Pin, true)
 	case *ast.False:
 		return t.makeBoolean(e.Pin, false)
+	case *ast.SymExp:
+		return t.convertSymExp(c, e)
 	case *ast.BinExp:
 		return t.convertBinExp(c, e)
+	case *ast.ParenExp:
+		return t.convertExp(c, e.Exp)
 	case *ast.ErrorExp:
 		return &InvExp{Pin: e.Pin}
 	default:
 		panic(fmt.Sprintf("unexpected %T expression", e))
+	}
+}
+
+func (t *Typer) convertSymExp(c *Scope, exp *ast.SymExp) Exp {
+	name := exp.Name
+	pin := exp.Pin
+
+	symbol := c.Lookup(name)
+	if symbol == nil {
+		t.report(pin, fmt.Sprintf("unknown symbol \"%s\" used as expression", name))
+		return &InvExp{Pin: pin}
+	}
+
+	switch symbol.Kind {
+	// case symk.Const:
+	// 	return symbol.Def.(StaticValue).Exp, nil
+	case
+		// symk.Var,
+		// symk.Loop,
+		symk.Param:
+		return &SymExp{
+			Pin:    pin,
+			typ:    symbol.Type,
+			Symbol: symbol,
+		}
+	default:
+		t.report(pin, fmt.Sprintf("symbol \"%s\" cannot be used as operand or expression", name))
+		return &InvExp{Pin: pin}
 	}
 }
 

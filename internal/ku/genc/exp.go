@@ -19,6 +19,8 @@ func (g *Buffer) exp(exp stg.Exp) {
 		} else {
 			g.puts("false")
 		}
+	case *stg.SymExp:
+		g.puts(g.getName(e.Symbol))
 	case *stg.BinExp:
 		// TODO: analyze precedence and place parenthesis when needed
 		g.exp(e.A)

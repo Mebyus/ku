@@ -84,6 +84,8 @@ type BinExp struct {
 	B Exp
 
 	Op bop.Op
+
+	typ *Type
 }
 
 // Explicit interface implementation check.
@@ -111,4 +113,17 @@ func (t *Typer) makeBoolean(pin sx.Pin, v bool) *Boolean {
 		Val: v,
 		typ: t.common.Types.Static.Boolean,
 	}
+}
+
+// SymExp represents expression formed from symbol usage (as operand or part of chain)
+// inside an expression.
+type SymExp struct {
+	operand
+
+	Pin sx.Pin
+
+	// Type of expression. It may differ from type declared for symbol.
+	typ *Type
+
+	Symbol *Symbol
 }
