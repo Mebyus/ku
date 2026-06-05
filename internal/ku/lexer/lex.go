@@ -165,6 +165,10 @@ func (lx *Lexer) other(tok *token.Token) {
 		lx.emitOneByteToken(tok, token.Colon)
 	case ',':
 		lx.emitOneByteToken(tok, token.Comma)
+	case '*':
+		lx.emitOneByteToken(tok, token.Asterisk)
+	case '/':
+		lx.emitOneByteToken(tok, token.Slash)
 	case '+':
 		lx.emitOneByteToken(tok, token.Plus)
 	case '-':
@@ -174,8 +178,7 @@ func (lx *Lexer) other(tok *token.Token) {
 		}
 		lx.emitOneByteToken(tok, token.Minus)
 	default:
-		// TODO: consume all non-printable bytes here
-		lx.emitInvalidByteToken(tok)
+		lx.emitInvalidBytesToken(tok)
 	}
 }
 
@@ -205,11 +208,14 @@ func (lx *Lexer) emitIllegalWord(tok *token.Token, code uint64) {
 	tok.Data = data
 }
 
-func (lx *Lexer) emitInvalidByteToken(tok *token.Token) {
+func (lx *Lexer) emitInvalidBytesToken(tok *token.Token) {
 	tok.Val = uint64(lx.peek())
 	tok.SetError(token.NonPrintableByte)
 
-	lx.advance()
+	lx.advance() // enshure we consume first invalid byte even if it is printable
+	for !char.IsTextByte(lx.peek()) {
+		lx.advance()
+	}
 }
 
 func (lx *Lexer) emitEOF(tok *token.Token) {

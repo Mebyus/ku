@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"slices"
+	"strings"
 )
 
 // Pool loads and stores source files. Stored files can be accessed as Text.
@@ -98,28 +98,21 @@ func loadTextFromFile(path string) (*Text, error) {
 			Hash: h.Sum64(),
 		}, nil
 	}
+
+	// TODO: do we still need this trick when using strings.Builder?
 	size += 1 // one byte for final read at EOF
 
-	data := make([]byte, 0, size)
-	r := io.TeeReader(f, h)
-
-	for {
-		n, err := r.Read(data[len(data):cap(data)])
-		data = data[:len(data)+n]
-		if err != nil {
-			if err == io.EOF {
-				return &Text{
-					Data: data,
-					Path: path,
-					Ext:  filepath.Ext(path),
-					Hash: h.Sum64(),
-				}, nil
-			}
-			return nil, err
-		}
-
-		if cap(data) <= len(data) {
-			data = slices.Grow(data, 1<<10)
-		}
+	var g strings.Builder
+	g.Grow(int(size))
+	_, err = io.Copy(&g, io.TeeReader(f, h))
+	if err != nil {
+		return nil, err
 	}
+
+	return &Text{
+		Data: g.String(),
+		Path: path,
+		Ext:  filepath.Ext(path),
+		Hash: h.Sum64(),
+	}, nil
 }

@@ -13,6 +13,13 @@ func IsSimpleWhitespace(c byte) bool {
 	return c == ' ' || c == '\n' || c == '\t' || c == '\r'
 }
 
+// IsTextByte returns true if given byte represents ASCII printable or
+// control character which holds meaning for modern text files and is
+// compatible with utf-8.
+func IsTextByte(b byte) bool {
+	return (' ' <= b && b <= '~') || IsSimpleWhitespace(b)
+}
+
 const capitalLatinLetterMask = 0xDF
 
 // CapitalLatinLetter transforms ASCII latin letter character to its upper
@@ -66,11 +73,11 @@ func HexDigitNum(c byte) uint8 {
 	return CapitalLatinLetter(c) - 'A' + 10
 }
 
-func ParseHexDigits(s []byte) uint64 {
+func ParseHexDigits(s string) uint64 {
 	var v uint64
-	for _, d := range s {
+	for i := range len(s) {
 		v <<= 4
-		v += uint64(HexDigitNum(d))
+		v += uint64(HexDigitNum(s[i]))
 	}
 	return v
 }

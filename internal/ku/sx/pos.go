@@ -68,7 +68,7 @@ func (p TextPos) String() string {
 // FindTextPos returns (line, column) text position for specified offset into text.
 //
 // Panics if offset is outside of text.
-func FindTextPos(text []byte, offset uint32) TextPos {
+func FindTextPos(text string, offset uint32) TextPos {
 	var i uint32
 	var line uint32  // current line, zero-based value
 	var start uint32 // current line start offset

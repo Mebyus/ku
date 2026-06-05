@@ -3,7 +3,7 @@ package lexer
 import "github.com/mebyus/ku/internal/ku/sx"
 
 type Lexer struct {
-	text []byte
+	text string
 
 	mask sx.Pin
 

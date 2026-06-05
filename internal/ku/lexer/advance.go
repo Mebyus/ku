@@ -13,7 +13,7 @@ func (lx *Lexer) start() {
 }
 
 // Returns a view (slice into scanned text) of recorded token data.
-func (lx *Lexer) view() []byte {
+func (lx *Lexer) view() string {
 	return lx.text[lx.mark:lx.pos]
 }
 
@@ -24,7 +24,7 @@ func (lx *Lexer) take() (string, bool) {
 	if lx.isLengthOverflow() {
 		return "", false
 	}
-	return string(lx.view()), true
+	return lx.view(), true
 }
 
 // Returns byte length of recorded token data.

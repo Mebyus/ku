@@ -5,7 +5,10 @@ package sx
 // fly during compilation and not stored in a filesystem. Other cases include
 // source text from strings which is helpful for automated tests.
 type Text struct {
-	Data []byte
+	// We use string to hold text (file) contents in order to avoid token data
+	// allocations later. This way we can take string slices of original text
+	// string as token data.
+	Data string
 
 	// Empty when text does not come from a file.
 	Path string

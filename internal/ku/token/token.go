@@ -42,8 +42,10 @@ const (
 
 	RightArrow // ->
 
-	Plus  // +
-	Minus // -
+	Plus     // +
+	Minus    // -
+	Asterisk // *
+	Slash    // /
 
 	LeftCurly  // {
 	RightCurly // }
