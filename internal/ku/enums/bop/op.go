@@ -15,13 +15,8 @@ type Op struct {
 type Kind uint32
 
 const (
-	// Zero value of Kind. Should not be used explicitly.
-	//
-	// Mostly a trick to detect places where Kind is left unspecified.
-	empty Kind = iota
-
-	Equal    // ==
-	NotEqual // !=
+	Equal    Kind = iota // ==
+	NotEqual             // !=
 
 	Less           // <
 	Greater        // >
@@ -44,11 +39,12 @@ const (
 	BitAndNot  // &^
 	LeftShift  // <<
 	RightShift // >>
+
+	// total number of different operators
+	num
 )
 
 var text = [...]string{
-	empty: "<nil>",
-
 	Equal:    "==",
 	NotEqual: "!=",
 
@@ -80,8 +76,6 @@ func (k Kind) String() string {
 }
 
 var precedence = [...]int{
-	empty: 0,
-
 	Mul:        1,
 	Div:        1,
 	Mod:        1,
@@ -121,6 +115,8 @@ func (k Kind) Precedence() int {
 	return precedence[k]
 }
 
+// Power should be used for (recursive) pratt parsing of binary expressions.
+// Starting value of power is 0 in such case.
 func (k Kind) Power() int {
 	return 6 - k.Precedence()
 }
@@ -150,8 +146,8 @@ func FromToken(t token.Kind) (Kind, bool) {
 		k = Add
 	case token.Minus:
 		k = Sub
-	// case token.Asterisk:
-	// 	k = Mul
+	case token.Asterisk:
+		k = Mul
 	// case token.Slash:
 	// 	k = Div
 	// case token.Percent:
