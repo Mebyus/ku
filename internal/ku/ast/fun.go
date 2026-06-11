@@ -18,6 +18,19 @@ type Fun struct {
 	Pin sx.Pin
 }
 
+// FunStub represents function declaration with no implementation.
+//
+// Formal definition:
+//
+//	Fun  -> "fun" Name Signature ";"
+type FunStub struct {
+	Sig  Signature
+	Name string
+
+	// Function name pin.
+	Pin sx.Pin
+}
+
 // Signature represents function signature (params + return result).
 //
 // Formal definition:

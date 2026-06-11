@@ -27,10 +27,3 @@ func (p *Parser) top() {
 		p.topError(p.peek.Pin, fmt.Sprintf("expected top-level node start, found %s token instead", p.peek.Kind))
 	}
 }
-
-func (p *Parser) topFun() {
-	fun := p.Fun()
-	if fun != nil {
-		p.text.Funs = append(p.text.Funs, fun)
-	}
-}

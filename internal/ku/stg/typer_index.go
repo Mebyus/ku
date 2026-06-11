@@ -14,7 +14,7 @@ func (t *Typer) index() {
 
 func (t *Typer) indexFuns() {
 	for i, f := range t.box.funs {
-		t.indexFun(i, f)
+		t.indexFun(i, &f)
 	}
 }
 

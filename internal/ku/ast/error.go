@@ -25,12 +25,12 @@ type ErrorExp struct {
 
 var _ Exp = &ErrorExp{}
 
-// ErrorType represents error upon parsing type specifier.
+// InvType represents invalid (error upon parsing) type specifier.
 //
 // Can act as type specifier.
-type ErrorType struct {
+type InvType struct {
 	spec
 	Error
 }
 
-var _ TypeSpec = &ErrorType{}
+var _ TypeSpec = &InvType{}

@@ -10,7 +10,7 @@ import (
 
 func (t *Typer) convert() {
 	for _, s := range t.unit.Funs {
-		t.convertFun(s.Def.(*FunDef), t.box.funs[s.Aux])
+		t.convertFun(s.Def.(*FunDef), &t.box.funs[s.Aux])
 	}
 }
 

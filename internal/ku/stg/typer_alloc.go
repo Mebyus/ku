@@ -13,7 +13,7 @@ func (t *Typer) alloc(texts []*ast.Text) {
 
 // NodeBox is a container for gathering AST nodes from all unit texts.
 type NodeBox struct {
-	funs []*ast.Fun
+	funs []ast.Fun
 }
 
 // alloc is an efficient way to add Texts in bulk.

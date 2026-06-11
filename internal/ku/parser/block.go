@@ -1,42 +1,32 @@
 package parser
 
 import (
-	"fmt"
-
 	"github.com/mebyus/ku/internal/ku/ast"
 	"github.com/mebyus/ku/internal/ku/token"
 )
 
-func (p *Parser) Block() *ast.Block {
-	if p.peek.Kind != token.LeftCurly {
-		p.report(p.peek.Pin, fmt.Sprintf("expected \"{\" as block start, found %s token instead", p.peek.Kind))
-		return nil
-	}
-
-	pin := p.peek.Pin
+func (p *Parser) block(b *ast.Block) ss {
+	b.Pin = p.peek.Pin
 	p.advance() // skip "{"
 
-	var nodes []ast.Statement
 	for {
 		if p.peek.Kind == token.RightCurly {
 			p.advance() // skip "}"
-			return &ast.Block{
-				Pin:   pin,
-				Nodes: nodes,
-			}
+			return 0
 		}
 
-		node, ok := p.Statement()
-		if !ok {
-			return nil
-		}
+		node, s := p.Statement()
 		if node != nil {
-			nodes = append(nodes, node)
+			b.Nodes = append(b.Nodes, node)
+		}
+		switch s {
+		case ssTop, ssAbort:
+			return s
 		}
 	}
 }
 
-func (p *Parser) Statement() (ast.Statement, bool) {
+func (p *Parser) Statement() (ast.Statement, ss) {
 	switch p.peek.Kind {
 	case token.Return:
 		return p.Return()
@@ -45,16 +35,26 @@ func (p *Parser) Statement() (ast.Statement, bool) {
 	}
 }
 
-func (p *Parser) Return() (ast.Statement, bool) {
+func (p *Parser) Return() (ast.Statement, ss) {
 	pin := p.peek.Pin
 	p.advance() // skip "return"
 
-	if p.peek.Kind == token.Semicolon {
+	switch p.peek.Kind {
+	case token.Semicolon:
 		p.advance() // skip ";"
-		return &ast.Return{Pin: pin}, true
+		return &ast.Return{Pin: pin}, 0
+	case token.RightCurly:
+		p.report(pin, "missing \";\" after return statement")
+		return &ast.Return{Pin: pin}, 0
 	}
 
-	exp := p.Exp()
+	exp, s := p.Exp()
+	if s != 0 {
+		return &ast.Return{
+			Pin: pin,
+			Exp: exp,
+		}, s
+	}
 
 	if p.peek.Kind != token.Semicolon {
 		p.report(p.peek.Pin, "missing \";\" after return statement")
@@ -66,5 +66,5 @@ func (p *Parser) Return() (ast.Statement, bool) {
 	return &ast.Return{
 		Pin: pin,
 		Exp: exp,
-	}, true
+	}, 0
 }

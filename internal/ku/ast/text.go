@@ -27,7 +27,9 @@ const (
 //
 // Contains all top-level nodes organized into lists of each type.
 type Text struct {
-	Funs []*Fun
+	Funs []Fun
+
+	Stubs []FunStub
 
 	// List of all (not only top-level) errors occured during parsing.
 	Errors []*Error
@@ -37,4 +39,12 @@ type Text struct {
 
 func (t *Text) IsOk() bool {
 	return t.Status == Ok
+}
+
+func (t *Text) AddFun(f Fun) {
+	t.Funs = append(t.Funs, f)
+}
+
+func (t *Text) AddStub(s FunStub) {
+	t.Stubs = append(t.Stubs, s)
 }

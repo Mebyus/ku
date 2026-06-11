@@ -5,7 +5,7 @@ import (
 	"github.com/mebyus/ku/internal/ku/token"
 )
 
-func (p *Parser) TypeSpec() (ast.TypeSpec, bool) {
+func (p *Parser) TypeSpec() (ast.TypeSpec, ss) {
 	switch p.peek.Kind {
 	case token.Word:
 		pin := p.peek.Pin
@@ -14,8 +14,13 @@ func (p *Parser) TypeSpec() (ast.TypeSpec, bool) {
 		return &ast.TypeName{
 			Name: name,
 			Pin:  pin,
-		}, true
+		}, 0
 	default:
-		panic("stub")
+		pin := p.peek.Pin
+		er := ast.Error{
+			Pin: pin,
+		}
+		// error + sync
+		return &ast.InvType{Error: er}, 0
 	}
 }
