@@ -11,11 +11,15 @@ import (
 // assigns types for top-level variables and function params and results
 func (t *Typer) toptype() {
 	for _, s := range t.unit.Funs {
-		t.toptypeFun(s.Def.(*FunDef), &t.box.funs[s.Aux].Sig)
+		if s.IsStub() {
+			t.typeFun(s.Def.(*FunDef), &t.box.stubs[s.Aux].Sig)
+		} else {
+			t.typeFun(s.Def.(*FunDef), &t.box.funs[s.Aux].Sig)
+		}
 	}
 }
 
-func (t *Typer) toptypeFun(def *FunDef, sig *ast.Signature) {
+func (t *Typer) typeFun(def *FunDef, sig *ast.Signature) {
 	if def.Never && sig.Result != nil {
 		panic("invalid signature")
 	}

@@ -31,7 +31,18 @@ func (g *Buffer) Gen(prog *stg.Program) {
 	for _, u := range prog.Units {
 		g.prefix = u.LinkName + "_"
 
+		// forward delcarations for all unit functions
 		for _, f := range u.Funs {
+			g.funstub(f)
+			g.nl()
+		}
+
+		// definitions for all unit functions except stubs
+		for _, f := range u.Funs {
+			if f.IsStub() {
+				continue
+			}
+
 			g.fun(f)
 			g.nl()
 		}

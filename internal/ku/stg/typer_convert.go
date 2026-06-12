@@ -10,6 +10,10 @@ import (
 
 func (t *Typer) convert() {
 	for _, s := range t.unit.Funs {
+		if s.IsStub() {
+			continue
+		}
+
 		t.convertFun(s.Def.(*FunDef), &t.box.funs[s.Aux])
 	}
 }

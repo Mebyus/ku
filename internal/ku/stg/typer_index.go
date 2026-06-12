@@ -9,6 +9,7 @@ import (
 )
 
 func (t *Typer) index() {
+	t.indexStubs()
 	t.indexFuns()
 }
 
@@ -16,6 +17,30 @@ func (t *Typer) indexFuns() {
 	for i, f := range t.box.funs {
 		t.indexFun(i, &f)
 	}
+}
+
+func (t *Typer) indexStubs() {
+	for i, s := range t.box.stubs {
+		t.indexStub(i, &s)
+	}
+}
+
+func (t *Typer) indexStub(i int, s *ast.FunStub) {
+	name := s.Name
+	pin := s.Pin
+
+	symbol := t.unit.Scope.Get(name)
+	if symbol != nil {
+		t.report(pin, fmt.Sprintf("symbol with name \"%s\" was already declared inside this unit", name))
+		return
+	}
+
+	symbol = t.unit.Scope.New(symk.Fun, name, pin)
+	symbol.Aux = uint32(i)
+	symbol.Def = t.newFunDef()
+	symbol.Flags |= SymbolStub
+
+	t.unit.Funs = append(t.unit.Funs, symbol)
 }
 
 func (t *Typer) indexFun(i int, f *ast.Fun) {
