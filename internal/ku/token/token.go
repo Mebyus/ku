@@ -47,6 +47,9 @@ const (
 	Asterisk // *
 	Slash    // /
 
+	Assign // =
+	Walrus // :=
+
 	LeftCurly  // {
 	RightCurly // }
 	LeftParen  // (
@@ -54,6 +57,8 @@ const (
 
 	// Keywords.
 	Fun
+	Const
+
 	Return
 
 	True

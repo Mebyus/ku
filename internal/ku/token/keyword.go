@@ -2,6 +2,7 @@ package token
 
 var kw = map[string]Kind{
 	"fun":    Fun,
+	"const":  Const,
 	"return": Return,
 	"true":   True,
 	"false":  False,

@@ -19,6 +19,15 @@ func (t *Typer) convertFun(def *FunDef, f *ast.Fun) {
 	t.convertBlock(&def.Body, &f.Body)
 }
 
+// provides context for converting statements and expressions to STG form
+type context struct {
+	scope *Scope
+
+	// if true means that expression must be evaluated at compile-time
+	// and cannot contain runtime values inside
+	static bool
+}
+
 func (t *Typer) convertBlock(block *Block, b *ast.Block) {
 	block.Pin = b.Pin
 
@@ -61,8 +70,8 @@ func (t *Typer) convertNode(c *Scope, s ast.Statement) (stm Statement, exit bool
 		return t.convertReturn(c, s), true
 	// case ast.Var:
 	// 	return t.translateVar(s)
-	// case ast.Const:
-	// 	return t.translateConst(s)
+	case *ast.Const:
+		return t.convertConst(c, s), false
 	// case ast.If:
 	// 	return t.translateIf(s)
 	// case ast.Match:
@@ -111,7 +120,38 @@ func (t *Typer) convertNode(c *Scope, s ast.Statement) (stm Statement, exit bool
 	}
 }
 
-func (t *Typer) convertReturn(c *Scope, r *ast.Return) Statement {
+func (t *Typer) convertConst(s *Scope, c *ast.Const) Statement {
+	name := c.Name
+	pin := c.Pin
+
+	symbol := t.unit.Scope.Get(name)
+	if symbol != nil {
+		t.report(pin, fmt.Sprintf("symbol named \"%s\" was already declared in this block", name))
+		return nil
+	}
+
+	var typ *Type
+	if c.Type != nil {
+		typ = t.LookupType(&t.unit.Scope, c.Type)
+	}
+
+	exp := t.convertExp(&context{scope: s, static: true}, c.Exp)
+	if typ != nil {
+		// TODO: typecheck and correction of exp type
+	} else {
+		// TODO: assign typ according to exp type
+	}
+
+	symbol = s.New(symk.Const, name, pin)
+	symbol.Type = typ
+	symbol.Def = &StaticValue{Exp: exp}
+
+	// constants are saved as symbols with known compile-time value inside scope
+	// thus will not need separate constant definition statements in later stages
+	return nil
+}
+
+func (t *Typer) convertReturn(s *Scope, r *ast.Return) Statement {
 	pin := r.Pin
 
 	if t.sig.Never {
@@ -130,7 +170,7 @@ func (t *Typer) convertReturn(c *Scope, r *ast.Return) Statement {
 
 	var exp Exp
 	if r.Exp != nil {
-		exp = t.convertExp(c, r.Exp)
+		exp = t.convertExp(&context{scope: s}, r.Exp)
 		if t.sig.Result != nil {
 			// TODO: typecheck return type against function result type
 			// maybe we also need to adjust type of static values here?
@@ -142,7 +182,7 @@ func (t *Typer) convertReturn(c *Scope, r *ast.Return) Statement {
 	}
 }
 
-func (t *Typer) convertExp(c *Scope, exp ast.Exp) Exp {
+func (t *Typer) convertExp(c *context, exp ast.Exp) Exp {
 	switch e := exp.(type) {
 	// case ast.Nil:
 	// return s.Types.MakeNil(e.Pin), nil
@@ -165,23 +205,29 @@ func (t *Typer) convertExp(c *Scope, exp ast.Exp) Exp {
 	}
 }
 
-func (t *Typer) convertSymExp(c *Scope, exp *ast.SymExp) Exp {
+func (t *Typer) convertSymExp(c *context, exp *ast.SymExp) Exp {
 	name := exp.Name
 	pin := exp.Pin
 
-	symbol := c.Lookup(name)
+	symbol := c.scope.Lookup(name)
 	if symbol == nil {
 		t.report(pin, fmt.Sprintf("unknown symbol \"%s\" used as expression", name))
 		return &InvExp{Pin: pin}
 	}
 
 	switch symbol.Kind {
-	// case symk.Const:
-	// 	return symbol.Def.(StaticValue).Exp, nil
+	case symk.Const:
+		return symbol.Def.(*StaticValue).Exp
 	case
 		// symk.Var,
 		// symk.Loop,
 		symk.Param:
+
+		if c.static {
+			t.report(pin, fmt.Sprintf("runtime value symbol \"%s\" used in compile-time expression", name))
+			return &InvExp{Pin: pin}
+		}
+
 		return &SymExp{
 			Pin:    pin,
 			typ:    symbol.Type,
@@ -193,7 +239,7 @@ func (t *Typer) convertSymExp(c *Scope, exp *ast.SymExp) Exp {
 	}
 }
 
-func (t *Typer) convertBinExp(c *Scope, exp *ast.BinExp) Exp {
+func (t *Typer) convertBinExp(c *context, exp *ast.BinExp) Exp {
 	a := t.convertExp(c, exp.A)
 	b := t.convertExp(c, exp.B)
 

@@ -21,10 +21,10 @@ const (
 	// Custom or builtin type definition.
 	Type
 
-	// // Immutable value definition (name + type + value).
-	// //
-	// // Must be compile-time constant.
-	// Const
+	// Immutable value definition (name + type + value).
+	//
+	// Must be compile-time constant.
+	Const
 
 	// // Variable definition (name + type + initial value).
 	// Var
@@ -74,8 +74,8 @@ var text = [...]string{
 	Fun: "fun",
 	// Method: "method",
 	// Test:   "test",
-	Type: "type",
-	// Const:  "const",
+	Type:  "type",
+	Const: "const",
 	// Alias:  "alias",
 	// Var:    "var",
 	// Gen:    "gen",

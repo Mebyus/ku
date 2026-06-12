@@ -162,6 +162,10 @@ func (lx *Lexer) other(tok *token.Token) {
 	case ';':
 		lx.emitOneByteToken(tok, token.Semicolon)
 	case ':':
+		if lx.next() == '=' {
+			lx.emitTwoBytesToken(tok, token.Walrus)
+			return
+		}
 		lx.emitOneByteToken(tok, token.Colon)
 	case ',':
 		lx.emitOneByteToken(tok, token.Comma)
@@ -177,6 +181,8 @@ func (lx *Lexer) other(tok *token.Token) {
 			return
 		}
 		lx.emitOneByteToken(tok, token.Minus)
+	case '=':
+		lx.emitOneByteToken(tok, token.Assign)
 	default:
 		lx.emitInvalidBytesToken(tok)
 	}

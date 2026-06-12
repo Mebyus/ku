@@ -27,6 +27,7 @@ func (c *Common) Init(pool *sx.Pool) {
 
 func (c *Common) bindBuiltinSymbols() {
 	c.bindBuiltinTypeSymbol("u32", c.Types.Known.U32)
+	c.bindBuiltinTypeSymbol("s32", c.Types.Known.S32)
 	c.bindBuiltinTypeSymbol("bool", c.Types.Known.Bool)
 }
 

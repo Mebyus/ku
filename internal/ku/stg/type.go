@@ -133,13 +133,21 @@ type KnownTypes struct {
 	// u8
 	U32 *Type
 
+	S32 *Type
+
 	Bool *Type
 }
 
 func (t *KnownTypes) init() {
 	t.U32 = &Type{
-		Size:  1,
+		Size:  4,
 		Flags: TypeBuiltin,
+		Kind:  typk.Integer,
+	}
+
+	t.S32 = &Type{
+		Size:  4,
+		Flags: TypeBuiltin | TypeSigned,
 		Kind:  typk.Integer,
 	}
 

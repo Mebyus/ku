@@ -66,3 +66,11 @@ type symdef struct{}
 var _ SymDef = symdef{}
 
 func (symdef) _symdef() {}
+
+// StaticValue is a SymDef for constant symbols. It holds a value known
+// at compile time.
+type StaticValue struct {
+	symdef
+
+	Exp Exp
+}

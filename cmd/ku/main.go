@@ -64,6 +64,9 @@ func parse(path string) error {
 		return err
 	}
 
+	var funs []string
+	var stubs []string
+
 	n := 0 // total number of errors
 	for _, x := range texts {
 		t := parser.ParseText(x)
@@ -72,11 +75,22 @@ func parse(path string) error {
 			fmt.Fprintf(os.Stderr, "%s: %s\n", pos, e.Short)
 			n += 1
 		}
+
+		for _, f := range t.Funs {
+			funs = append(funs, f.Name)
+		}
+
+		for _, s := range t.Stubs {
+			stubs = append(stubs, s.Name)
+		}
 	}
 
 	if n != 0 {
 		os.Exit(1)
 	}
+
+	fmt.Printf("funs:  %v\n", funs)
+	fmt.Printf("stubs: %v\n", stubs)
 
 	return nil
 }
