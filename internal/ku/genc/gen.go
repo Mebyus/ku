@@ -21,11 +21,16 @@ type Buffer struct {
 	// name prefix for top-level symbols
 	prefix string
 
+	// maps type to its name in codegen output
+	types map[*stg.Type]string
+
 	// indentation level
 	ilevel int
 }
 
 func (g *Buffer) Gen(prog *stg.Program) {
+	g.types = make(map[*stg.Type]string)
+
 	stg.AssignLinkNames(prog.Units)
 
 	for _, u := range prog.Units {

@@ -29,9 +29,24 @@ func (g *Buffer) node(s stg.Statement) {
 	switch s := s.(type) {
 	case *stg.Return:
 		g.ret(s)
+	case *stg.If:
+		g.ifs(s)
 	default:
 		panic(fmt.Sprintf("unexpected %T statement", s))
 	}
+}
+
+func (g *Buffer) ifs(f *stg.If) {
+	g.puts("if (")
+	g.exp(f.Exp)
+	g.puts(") ")
+	g.block(&f.Body)
+	if f.Else == nil {
+		return
+	}
+
+	g.puts(" else ")
+	g.block(f.Else)
 }
 
 func (g *Buffer) ret(r *stg.Return) {

@@ -124,10 +124,10 @@ func (k Kind) Power() int {
 func FromToken(t token.Kind) (Kind, bool) {
 	var k Kind
 	switch t {
-	// case token.Equal:
-	// 	k = Equal
-	// case token.NotEqual:
-	// 	k = NotEqual
+	case token.Equal:
+		k = Equal
+	case token.NotEqual:
+		k = NotEqual
 	// case token.LeftAngle:
 	// 	k = Less
 	// case token.RightAngle:
@@ -148,8 +148,8 @@ func FromToken(t token.Kind) (Kind, bool) {
 		k = Sub
 	case token.Asterisk:
 		k = Mul
-	// case token.Slash:
-	// 	k = Div
+	case token.Slash:
+		k = Div
 	// case token.Percent:
 	// 	k = Mod
 	// case token.Caret:

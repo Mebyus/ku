@@ -76,8 +76,8 @@ func (t *Typer) convertNode(c *Scope, s ast.Statement) (stm Statement, exit bool
 	// 	return t.translateVar(s)
 	case *ast.Const:
 		return t.convertConst(c, s), false
-	// case ast.If:
-	// 	return t.translateIf(s)
+	case *ast.If:
+		return t.convertIf(c, s), false
 	// case ast.Match:
 	// 	return t.translateMatch(s)
 	// case ast.Assign:
@@ -153,6 +153,28 @@ func (t *Typer) convertConst(s *Scope, c *ast.Const) Statement {
 	// constants are saved as symbols with known compile-time value inside scope
 	// thus will not need separate constant definition statements in later stages
 	return nil
+}
+
+func (t *Typer) convertIf(s *Scope, f *ast.If) Statement {
+	exp := t.convertExp(&context{scope: s}, f.Exp)
+	// TODO: check that exp has boolean type
+
+	m := If{Exp: exp}
+	m.Body.Scope.Init(scok.Branch, s)
+	t.convertBlock(&m.Body, &f.Body)
+
+	if f.Else == nil || len(f.Else.Nodes) == 0 {
+		return &m
+	}
+
+	var block Block
+	block.Scope.Init(scok.Branch, s)
+	t.convertBlock(&block, f.Else)
+	if len(block.Nodes) != 0 {
+		m.Else = &block
+	}
+
+	return &m
 }
 
 func (t *Typer) convertReturn(s *Scope, r *ast.Return) Statement {

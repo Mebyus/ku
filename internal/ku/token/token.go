@@ -46,9 +46,13 @@ const (
 	Minus    // -
 	Asterisk // *
 	Slash    // /
+	Exclam   // !
 
 	Assign // =
 	Walrus // :=
+
+	Equal    // ==
+	NotEqual // !=
 
 	LeftCurly  // {
 	RightCurly // }
@@ -59,6 +63,8 @@ const (
 	Fun
 	Const
 
+	If
+	Else
 	Return
 
 	True

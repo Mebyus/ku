@@ -8,7 +8,7 @@ import (
 )
 
 type Program struct {
-	// Common
+	Common
 
 	Units []*Unit
 }

@@ -43,6 +43,7 @@ func build(path string) error {
 		os.Exit(1)
 	}
 
+	prog.Common = tp.Common
 	prog.Units = []*stg.Unit{unit}
 	return genc.Gen(os.Stdout, &prog)
 }

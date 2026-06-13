@@ -32,8 +32,8 @@ const (
 	Block
 	// Loop
 
-	// // If or else branch block.
-	// Branch
+	// If or else branch block.
+	Branch
 	// Case
 )
 
@@ -47,7 +47,7 @@ var text = [...]string{
 	// Unsafe: "unsafe",
 	Block: "block",
 	// Loop:   "loop",
-	// Branch: "branch",
+	Branch: "branch",
 	// Case:   "case",
 }
 

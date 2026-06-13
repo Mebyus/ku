@@ -38,6 +38,11 @@ const (
 	TypeSigned
 )
 
+// applicable only for integer types
+func (t *Type) IsSigned() bool {
+	return t.Flags&TypeSigned != 0
+}
+
 func (t *Typer) LookupType(s *Scope, spec ast.TypeSpec) *Type {
 	switch p := spec.(type) {
 	// case ast.VoidPointer:

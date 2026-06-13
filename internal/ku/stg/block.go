@@ -45,3 +45,18 @@ type Return struct {
 }
 
 var _ Statement = &Return{}
+
+type If struct {
+	stm
+
+	// true branch code block
+	Body Block
+
+	// condition, must have boolean type
+	Exp Exp
+
+	// can be nil, if statement does not have "else" branch
+	Else *Block
+}
+
+var _ Statement = &If{}

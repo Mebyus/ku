@@ -53,6 +53,53 @@ func (p *Parser) topError(pin sx.Pin, msg string) {
 	p.addError(&er)
 }
 
+// report error and sync until start of next statement
+func (p *Parser) syncNextNode(pin sx.Pin, msg string) ss {
+	er := ast.Error{
+		Short: msg,
+		Pin:   pin,
+	}
+
+	er.Tokens = append(er.Tokens, p.peek)
+	p.advance()
+
+	// sync until next statement start
+syncLoop:
+	for {
+		switch p.peek.Kind {
+		case token.Semicolon:
+			// assume it's the end of malformed statement
+			p.advance() // skip ";"
+			break syncLoop
+		case token.LeftCurly:
+			// assume it starts a new block
+			break syncLoop
+		case token.RightCurly:
+			// assume it closes encompassing block
+			break syncLoop
+		case token.Return, token.If, token.Const:
+			// these always start a new statement
+			break syncLoop
+		case token.Fun:
+			// assume new top-level function defenition
+			p.addError(&er)
+			return ssTop
+		}
+
+		er.Tokens = append(er.Tokens, p.peek)
+		p.advance()
+
+		if len(er.Tokens) > 64 {
+			p.abort(ast.ErrorSyncFailed)
+			p.addError(&er)
+			return ssAbort
+		}
+	}
+
+	p.addError(&er)
+	return ssNode
+}
+
 func (p *Parser) addError(er *ast.Error) {
 	p.text.Errors = append(p.text.Errors, er)
 	if len(p.text.Errors) > 16 {
