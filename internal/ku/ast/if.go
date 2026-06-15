@@ -1,5 +1,7 @@
 package ast
 
+import "github.com/mebyus/ku/internal/ku/sx"
+
 type If struct {
 	stm
 
@@ -8,6 +10,8 @@ type If struct {
 
 	// true branch
 	Body Block
+
+	Pin sx.Pin
 
 	// can be nil if statement does not have else branch
 	Else *Block

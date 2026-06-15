@@ -4,6 +4,8 @@ import "github.com/mebyus/ku/internal/ku/sx"
 
 // Statement node that represents statement of any kind.
 type Statement interface {
+	Pin() sx.Pin
+
 	// Discriminator method for interface implementations.
 	// Only serves as a trick to enhance Go typechecking in
 	// type assertions.
@@ -16,9 +18,6 @@ type Statement interface {
 // Do not use it for anything else.
 type stm struct{}
 
-// Explicit interface implementation check.
-var _ Statement = stm{}
-
 func (stm) _stm() {}
 
 // Block represents block statement or function body.
@@ -29,7 +28,7 @@ type Block struct {
 
 	Nodes []Statement
 
-	Pin sx.Pin
+	pin sx.Pin
 
 	// Total number of potential exits (return + never) inside this block.
 	// Count includes other blocks recursively.
@@ -40,6 +39,10 @@ type Block struct {
 
 // Explicit interface implementation check.
 var _ Statement = &Block{}
+
+func (b *Block) Pin() sx.Pin {
+	return b.pin
+}
 
 // Describes how statement (or whole code block) behaves regarding exit points execution flow.
 type ExitType uint8
@@ -79,10 +82,14 @@ type Return struct {
 	// Can be nil, if return does not have expression.
 	Exp Exp
 
-	Pin sx.Pin
+	pin sx.Pin
 }
 
 var _ Statement = &Return{}
+
+func (r *Return) Pin() sx.Pin {
+	return r.pin
+}
 
 type If struct {
 	stm
@@ -93,8 +100,14 @@ type If struct {
 	// condition, must have boolean type
 	Exp Exp
 
+	pin sx.Pin
+
 	// can be nil, if statement does not have "else" branch
 	Else *Block
 }
 
 var _ Statement = &If{}
+
+func (f *If) Pin() sx.Pin {
+	return f.pin
+}

@@ -48,6 +48,12 @@ type Symbol struct {
 	// For builtin generic function contains its kind.
 	Aux uint32
 
+	// number of read uses
+	rnum uint32
+
+	// number of write uses
+	wnum uint32
+
 	Flags SymbolFlag
 
 	Kind symk.Kind

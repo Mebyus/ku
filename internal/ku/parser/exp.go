@@ -80,16 +80,9 @@ func (p *Parser) operand() (ast.Operand, ss) {
 		}, 0
 	case token.LeftParen:
 		return p.parenExp()
-	default:
-		pin := p.peek.Pin
-		er := ast.Error{
-			Pin:   pin,
-			Short: fmt.Sprintf("expected expression or operand, found %s token instead", p.peek.Kind),
-		}
-		p.addError(&er)
-		p.advance() // TODO: we should do a sync here
-		return &ast.ErrorExp{Error: er}, 0
 	}
+
+	return p.syncExp(p.peek.Pin, fmt.Sprintf("expected expression or operand, found %s token instead", p.peek.Kind))
 }
 
 func (p *Parser) parenExp() (ast.Operand, ss) {

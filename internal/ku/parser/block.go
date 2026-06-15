@@ -43,6 +43,7 @@ func (p *Parser) Statement() (ast.Statement, ss) {
 }
 
 func (p *Parser) If() (ast.Statement, ss) {
+	pin := p.peek.Pin
 	p.advance() // skip "if"
 
 	exp, s := p.Exp()
@@ -50,8 +51,7 @@ func (p *Parser) If() (ast.Statement, ss) {
 		return nil, s
 	}
 
-	var f ast.If
-	f.Exp = exp
+	f := ast.If{Exp: exp, Pin: pin}
 
 	if p.peek.Kind != token.LeftCurly {
 		p.report(p.peek.Pin, fmt.Sprintf("expected \"{\" to start true branch block in \"if\" statement, found %s token", p.peek.Kind))

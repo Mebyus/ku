@@ -53,6 +53,48 @@ func (p *Parser) topError(pin sx.Pin, msg string) {
 	p.addError(&er)
 }
 
+// report error and sync until after end of current expression
+func (p *Parser) syncExp(pin sx.Pin, msg string) (*ast.ErrorExp, ss) {
+	er := ast.Error{
+		Short: msg,
+		Pin:   pin,
+	}
+
+	er.Tokens = append(er.Tokens, p.peek)
+	p.advance()
+
+syncLoop:
+	for {
+		if p.stop {
+			p.addError(&er)
+			return &ast.ErrorExp{Error: er}, ssAbort
+		}
+
+		switch p.peek.Kind {
+		case token.Semicolon, token.Walrus, token.Assign, token.LeftCurly, token.RightCurly,
+			token.Return, token.If, token.Else, token.Const:
+			// these are likely to terminate expression
+			break syncLoop
+		case token.Fun:
+			// assume new top-level function defenition
+			p.addError(&er)
+			return &ast.ErrorExp{Error: er}, ssTop
+		}
+
+		er.Tokens = append(er.Tokens, p.peek)
+		p.advance()
+
+		if len(er.Tokens) > 64 {
+			p.abort(ast.ErrorSyncFailed)
+			p.addError(&er)
+			return &ast.ErrorExp{Error: er}, ssAbort
+		}
+	}
+
+	p.addError(&er)
+	return &ast.ErrorExp{Error: er}, 0
+}
+
 // report error and sync until start of next statement
 func (p *Parser) syncNextNode(pin sx.Pin, msg string) ss {
 	er := ast.Error{
@@ -66,6 +108,11 @@ func (p *Parser) syncNextNode(pin sx.Pin, msg string) ss {
 	// sync until next statement start
 syncLoop:
 	for {
+		if p.stop {
+			p.addError(&er)
+			return ssAbort
+		}
+
 		switch p.peek.Kind {
 		case token.Semicolon:
 			// assume it's the end of malformed statement

@@ -6,6 +6,7 @@ import (
 	"github.com/mebyus/ku/internal/ku/ast"
 	"github.com/mebyus/ku/internal/ku/enums/scok"
 	"github.com/mebyus/ku/internal/ku/enums/symk"
+	"github.com/mebyus/ku/internal/ku/sx"
 )
 
 func (t *Typer) convert() {
@@ -23,8 +24,13 @@ func (t *Typer) convertFun(def *FunDef, f *ast.Fun) {
 	t.convertBlock(&def.Body, &f.Body)
 
 	if def.Signature.Result != nil && def.Body.ExitType != ExitAlways {
-		// TODO: use pin closer to function end
-		t.report(f.Body.Pin, "not all paths result in return from this function body")
+		var pin sx.Pin
+		if len(def.Body.Nodes) == 0 {
+			pin = def.Body.Pin()
+		} else {
+			pin = def.Body.Nodes[len(def.Body.Nodes)-1].Pin()
+		}
+		t.report(pin, "not all paths result in return from this function body")
 	}
 }
 
@@ -35,6 +41,9 @@ type context struct {
 	// if true means that expression must be evaluated at compile-time
 	// and cannot contain runtime values inside
 	static bool
+
+	// true when expression is used for writing to a variable/field
+	wuse bool
 }
 
 // various information about statement after it was converted and analyzed
@@ -46,7 +55,7 @@ type nodestat struct {
 }
 
 func (t *Typer) convertBlock(block *Block, b *ast.Block) {
-	block.Pin = b.Pin
+	block.pin = b.Pin
 
 	if len(b.Nodes) == 0 {
 		return
@@ -79,6 +88,8 @@ func (t *Typer) convertBlock(block *Block, b *ast.Block) {
 
 		nodes = append(nodes, s)
 	}
+	t.checkSymbolUsage(block)
+
 	if len(nodes) == 0 {
 		// discard allocated nodes memory
 		return
@@ -87,6 +98,23 @@ func (t *Typer) convertBlock(block *Block, b *ast.Block) {
 	block.Nodes = nodes
 	block.Exits = exits
 	block.ExitType = etyp
+}
+
+func (t *Typer) checkSymbolUsage(block *Block) {
+	for _, s := range block.Scope.Symbols {
+		switch s.Kind {
+		case symk.Param:
+			continue
+		}
+
+		if s.rnum+s.wnum == 0 {
+			t.report(s.Pin, fmt.Sprintf("symbol \"%s\" was declared but never used", s.Name))
+			continue
+		}
+		if s.rnum == 0 {
+			t.report(s.Pin, fmt.Sprintf("no reads from symbol \"%s\"", s.Name))
+		}
+	}
 }
 
 // returned statement can be nil in case of error of if it was
@@ -184,7 +212,7 @@ func (t *Typer) convertIf(s *Scope, f *ast.If) (Statement, nodestat) {
 	exp := t.convertExp(&context{scope: s}, f.Exp)
 	// TODO: check that exp has boolean type
 
-	m := If{Exp: exp}
+	m := If{Exp: exp, pin: f.Pin}
 	m.Body.Scope.Init(scok.Branch, s)
 	t.convertBlock(&m.Body, &f.Body)
 	exits := m.Body.Exits
@@ -243,7 +271,7 @@ func (t *Typer) convertReturn(s *Scope, r *ast.Return) Statement {
 		// maybe we also need to adjust type of static values here?
 	}
 	return &Return{
-		Pin: pin,
+		pin: pin,
 		Exp: exp,
 	}
 }
@@ -279,6 +307,12 @@ func (t *Typer) convertSymExp(c *context, exp *ast.SymExp) Exp {
 	if symbol == nil {
 		t.report(pin, fmt.Sprintf("unknown symbol \"%s\" used as expression", name))
 		return t.makeInvExp(pin)
+	}
+
+	if c.wuse {
+		symbol.wnum += 1
+	} else {
+		symbol.rnum += 1
 	}
 
 	switch symbol.Kind {
