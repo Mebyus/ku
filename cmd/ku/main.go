@@ -17,11 +17,11 @@ func main() {
 	var err error
 	switch os.Args[1] {
 	case "parse":
-		path := os.Args[2]
-		err = parse(path)
+		paths := os.Args[2:]
+		err = parse(paths)
 	case "build":
-		path := os.Args[2]
-		err = build(path)
+		paths := os.Args[2:]
+		err = build(paths)
 	}
 
 	if err != nil {
@@ -30,13 +30,12 @@ func main() {
 	}
 }
 
-func parseFromPath(path string) (*sx.Pool, []*sx.Text, error) {
+func parsePath(pool *sx.Pool, path string) ([]*sx.Text, error) {
 	info, err := os.Stat(path)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	pool := sx.New()
 	var texts []*sx.Text
 	if info.IsDir() {
 		list, err := pool.LoadDir(&sx.LoadParams{
@@ -44,22 +43,35 @@ func parseFromPath(path string) (*sx.Pool, []*sx.Text, error) {
 			IncludeTestFiles: true,
 		})
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		texts = list
 	} else {
 		text, err := pool.Load(path)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		texts = append(texts, text)
 	}
 
-	return pool, texts, nil
+	return texts, nil
 }
 
-func parse(path string) error {
-	pool, texts, err := parseFromPath(path)
+func parsePaths(pool *sx.Pool, paths []string) ([]*sx.Text, error) {
+	var texts []*sx.Text
+	for _, p := range paths {
+		ts, err := parsePath(pool, p)
+		if err != nil {
+			return nil, err
+		}
+		texts = append(texts, ts...)
+	}
+	return texts, nil
+}
+
+func parse(paths []string) error {
+	pool := sx.New()
+	texts, err := parsePaths(pool, paths)
 	if err != nil {
 		return err
 	}

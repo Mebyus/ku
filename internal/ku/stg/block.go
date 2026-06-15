@@ -30,9 +30,47 @@ type Block struct {
 	Nodes []Statement
 
 	Pin sx.Pin
+
+	// Total number of potential exits (return + never) inside this block.
+	// Count includes other blocks recursively.
+	Exits uint32
+
+	ExitType ExitType
 }
 
+// Explicit interface implementation check.
 var _ Statement = &Block{}
+
+// Describes how statement (or whole code block) behaves regarding exit points execution flow.
+type ExitType uint8
+
+const (
+	// in schemes:
+	// o - means execution pass to next node
+	// x - means exit
+
+	// Node never exits. Means execution always passes through this node.
+	//
+	// Execution scheme:
+	//	o -> {o} -> o
+	//
+	// Zero value of this type.
+	ExitNever ExitType = iota
+
+	// Node may or may not exit upon execution depending on runtime conditions.
+	// Means execution may or may not pass through this node.
+	//
+	// Execution scheme:
+	//	o -> {o} -> o
+	//	o -> {x}
+	ExitBranch
+
+	// Node always exits. Means execution never passes through this node.
+	//
+	// Execution scheme:
+	//	o -> {x}
+	ExitAlways
+)
 
 // Ret represents return statement.
 type Return struct {

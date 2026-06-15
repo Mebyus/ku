@@ -54,10 +54,12 @@ const (
 	Equal    // ==
 	NotEqual // !=
 
-	LeftCurly  // {
-	RightCurly // }
-	LeftParen  // (
-	RightParen // )
+	LeftCurly   // {
+	RightCurly  // }
+	LeftParen   // (
+	RightParen  // )
+	LeftSquare  // [
+	RightSquare // ]
 
 	// Keywords.
 	Fun

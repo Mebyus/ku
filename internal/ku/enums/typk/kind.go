@@ -94,7 +94,7 @@ const (
 	//	[5]u64 - an array of five u64 numbers
 	// Array
 
-	// Span
+	Span
 
 	// CapBuf
 
@@ -152,7 +152,7 @@ var text = [...]string{
 	// Error: "error",
 
 	// Array:  "array",
-	// Span:   "span",
+	Span: "span",
 	// Enum:   "enum",
 	// Custom: "custom",
 	// Struct: "struct",

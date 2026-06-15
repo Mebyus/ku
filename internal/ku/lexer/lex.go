@@ -159,6 +159,10 @@ func (lx *Lexer) other(tok *token.Token) {
 		lx.emitOneByteToken(tok, token.LeftCurly)
 	case '}':
 		lx.emitOneByteToken(tok, token.RightCurly)
+	case '[':
+		lx.emitOneByteToken(tok, token.LeftSquare)
+	case ']':
+		lx.emitOneByteToken(tok, token.RightSquare)
 	case ';':
 		lx.emitOneByteToken(tok, token.Semicolon)
 	case ':':

@@ -27,7 +27,7 @@ func NewPool(pool *sx.Pool) *Pool {
 }
 
 func (p *Pool) init(pool *sx.Pool) {
-	p.Common.Init(pool)
+	p.Common.Init(pool, 8)
 }
 
 // Get returns a Typer object attached to a given unit.

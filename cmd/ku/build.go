@@ -8,10 +8,12 @@ import (
 	"github.com/mebyus/ku/internal/ku/genc"
 	"github.com/mebyus/ku/internal/ku/parser"
 	"github.com/mebyus/ku/internal/ku/stg"
+	"github.com/mebyus/ku/internal/ku/sx"
 )
 
-func build(path string) error {
-	pool, texts, err := parseFromPath(path)
+func build(paths []string) error {
+	pool := sx.New()
+	texts, err := parsePaths(pool, paths)
 	if err != nil {
 		return err
 	}

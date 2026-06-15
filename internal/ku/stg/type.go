@@ -11,6 +11,18 @@ import (
 type Type struct {
 	symdef // can be used as symbol definition of type symbol
 
+	// For some types this field is nil, since all necessary properties
+	// are stored in other fields.
+	//
+	//	- void
+	//	- integers
+	//	- floats
+	//	- strings
+	//	- boolean
+	//	- rune
+	//	- *void
+	Def TypeDef
+
 	// Byte size of this type's value. May be 0 for some types.
 	// More specifically this field equals the stride between two
 	// consecutive elements of this type inside an array.
@@ -53,6 +65,8 @@ func (t *Type) IsStatic() bool {
 
 func (t *Type) String() string {
 	switch t.Kind {
+	case typk.Span:
+		return "[]" + t.Def.(*Span).Type.String()
 	case typk.Integer:
 		if t.Size == 0 {
 			return "<int>"
@@ -103,6 +117,10 @@ func (t *Typer) LookupType(s *Scope, spec ast.TypeSpec) *Type {
 	// 	return s.Types.Known.Void, nil
 	case *ast.TypeName:
 		return t.lookupTypeName(s, p)
+	case *ast.Span:
+		return t.lookupSpan(s, p)
+	case *ast.InvType:
+		return t.common.Types.Invalid
 	default:
 		panic(fmt.Sprintf("unexpected %T type specifier", p))
 	}
@@ -125,17 +143,36 @@ func (t *Typer) lookupTypeName(s *Scope, p *ast.TypeName) *Type {
 	return symbol.Def.(*Type)
 }
 
+func (t *Typer) lookupSpan(s *Scope, p *ast.Span) *Type {
+	typ := t.LookupType(s, p.Type)
+	if typ.IsInvalid() {
+		return typ
+	}
+
+	return t.common.Types.getSpan(typ)
+}
+
 type TypeIndex struct {
 	Static StaticTypes
 	Known  KnownTypes
 
+	// Maps span element type to the corresponding span type.
+	Spans map[ /* span element type */ *Type]*Type
+
 	Invalid *Type
+
+	ArchPointerSize uint32
 }
 
-func (x *TypeIndex) init() {
+func (x *TypeIndex) init(archPointerSize uint32) {
+	x.ArchPointerSize = archPointerSize
+
 	x.Static.init()
 	x.Known.init()
+
 	x.Invalid = &Type{Kind: typk.Invalid}
+
+	x.Spans = make(map[*Type]*Type)
 }
 
 // StaticTypes contains instances of various predefined (builtin) static types.
@@ -185,7 +222,7 @@ type KnownTypes struct {
 	// &void
 	// VoidRef *Type
 
-	// u8
+	U8  *Type
 	U32 *Type
 
 	S32 *Type
@@ -194,6 +231,12 @@ type KnownTypes struct {
 }
 
 func (t *KnownTypes) init() {
+	t.U8 = &Type{
+		Size:  1,
+		Flags: TypeBuiltin,
+		Kind:  typk.Integer,
+	}
+
 	t.U32 = &Type{
 		Size:  4,
 		Flags: TypeBuiltin,
@@ -211,4 +254,18 @@ func (t *KnownTypes) init() {
 		Flags: TypeBuiltin,
 		Kind:  typk.Boolean,
 	}
+}
+
+func (x *TypeIndex) getSpan(t *Type) *Type {
+	typ, ok := x.Spans[t]
+	if ok {
+		return typ
+	}
+	typ = &Type{
+		Def:  &Span{Type: t},
+		Size: 2 * x.ArchPointerSize,
+		Kind: typk.Span,
+	}
+	x.Spans[t] = typ
+	return typ
 }

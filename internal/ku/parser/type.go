@@ -15,12 +15,33 @@ func (p *Parser) TypeSpec() (ast.TypeSpec, ss) {
 			Name: name,
 			Pin:  pin,
 		}, 0
-	default:
-		pin := p.peek.Pin
-		er := ast.Error{
-			Pin: pin,
+	case token.LeftSquare:
+		if p.next.Kind == token.RightSquare {
+			return p.typeSpan()
 		}
-		// error + sync
-		return &ast.InvType{Error: er}, 0
 	}
+
+	pin := p.peek.Pin
+	er := ast.Error{
+		Pin: pin,
+	}
+	// error + sync
+	return &ast.InvType{Error: er}, 0
+}
+
+func (p *Parser) typeSpan() (ast.TypeSpec, ss) {
+	pin := p.peek.Pin
+
+	p.advance() // skip "["
+	p.advance() // skip "]"
+
+	typ, s := p.TypeSpec()
+	if s != 0 {
+		return &ast.InvType{Error: ast.Error{Pin: pin}}, s
+	}
+
+	return &ast.Span{
+		Pin:  pin,
+		Type: typ,
+	}, 0
 }

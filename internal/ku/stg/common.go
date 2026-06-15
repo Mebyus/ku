@@ -18,24 +18,27 @@ type Common struct {
 	Pool *sx.Pool
 }
 
-func (c *Common) Init(pool *sx.Pool) {
+func (c *Common) Init(pool *sx.Pool, archPointerSize uint32) {
 	c.Pool = pool
-	c.Types.init()
+	c.Types.init(archPointerSize)
 	c.Global.InitGlobal()
 	c.bindBuiltinSymbols()
 }
 
 func (c *Common) bindBuiltinSymbols() {
+	c.bindBuiltinTypeSymbol("u8", c.Types.Known.U8)
 	c.bindBuiltinTypeSymbol("u32", c.Types.Known.U32)
+
 	c.bindBuiltinTypeSymbol("s32", c.Types.Known.S32)
+
 	c.bindBuiltinTypeSymbol("bool", c.Types.Known.Bool)
 }
 
 func (c *Common) bindBuiltinTypeSymbol(name string, t *Type) {
 	s := &Symbol{
-		Name: name,
-		Kind: symk.Type,
-		// Flags: SymbolBuiltin,
+		Name:  name,
+		Kind:  symk.Type,
+		Flags: SymbolBuiltin,
 	}
 	c.bindType(s, t)
 }

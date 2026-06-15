@@ -21,6 +21,11 @@ func (t *Typer) convert() {
 func (t *Typer) convertFun(def *FunDef, f *ast.Fun) {
 	t.sig = &def.Signature
 	t.convertBlock(&def.Body, &f.Body)
+
+	if def.Signature.Result != nil && def.Body.ExitType != ExitAlways {
+		// TODO: use pin closer to function end
+		t.report(f.Body.Pin, "not all paths result in return from this function body")
+	}
 }
 
 // provides context for converting statements and expressions to STG form
@@ -32,6 +37,14 @@ type context struct {
 	static bool
 }
 
+// various information about statement after it was converted and analyzed
+type nodestat struct {
+	// total number of exits inside this node
+	exits uint32
+
+	etyp ExitType
+}
+
 func (t *Typer) convertBlock(block *Block, b *ast.Block) {
 	block.Pin = b.Pin
 
@@ -39,28 +52,41 @@ func (t *Typer) convertBlock(block *Block, b *ast.Block) {
 		return
 	}
 
+	// stats of this block
+	var exits uint32
+	var etyp ExitType
+
 	nodes := make([]Statement, 0, len(b.Nodes))
 	for i, n := range b.Nodes {
-		s, exit := t.convertNode(&block.Scope, n)
+		s, stat := t.convertNode(&block.Scope, n)
 		if s == nil {
 			// skip empty statements
 			continue
 		}
 
-		if exit && i != len(b.Nodes)-1 {
+		exits += stat.exits
+		if stat.etyp == ExitAlways && i != len(b.Nodes)-1 {
 			// TODO: make this a warning
 			// TODO: extract pin from statement here
 			t.report(0, "dead code after statement that terminates further execution")
 		}
 
+		if stat.etyp > etyp {
+			// in order for this analysis hack to work
+			// exit types must be ordered: never < branch < always
+			etyp = stat.etyp
+		}
+
 		nodes = append(nodes, s)
 	}
-
 	if len(nodes) == 0 {
 		// discard allocated nodes memory
 		return
 	}
+
 	block.Nodes = nodes
+	block.Exits = exits
+	block.ExitType = etyp
 }
 
 // returned statement can be nil in case of error of if it was
@@ -68,16 +94,16 @@ func (t *Typer) convertBlock(block *Block, b *ast.Block) {
 //
 // if exit return value equals true it means that the statement exits
 // function execution (or it never stops like endless loop)
-func (t *Typer) convertNode(c *Scope, s ast.Statement) (stm Statement, exit bool) {
+func (t *Typer) convertNode(c *Scope, s ast.Statement) (Statement, nodestat) {
 	switch s := s.(type) {
 	case *ast.Return:
-		return t.convertReturn(c, s), true
+		return t.convertReturn(c, s), nodestat{exits: 1, etyp: ExitAlways}
 	// case ast.Var:
 	// 	return t.translateVar(s)
 	case *ast.Const:
-		return t.convertConst(c, s), false
+		return t.convertConst(c, s), nodestat{}
 	case *ast.If:
-		return t.convertIf(c, s), false
+		return t.convertIf(c, s)
 	// case ast.Match:
 	// 	return t.translateMatch(s)
 	// case ast.Assign:
@@ -107,18 +133,17 @@ func (t *Typer) convertNode(c *Scope, s ast.Statement) (stm Statement, exit bool
 	case *ast.Block:
 		if len(s.Nodes) == 0 {
 			// block statement with no statements is equivalent to empty statement
-			return nil, false
+			return nil, nodestat{}
 		}
 		var block Block
 		block.Scope.Init(scok.Block, c)
 		t.convertBlock(&block, s)
 		if len(block.Nodes) == 0 {
 			// non empty AST block can still result in empty block
-			return nil, false
+			return nil, nodestat{}
 		}
 
-		// TODO: some block statements can result in terminating statement
-		return &block, false
+		return &block, nodestat{exits: block.Exits, etyp: block.ExitType}
 	default:
 		panic(fmt.Sprintf("unexpected %T statement", s))
 	}
@@ -155,26 +180,42 @@ func (t *Typer) convertConst(s *Scope, c *ast.Const) Statement {
 	return nil
 }
 
-func (t *Typer) convertIf(s *Scope, f *ast.If) Statement {
+func (t *Typer) convertIf(s *Scope, f *ast.If) (Statement, nodestat) {
 	exp := t.convertExp(&context{scope: s}, f.Exp)
 	// TODO: check that exp has boolean type
 
 	m := If{Exp: exp}
 	m.Body.Scope.Init(scok.Branch, s)
 	t.convertBlock(&m.Body, &f.Body)
+	exits := m.Body.Exits
 
 	if f.Else == nil || len(f.Else.Nodes) == 0 {
-		return &m
+		var etyp ExitType
+		switch m.Body.ExitType {
+		case ExitAlways, ExitBranch:
+			etyp = ExitBranch
+		}
+		return &m, nodestat{exits: exits, etyp: etyp}
 	}
 
 	var block Block
 	block.Scope.Init(scok.Branch, s)
 	t.convertBlock(&block, f.Else)
 	if len(block.Nodes) != 0 {
+		exits += block.Exits
 		m.Else = &block
 	}
 
-	return &m
+	var etyp ExitType
+	if m.Body.ExitType == ExitAlways && block.ExitType == ExitAlways {
+		etyp = ExitAlways
+	} else if m.Body.ExitType == ExitNever && block.ExitType == ExitNever {
+		etyp = ExitNever
+	} else {
+		etyp = ExitBranch
+	}
+
+	return &m, nodestat{exits: exits, etyp: etyp}
 }
 
 func (t *Typer) convertReturn(s *Scope, r *ast.Return) Statement {
