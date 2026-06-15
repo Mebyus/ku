@@ -7,6 +7,13 @@ import (
 
 // Exp node that represents an arbitrary (but not empty) expression.
 type Exp interface {
+	Pin() sx.Pin
+
+	// Must return value's type of evaluated expression.
+	//
+	// Can return nil only for function calls that return nothing.
+	Type() *Type
+
 	// Discriminator method for interface implementations.
 	// Only serves as a trick to enhance Go typechecking in
 	// type assertions.
@@ -18,9 +25,6 @@ type Exp interface {
 // Embed this to quickly implement _exp() discriminator from Exp interface.
 // Do not use it for anything else.
 type exp struct{}
-
-// Explicit interface implementation check.
-var _ Exp = exp{}
 
 func (exp) _exp() {}
 
@@ -44,9 +48,6 @@ type Operand interface {
 // Do not use it for anything else.
 type operand struct{}
 
-// Explicit interface implementation check.
-var _ Operand = operand{}
-
 func (operand) _exp()     {}
 func (operand) _operand() {}
 
@@ -55,7 +56,7 @@ func (operand) _operand() {}
 type Integer struct {
 	operand
 
-	Pin sx.Pin
+	pin sx.Pin
 
 	Val uint64
 
@@ -64,10 +65,21 @@ type Integer struct {
 	Neg bool
 }
 
+// Explicit interface implementation check.
+var _ Exp = &Integer{}
+
+func (n *Integer) Type() *Type {
+	return n.typ
+}
+
+func (n *Integer) Pin() sx.Pin {
+	return n.pin
+}
+
 // create static integer value.
 func (t *Typer) makeInteger(pin sx.Pin, v uint64) *Integer {
 	return &Integer{
-		Pin: pin,
+		pin: pin,
 		Val: v,
 		typ: t.common.Types.Static.Integer,
 	}
@@ -85,18 +97,28 @@ type BinExp struct {
 
 	Op bop.Op
 
+	pin sx.Pin
+
 	typ *Type
 }
 
 // Explicit interface implementation check.
 var _ Exp = &BinExp{}
 
+func (b *BinExp) Type() *Type {
+	return b.typ
+}
+
+func (b *BinExp) Pin() sx.Pin {
+	return b.pin
+}
+
 // Boolean represents a boolean constant true/false (directly from source or evaluated)
 // which value is known at compile time.
 type Boolean struct {
 	operand
 
-	Pin sx.Pin
+	pin sx.Pin
 
 	typ *Type
 
@@ -106,10 +128,18 @@ type Boolean struct {
 // Explicit interface implementation check.
 var _ Operand = &Boolean{}
 
+func (b *Boolean) Type() *Type {
+	return b.typ
+}
+
+func (b *Boolean) Pin() sx.Pin {
+	return b.pin
+}
+
 // create static boolean value.
 func (t *Typer) makeBoolean(pin sx.Pin, v bool) *Boolean {
 	return &Boolean{
-		Pin: pin,
+		pin: pin,
 		Val: v,
 		typ: t.common.Types.Static.Boolean,
 	}
@@ -120,10 +150,21 @@ func (t *Typer) makeBoolean(pin sx.Pin, v bool) *Boolean {
 type SymExp struct {
 	operand
 
-	Pin sx.Pin
+	pin sx.Pin
 
 	// Type of expression. It may differ from type declared for symbol.
 	typ *Type
 
 	Symbol *Symbol
+}
+
+// Explicit interface implementation check.
+var _ Operand = &SymExp{}
+
+func (s *SymExp) Type() *Type {
+	return s.typ
+}
+
+func (s *SymExp) Pin() sx.Pin {
+	return s.pin
 }

@@ -197,10 +197,9 @@ func (t *Typer) convertReturn(s *Scope, r *ast.Return) Statement {
 	var exp Exp
 	if r.Exp != nil {
 		exp = t.convertExp(&context{scope: s}, r.Exp)
-		if t.sig.Result != nil {
-			// TODO: typecheck return type against function result type
-			// maybe we also need to adjust type of static values here?
-		}
+		t.checkReturnType(t.sig.Result, exp)
+		// TODO: typecheck return type against function result type
+		// maybe we also need to adjust type of static values here?
 	}
 	return &Return{
 		Pin: pin,
@@ -225,7 +224,7 @@ func (t *Typer) convertExp(c *context, exp ast.Exp) Exp {
 	case *ast.ParenExp:
 		return t.convertExp(c, e.Exp)
 	case *ast.ErrorExp:
-		return &InvExp{Pin: e.Pin}
+		return t.makeInvExp(e.Pin)
 	default:
 		panic(fmt.Sprintf("unexpected %T expression", e))
 	}
@@ -238,7 +237,7 @@ func (t *Typer) convertSymExp(c *context, exp *ast.SymExp) Exp {
 	symbol := c.scope.Lookup(name)
 	if symbol == nil {
 		t.report(pin, fmt.Sprintf("unknown symbol \"%s\" used as expression", name))
-		return &InvExp{Pin: pin}
+		return t.makeInvExp(pin)
 	}
 
 	switch symbol.Kind {
@@ -251,17 +250,17 @@ func (t *Typer) convertSymExp(c *context, exp *ast.SymExp) Exp {
 
 		if c.static {
 			t.report(pin, fmt.Sprintf("runtime value symbol \"%s\" used in compile-time expression", name))
-			return &InvExp{Pin: pin}
+			return t.makeInvExp(pin)
 		}
 
 		return &SymExp{
-			Pin:    pin,
+			pin:    pin,
 			typ:    symbol.Type,
 			Symbol: symbol,
 		}
 	default:
 		t.report(pin, fmt.Sprintf("symbol \"%s\" cannot be used as operand or expression", name))
-		return &InvExp{Pin: pin}
+		return t.makeInvExp(pin)
 	}
 }
 
@@ -269,10 +268,12 @@ func (t *Typer) convertBinExp(c *context, exp *ast.BinExp) Exp {
 	a := t.convertExp(c, exp.A)
 	b := t.convertExp(c, exp.B)
 
-	// TODO: need typechecking here
-	return &BinExp{
-		A:  a,
-		B:  b,
-		Op: exp.Op,
+	e := &BinExp{
+		A:   a,
+		B:   b,
+		Op:  exp.Op,
+		pin: a.Pin(), // TODO: maybe we need separate pin for binary expression instead of first operand
 	}
+	t.checkBinExpType(e)
+	return e
 }

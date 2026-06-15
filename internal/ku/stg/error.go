@@ -16,5 +16,25 @@ func (t *Typer) report(pin sx.Pin, msg string) {
 type InvExp struct {
 	operand
 
-	Pin sx.Pin
+	pin sx.Pin
+
+	typ *Type
+}
+
+// Explicit interface implementation check.
+var _ Operand = &InvExp{}
+
+func (e *InvExp) Type() *Type {
+	return e.typ
+}
+
+func (e *InvExp) Pin() sx.Pin {
+	return e.pin
+}
+
+func (t *Typer) makeInvExp(pin sx.Pin) *InvExp {
+	return &InvExp{
+		pin: pin,
+		typ: t.common.Types.Invalid,
+	}
 }

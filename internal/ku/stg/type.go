@@ -21,6 +21,10 @@ type Type struct {
 	Kind typk.Kind
 }
 
+func (t *Type) IsInvalid() bool {
+	return t.Kind == typk.Invalid
+}
+
 // TypeFlag bit flags for specifing additional type properties.
 type TypeFlag uint16
 
@@ -41,6 +45,52 @@ const (
 // applicable only for integer types
 func (t *Type) IsSigned() bool {
 	return t.Flags&TypeSigned != 0
+}
+
+func (t *Type) IsStatic() bool {
+	return t.Flags&TypeStatic != 0
+}
+
+func (t *Type) String() string {
+	switch t.Kind {
+	case typk.Integer:
+		if t.Size == 0 {
+			return "<int>"
+		}
+		if t.IsSigned() {
+			switch t.Size {
+			case 1:
+				return "s8"
+			case 2:
+				return "s16"
+			case 4:
+				return "s32"
+			case 8:
+				return "s64"
+			default:
+				panic(fmt.Sprintf("unexpected integer size %d", t.Size))
+			}
+		}
+		switch t.Size {
+		case 1:
+			return "u8"
+		case 2:
+			return "u16"
+		case 4:
+			return "u32"
+		case 8:
+			return "u64"
+		default:
+			panic(fmt.Sprintf("unexpected integer size %d", t.Size))
+		}
+	case typk.Boolean:
+		if t.IsStatic() {
+			return "<bool>"
+		}
+		return "bool"
+	default:
+		panic(fmt.Sprintf("unexpected %d kind", t.Kind))
+	}
 }
 
 func (t *Typer) LookupType(s *Scope, spec ast.TypeSpec) *Type {
