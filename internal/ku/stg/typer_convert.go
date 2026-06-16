@@ -6,6 +6,7 @@ import (
 	"github.com/mebyus/ku/internal/ku/ast"
 	"github.com/mebyus/ku/internal/ku/enums/scok"
 	"github.com/mebyus/ku/internal/ku/enums/symk"
+	"github.com/mebyus/ku/internal/ku/enums/typk"
 	"github.com/mebyus/ku/internal/ku/sx"
 )
 
@@ -288,6 +289,8 @@ func (t *Typer) convertExp(c *context, exp ast.Exp) Exp {
 		return t.makeBoolean(e.Pin, false)
 	case *ast.SymExp:
 		return t.convertSymExp(c, e)
+	case *ast.Chain:
+		return t.convertChain(c, e)
 	case *ast.BinExp:
 		return t.convertBinExp(c, e)
 	case *ast.ParenExp:
@@ -336,6 +339,74 @@ func (t *Typer) convertSymExp(c *context, exp *ast.SymExp) Exp {
 	default:
 		t.report(pin, fmt.Sprintf("symbol \"%s\" cannot be used as operand or expression", name))
 		return t.makeInvExp(pin)
+	}
+}
+
+func (t *Typer) convertChain(c *context, chain *ast.Chain) Exp {
+	name := chain.Name
+	pin := chain.Pin
+
+	symbol := c.scope.Lookup(name)
+	if symbol == nil {
+		t.report(pin, fmt.Sprintf("unknown symbol \"%s\" used as expression", name))
+		return t.makeInvExp(pin)
+	}
+
+	if c.wuse {
+		symbol.wnum += 1
+	} else {
+		symbol.rnum += 1
+	}
+
+	var exp Exp
+	exp = &SymExp{
+		pin:    pin,
+		typ:    symbol.Type,
+		Symbol: symbol,
+	}
+	for _, p := range chain.Parts {
+		exp = t.applyChainPart(c, exp, p)
+	}
+	return exp
+}
+
+func (t *Typer) applyChainPart(c *context, exp Exp, part ast.Part) Exp {
+	switch p := part.(type) {
+	case *ast.Select:
+		return t.applySelect(c, exp, p)
+	default:
+		panic(fmt.Sprintf("unexpected %T part", p))
+	}
+}
+
+func (t *Typer) applySelect(c *context, exp Exp, s *ast.Select) Exp {
+	typ := exp.Type()
+	switch typ.Kind {
+	case typk.Span:
+		switch s.Name {
+		case "num":
+			return &SpanNum{
+				pin: s.Pin,
+				Exp: exp,
+				typ: t.common.Types.Known.Uint,
+			}
+		case "ptr":
+			panic("stub")
+		default:
+			t.report(s.Pin, fmt.Sprintf("span type %s does not have \"%s\" field", typ, s.Name))
+			return &InvExp{
+				pin: s.Pin,
+				typ: t.common.Types.Invalid,
+			}
+		}
+	case typk.Invalid:
+		return exp
+	default:
+		t.report(s.Pin, fmt.Sprintf("cannot use select operation on %s type", typ))
+		return &InvExp{
+			pin: s.Pin,
+			typ: t.common.Types.Invalid,
+		}
 	}
 }
 

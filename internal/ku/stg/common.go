@@ -26,6 +26,8 @@ func (c *Common) Init(pool *sx.Pool, archPointerSize uint32) {
 }
 
 func (c *Common) bindBuiltinSymbols() {
+	c.bindBuiltinTypeSymbol("uint", c.Types.Known.Uint)
+
 	c.bindBuiltinTypeSymbol("u8", c.Types.Known.U8)
 	c.bindBuiltinTypeSymbol("u32", c.Types.Known.U32)
 

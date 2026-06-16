@@ -168,3 +168,27 @@ func (s *SymExp) Type() *Type {
 func (s *SymExp) Pin() sx.Pin {
 	return s.pin
 }
+
+// SpanNum represents expression of selecting span elements number via ".num".
+type SpanNum struct {
+	operand
+
+	// Span expression being selected.
+	Exp Exp
+
+	// pin of select place (not its target)
+	pin sx.Pin
+
+	// always uint type
+	typ *Type
+}
+
+var _ Operand = &SpanNum{}
+
+func (s *SpanNum) Type() *Type {
+	return s.typ
+}
+
+func (s *SpanNum) Pin() sx.Pin {
+	return s.pin
+}

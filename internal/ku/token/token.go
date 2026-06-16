@@ -37,8 +37,9 @@ const (
 
 	Semicolon // ;
 
-	Colon // :
-	Comma // ,
+	Colon  // :
+	Period // .
+	Comma  // ,
 
 	RightArrow // ->
 

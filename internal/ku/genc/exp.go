@@ -24,6 +24,9 @@ func (g *Buffer) exp(exp stg.Exp) {
 		g.puts(g.getName(e.Symbol))
 	case *stg.BinExp:
 		g.binExp(e)
+	case *stg.SpanNum:
+		g.exp(e.Exp)
+		g.puts(".num")
 	default:
 		panic(fmt.Sprintf("unexpected %T expression", e))
 	}

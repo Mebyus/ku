@@ -72,12 +72,7 @@ func (p *Parser) operand() (ast.Operand, ss) {
 		p.advance() // skip "false"
 		return &ast.False{Pin: tok.Pin}, 0
 	case token.Word:
-		tok := p.peek
-		p.advance() // skip word (symbol name)
-		return &ast.SymExp{
-			Pin:  tok.Pin,
-			Name: tok.Data,
-		}, 0
+		return p.Chain()
 	case token.LeftParen:
 		return p.parenExp()
 	}

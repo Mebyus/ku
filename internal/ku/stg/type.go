@@ -168,7 +168,7 @@ func (x *TypeIndex) init(archPointerSize uint32) {
 	x.ArchPointerSize = archPointerSize
 
 	x.Static.init()
-	x.Known.init()
+	x.Known.init(archPointerSize)
 
 	x.Invalid = &Type{Kind: typk.Invalid}
 
@@ -222,6 +222,8 @@ type KnownTypes struct {
 	// &void
 	// VoidRef *Type
 
+	Uint *Type
+
 	U8  *Type
 	U32 *Type
 
@@ -230,7 +232,13 @@ type KnownTypes struct {
 	Bool *Type
 }
 
-func (t *KnownTypes) init() {
+func (t *KnownTypes) init(archPointerSize uint32) {
+	t.Uint = &Type{
+		Size:  archPointerSize,
+		Flags: TypeBuiltin,
+		Kind:  typk.Integer,
+	}
+
 	t.U8 = &Type{
 		Size:  1,
 		Flags: TypeBuiltin,
