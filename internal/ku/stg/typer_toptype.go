@@ -43,7 +43,7 @@ func (t *Typer) typeFun(def *FunDef, sig *ast.Signature) {
 		name := p.Name
 		pin := p.Pin
 
-		symbol := t.unit.Scope.Get(name)
+		symbol := scope.Get(name)
 		if symbol != nil {
 			t.report(pin, fmt.Sprintf("function already has parameter named \"%s\"", name))
 			continue

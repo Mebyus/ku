@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/mebyus/ku/goku/compiler/cc"
+	"github.com/mebyus/ku/goku/compiler/enums/bk"
 	"github.com/mebyus/ku/internal/ku/ast"
 	"github.com/mebyus/ku/internal/ku/genc"
 	"github.com/mebyus/ku/internal/ku/parser"
@@ -47,5 +49,29 @@ func build(paths []string) error {
 
 	prog.Common = tp.Common
 	prog.Units = []*stg.Unit{unit}
-	return genc.Gen(os.Stdout, &prog)
+
+	const progName = "out.c"
+	err = genProg(progName, &prog)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "genc: %s\n", err)
+		os.Exit(1)
+	}
+
+	err = cc.CompileObj("out.o", progName, bk.Debug)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "cc: %s\n", err)
+		os.Exit(1)
+	}
+
+	return nil
+}
+
+func genProg(out string, prog *stg.Program) error {
+	file, err := os.Create(out)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	return genc.Gen(file, prog)
 }

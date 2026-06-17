@@ -2,15 +2,33 @@ package genc
 
 import (
 	"io"
+	"os"
 	"strconv"
 
 	"github.com/mebyus/ku/internal/ku/stg"
 )
 
 func Gen(w io.Writer, prog *stg.Program) error {
+	err := copyFile(w, "src/std/core/prelude.c")
+	if err != nil {
+		return err
+	}
+
 	var buf Buffer
+	buf.nl()
 	buf.Gen(prog)
-	_, err := w.Write(buf.out)
+	_, err = w.Write(buf.out)
+	return err
+}
+
+func copyFile(w io.Writer, path string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = io.Copy(w, file)
 	return err
 }
 

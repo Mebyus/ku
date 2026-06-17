@@ -12,6 +12,9 @@ typedef signed int       s32;
 typedef signed long int  s64;
 typedef __int128_t       s128;
 
+typedef u64 uint;
+typedef s64 sint;
+
 typedef float      f32;
 typedef double     f64;
 typedef __float128 f128;
@@ -22,3 +25,11 @@ typedef __float128 f128;
 // These should only be used with boolean type.
 #define true  1
 #define false 0
+
+typedef struct {
+    // Array pointer to raw bytes.
+    u8* ptr;
+
+    // Number of bytes available in {ptr}.
+    uint num;
+} s_u8, str;

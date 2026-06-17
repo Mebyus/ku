@@ -11,6 +11,10 @@
 *.a
 *.so
 
+*.lib
+*.dll
+*.exe
+
 *.log
 
 /coredump*
