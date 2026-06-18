@@ -56,6 +56,10 @@ func (t *Typer) checkReturnType(rt *Type, exp Exp) {
 		}
 	}
 
+	if rt.Kind == typk.String && et.Kind == typk.String {
+		return
+	}
+
 	t.report(exp.Pin(), fmt.Sprintf("cannot use expression of %s value as %s in return statement", et, rt))
 }
 
@@ -68,6 +72,8 @@ func (t *Typer) checkBinExpType(exp *BinExp) {
 		switch exp.Op.Kind {
 		case bop.Add:
 			t.checkAddIntegerType(exp, at, bt)
+		case bop.Sub:
+			t.checkSubIntegerType(exp, at, bt)
 		case bop.Mul:
 			t.checkMulIntegerType(exp, at, bt)
 		case bop.Div:
@@ -99,6 +105,31 @@ func (t *Typer) checkNotEqualIntegerType(exp *BinExp, at, bt *Type) {
 }
 
 func (t *Typer) checkAddIntegerType(exp *BinExp, at, bt *Type) {
+	if at == bt {
+		exp.typ = at
+		return
+	}
+	if at.IsStatic() {
+		exp.typ = bt
+		return
+	}
+	if bt.IsStatic() {
+		exp.typ = at
+		return
+	}
+
+	if at.IsSigned() != bt.IsSigned() {
+		t.report(exp.Op.Pin, fmt.Sprintf("cannot add integers with different signedness (%s and %s)", at, bt))
+		return
+	}
+
+	if at.Size != bt.Size {
+		t.report(exp.Op.Pin, fmt.Sprintf("cannot add integers of different size (%s and %s)", at, bt))
+		return
+	}
+}
+
+func (t *Typer) checkSubIntegerType(exp *BinExp, at, bt *Type) {
 	if at == bt {
 		exp.typ = at
 		return

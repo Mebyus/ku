@@ -67,6 +67,11 @@ func (t *Type) String() string {
 	switch t.Kind {
 	case typk.Span:
 		return "[]" + t.Def.(*Span).Type.String()
+	case typk.String:
+		if t.IsStatic() {
+			return "<str>"
+		}
+		return "str"
 	case typk.Integer:
 		if t.Size == 0 {
 			return "<int>"
@@ -183,9 +188,9 @@ type StaticTypes struct {
 	// Unsized.
 	Integer *Type
 
-	// String *Type
-
 	Boolean *Type
+
+	String *Type
 
 	// Rune *Type
 }
@@ -205,6 +210,11 @@ func (t *StaticTypes) init() {
 	t.Boolean = &Type{
 		Flags: TypeBuiltin | TypeStatic,
 		Kind:  typk.Boolean,
+	}
+
+	t.String = &Type{
+		Flags: TypeBuiltin | TypeStatic,
+		Kind:  typk.String,
 	}
 }
 
@@ -230,6 +240,8 @@ type KnownTypes struct {
 	S32 *Type
 
 	Bool *Type
+
+	Str *Type
 }
 
 func (t *KnownTypes) init(archPointerSize uint32) {
@@ -261,6 +273,12 @@ func (t *KnownTypes) init(archPointerSize uint32) {
 		Size:  1,
 		Flags: TypeBuiltin,
 		Kind:  typk.Boolean,
+	}
+
+	t.Str = &Type{
+		Size:  2 * archPointerSize,
+		Flags: TypeBuiltin,
+		Kind:  typk.String,
 	}
 }
 

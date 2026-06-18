@@ -46,8 +46,8 @@ const (
 	// of this type is identical to chunk of bytes []u8. The difference
 	// between these two types is logical, in most cases strings should
 	// hold utf-8 encoded text opposed to arbitrary byte sequence in
-	// chunk of bytes. However this is not a rule and not enforced by the
-	// language in any way. Strings and chunks of bytes can be cast between
+	// span of bytes. However this is not a rule and not enforced by the
+	// language in any way. Strings and spans of bytes can be cast between
 	// each other freely with no runtime overhead.
 	//
 	// Type for any strings (literals, constants and exressions).

@@ -18,7 +18,7 @@ type Token struct {
 	//	Integer:	parsed integer value (if it fits into 64 bits)
 	//	Rune:		integer value of code point
 	//	EOF:		error code (can be 0, in case end of text was reached without error)
-	//	Illegal:	error code (always not 0)
+	//	INV:		error code (always not 0)
 	Val uint64
 
 	Pin sx.Pin
@@ -76,6 +76,7 @@ const (
 	// Identifiers and basic type literals.
 	Word
 	Integer
+	String
 )
 
 const (

@@ -15,15 +15,15 @@ type Error struct {
 	Pin sx.Pin
 }
 
-// ErrorExp represents error upon parsing part of expression.
+// InvExp represents invalid expression which is produced by error upon parsing part of expression.
 //
 // Can act as expression.
-type ErrorExp struct {
+type InvExp struct {
 	operand
 	Error
 }
 
-var _ Exp = &ErrorExp{}
+var _ Exp = &InvExp{}
 
 // InvType represents invalid (error upon parsing) type specifier.
 //

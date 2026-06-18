@@ -54,7 +54,7 @@ func (p *Parser) topError(pin sx.Pin, msg string) {
 }
 
 // report error and sync until after end of current expression
-func (p *Parser) syncExp(pin sx.Pin, msg string) (*ast.ErrorExp, ss) {
+func (p *Parser) syncExp(pin sx.Pin, msg string) (*ast.InvExp, ss) {
 	er := ast.Error{
 		Short: msg,
 		Pin:   pin,
@@ -67,7 +67,7 @@ syncLoop:
 	for {
 		if p.stop {
 			p.addError(&er)
-			return &ast.ErrorExp{Error: er}, ssAbort
+			return &ast.InvExp{Error: er}, ssAbort
 		}
 
 		switch p.peek.Kind {
@@ -78,7 +78,7 @@ syncLoop:
 		case token.Fun:
 			// assume new top-level function defenition
 			p.addError(&er)
-			return &ast.ErrorExp{Error: er}, ssTop
+			return &ast.InvExp{Error: er}, ssTop
 		}
 
 		er.Tokens = append(er.Tokens, p.peek)
@@ -87,12 +87,12 @@ syncLoop:
 		if len(er.Tokens) > 64 {
 			p.abort(ast.ErrorSyncFailed)
 			p.addError(&er)
-			return &ast.ErrorExp{Error: er}, ssAbort
+			return &ast.InvExp{Error: er}, ssAbort
 		}
 	}
 
 	p.addError(&er)
-	return &ast.ErrorExp{Error: er}, 0
+	return &ast.InvExp{Error: er}, 0
 }
 
 // report error and sync until start of next statement

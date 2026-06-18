@@ -20,6 +20,16 @@ func (g *Buffer) exp(exp stg.Exp) {
 		} else {
 			g.puts("false")
 		}
+	case *stg.String:
+		if len(e.Val) == 0 {
+			g.puts("make_str(nil, 0)")
+		} else {
+			g.puts("make_str((u8*)(\"")
+			g.puts(e.Val)
+			g.puts("\"), ")
+			g.putn(uint64(len(e.Val))) // TODO: need to escape strings
+			g.puts(")")
+		}
 	case *stg.SymExp:
 		g.puts(g.getName(e.Symbol))
 	case *stg.BinExp:

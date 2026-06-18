@@ -22,10 +22,6 @@ typedef __float128 f128;
 // This should only be used with pointer types.
 #define nil 0
 
-// These should only be used with boolean type.
-#define true  1
-#define false 0
-
 typedef struct {
     // Array pointer to raw bytes.
     u8* ptr;
@@ -33,3 +29,16 @@ typedef struct {
     // Number of bytes available in {ptr}.
     uint num;
 } s_u8, str;
+
+// construct a runtime string from its bytes array pointer and number of bytes
+static str
+make_str(u8* ptr, uint num) {
+    str s = {};
+    if (num == 0) {
+        return s;
+    }
+
+    s.ptr = ptr;
+    s.num = num;
+    return s;
+}

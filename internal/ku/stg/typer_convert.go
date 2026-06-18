@@ -211,7 +211,12 @@ func (t *Typer) convertConst(s *Scope, c *ast.Const) Statement {
 
 func (t *Typer) convertIf(s *Scope, f *ast.If) (Statement, nodestat) {
 	exp := t.convertExp(&context{scope: s}, f.Exp)
-	// TODO: check that exp has boolean type
+	typ := exp.Type()
+	if typ.Kind != typk.Invalid && typ.Kind != typk.Boolean {
+		// invalid expression was already reported earlier during expression conversion
+		// no sense reporting it twice
+		t.report(exp.Pin(), fmt.Sprintf("value of %s type used in branch condition (must be boolean type instead)", typ))
+	}
 
 	m := If{Exp: exp, pin: f.Pin}
 	m.Body.Scope.Init(scok.Branch, s)
@@ -283,6 +288,8 @@ func (t *Typer) convertExp(c *context, exp ast.Exp) Exp {
 	// return s.Types.MakeNil(e.Pin), nil
 	case *ast.Integer:
 		return t.makeInteger(e.Pin, e.Val)
+	case *ast.String:
+		return t.makeString(e.Pin, e.Val)
 	case *ast.True:
 		return t.makeBoolean(e.Pin, true)
 	case *ast.False:
@@ -295,7 +302,7 @@ func (t *Typer) convertExp(c *context, exp ast.Exp) Exp {
 		return t.convertBinExp(c, e)
 	case *ast.ParenExp:
 		return t.convertExp(c, e.Exp)
-	case *ast.ErrorExp:
+	case *ast.InvExp:
 		return t.makeInvExp(e.Pin)
 	default:
 		panic(fmt.Sprintf("unexpected %T expression", e))

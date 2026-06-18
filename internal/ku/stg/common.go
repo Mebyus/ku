@@ -34,6 +34,8 @@ func (c *Common) bindBuiltinSymbols() {
 	c.bindBuiltinTypeSymbol("s32", c.Types.Known.S32)
 
 	c.bindBuiltinTypeSymbol("bool", c.Types.Known.Bool)
+
+	c.bindBuiltinTypeSymbol("str", c.Types.Known.Str)
 }
 
 func (c *Common) bindBuiltinTypeSymbol(name string, t *Type) {

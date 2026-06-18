@@ -59,6 +59,10 @@ func IsHexDigit(c byte) bool {
 	return 'A' <= c && c <= 'F'
 }
 
+func IsDecDigitOrPeriod(c byte) bool {
+	return IsDecDigit(c) || c == '.'
+}
+
 func DecDigitNum(c byte) uint8 {
 	return c - '0'
 }

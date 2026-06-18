@@ -24,6 +24,11 @@ func (lx *Lexer) Lex(tok *token.Token) {
 }
 
 func (lx *Lexer) lex(tok *token.Token) {
+	if lx.peek() == '"' {
+		lx.str(tok)
+		return
+	}
+
 	if char.IsLatinLetterOrUnderscore(lx.peek()) {
 		lx.word(tok)
 		return
@@ -95,7 +100,62 @@ func (lx *Lexer) number(tok *token.Token) {
 }
 
 func (lx *Lexer) decNumber(tok *token.Token) {
+	lx.start()
+	lx.advance() // skip first digit
+	scannedOnePeriod := false
+	for !lx.eof() && char.IsDecDigitOrPeriod(lx.peek()) {
+		if lx.peek() == '.' {
+			if scannedOnePeriod || !char.IsDecDigit(lx.next()) {
+				data, ok := lx.take()
+				if ok {
+					tok.SetError(token.MalformedDecimalFloat)
+					tok.Data = data
+				} else {
+					tok.SetError(token.LengthOverflow)
+				}
+				return
+			} else {
+				scannedOnePeriod = true
+			}
+		}
+		lx.advance()
+	}
 
+	if lx.isLengthOverflow() {
+		tok.SetError(token.LengthOverflow)
+		return
+	}
+
+	if !lx.eof() && char.IsAlphanum(lx.peek()) {
+		lx.skipWord()
+		data, ok := lx.take()
+		if ok {
+			tok.SetError(token.MalformedDecimalInteger)
+			tok.Data = data
+		} else {
+			tok.SetError(token.LengthOverflow)
+		}
+		return
+	}
+
+	if !scannedOnePeriod {
+		// decimal integer
+		n, ok := char.ParseDecDigitsWithOverflowCheck(lx.view())
+		if !ok {
+			tok.SetError(token.DecimalIntegerOverflow)
+			return
+		}
+
+		tok.Kind = token.Integer
+		tok.Val = n
+		tok.Flags = token.DecInt
+		return
+	}
+
+	panic("stub")
+	// tok.Kind = DecFloat
+	// tok.Data, _ = lx.Take()
+	// return tok
 }
 
 func (lx *Lexer) binNumber(tok *token.Token) {
@@ -147,6 +207,80 @@ func (lx *Lexer) hexNumber(tok *token.Token) {
 
 	tok.Val = char.ParseHexDigits(lx.view())
 	tok.Flags = token.HexInt
+}
+
+func (lx *Lexer) str(tok *token.Token) {
+	lx.advance() // skip quote
+	if lx.eof() {
+		tok.SetError(token.MalformedString)
+		tok.Data = "\""
+		return
+	}
+
+	if lx.peek() == '"' {
+		// common case of empty string literal
+		lx.advance() // skip quote
+		tok.Kind = token.String
+		return
+	}
+
+	var esc uint64 // number of escapes inside the string
+	lx.start()
+	for !lx.eof() && lx.peek() != '"' && lx.peek() != '\n' {
+		if lx.peek() == '\\' {
+			esc += 1
+		}
+
+		if lx.peek() == '\\' && lx.next() == '"' {
+			// do not stop if we encounter escape sequence
+			lx.advance() // skip "\"
+			lx.advance() // skip quote
+		} else {
+			lx.advance()
+		}
+	}
+
+	if lx.eof() {
+		data, ok := lx.take()
+		if ok {
+			tok.SetError(token.MalformedString)
+			tok.Data = data
+		} else {
+			tok.SetError(token.LengthOverflow)
+		}
+		return
+	}
+
+	if lx.peek() != '"' {
+		data, ok := lx.take()
+		if ok {
+			tok.SetError(token.MalformedString)
+			tok.Data = data
+		} else {
+			tok.SetError(token.LengthOverflow)
+		}
+		return
+	}
+
+	data, ok := lx.take()
+	if !ok {
+		tok.SetError(token.LengthOverflow)
+		return
+	}
+
+	lx.advance() // skip quote
+
+	if esc != 0 {
+		// data, ok = char.Unescape(data)
+		// if !ok {
+		// 	tok.SetError(token.BadEscapeInString)
+		// 	return
+		// }
+		panic("stub")
+	}
+
+	tok.Kind = token.String
+	tok.Data = data
 }
 
 func (lx *Lexer) other(tok *token.Token) {

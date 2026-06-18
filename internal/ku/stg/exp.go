@@ -56,9 +56,9 @@ func (operand) _operand() {}
 type Integer struct {
 	operand
 
-	pin sx.Pin
-
 	Val uint64
+
+	pin sx.Pin
 
 	typ *Type
 
@@ -66,7 +66,7 @@ type Integer struct {
 }
 
 // Explicit interface implementation check.
-var _ Exp = &Integer{}
+var _ Operand = &Integer{}
 
 func (n *Integer) Type() *Type {
 	return n.typ
@@ -82,6 +82,37 @@ func (t *Typer) makeInteger(pin sx.Pin, v uint64) *Integer {
 		pin: pin,
 		Val: v,
 		typ: t.common.Types.Static.Integer,
+	}
+}
+
+// Integer represents a string constant (directly from source or evaluated)
+// which value is known at compile time.
+type String struct {
+	operand
+
+	Val string
+
+	pin sx.Pin
+
+	typ *Type
+}
+
+var _ Operand = &String{}
+
+func (s *String) Type() *Type {
+	return s.typ
+}
+
+func (s *String) Pin() sx.Pin {
+	return s.pin
+}
+
+// create static integer value.
+func (t *Typer) makeString(pin sx.Pin, s string) *String {
+	return &String{
+		pin: pin,
+		Val: s,
+		typ: t.common.Types.Static.String,
 	}
 }
 

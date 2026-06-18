@@ -63,6 +63,13 @@ func (p *Parser) operand() (ast.Operand, ss) {
 			Val: tok.Val,
 			Aux: tok.Flags,
 		}, 0
+	case token.String:
+		tok := p.peek
+		p.advance()
+		return &ast.String{
+			Pin: tok.Pin,
+			Val: tok.Data,
+		}, 0
 	case token.True:
 		tok := p.peek
 		p.advance() // skip "true"
@@ -106,5 +113,5 @@ func (p *Parser) parenExp() (ast.Operand, ss) {
 	}
 	p.addError(&er)
 	p.advance() // TODO: we should do a sync here
-	return &ast.ErrorExp{Error: er}, 0
+	return &ast.InvExp{Error: er}, 0
 }
