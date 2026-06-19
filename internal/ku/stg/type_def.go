@@ -22,3 +22,13 @@ type Span struct {
 
 // Explicit interface implementation check.
 var _ TypeDef = &Span{}
+
+type Ref struct {
+	typdef
+
+	// Referred type.
+	Type *Type
+}
+
+// Explicit interface implementation check.
+var _ TypeDef = &Ref{}

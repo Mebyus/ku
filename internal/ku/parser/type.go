@@ -46,6 +46,11 @@ func (p *Parser) TypeSpec() (ast.TypeSpec, ss) {
 		}, 0
 	case token.Struct:
 		return p.Struct()
+	case token.Ampersand:
+		pin := p.peek.Pin
+		p.advance() // skip "&"
+		typ, s := p.TypeSpec()
+		return &ast.Ref{Pin: pin, Type: typ}, s
 	case token.LeftSquare:
 		if p.next.Kind == token.RightSquare {
 			return p.typeSpan()

@@ -309,6 +309,8 @@ func (lx *Lexer) other(tok *token.Token) {
 		lx.emitOneByteToken(tok, token.Comma)
 	case '.':
 		lx.emitOneByteToken(tok, token.Period)
+	case '&':
+		lx.emitOneByteToken(tok, token.Ampersand)
 	case '*':
 		lx.emitOneByteToken(tok, token.Asterisk)
 	case '/':

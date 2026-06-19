@@ -29,5 +29,5 @@ type Field struct {
 	Type TypeSpec
 
 	// pin of field name
-	Pin  sx.Pin
+	Pin sx.Pin
 }

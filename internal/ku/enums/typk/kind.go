@@ -102,7 +102,7 @@ const (
 	// (pointer to a string)
 	// Pointer
 
-	// Ref
+	Ref
 
 	// Pointer to continuous region of memory holding
 	// variable number of elements of another type.
@@ -160,7 +160,7 @@ var text = [...]string{
 	// Tuple:  "tuple",
 	// Map:    "map",
 
-	// Ref:          "ref",
+	Ref: "ref",
 	// Pointer:      "pointer",
 	// VoidPointer:  "void pointer",
 	// ArrayPointer: "array pointer",

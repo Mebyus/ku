@@ -43,11 +43,12 @@ const (
 
 	RightArrow // ->
 
-	Plus     // +
-	Minus    // -
-	Asterisk // *
-	Slash    // /
-	Exclam   // !
+	Plus      // +
+	Minus     // -
+	Asterisk  // *
+	Slash     // /
+	Exclam    // !
+	Ampersand // &
 
 	Assign // =
 	Walrus // :=

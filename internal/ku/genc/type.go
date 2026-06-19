@@ -24,6 +24,8 @@ func (g *Buffer) getTypeName(t *stg.Type) string {
 
 func (g *Buffer) newTypeName(t *stg.Type) string {
 	switch t.Kind {
+	case typk.Ref:
+		return g.getTypeName(t.Def.(*stg.Ref).Type) + "*"
 	case typk.Span:
 		return "s_" + g.getTypeName(t.Def.(*stg.Span).Type)
 	case typk.String:

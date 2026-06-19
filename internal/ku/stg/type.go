@@ -124,6 +124,8 @@ func (t *Typer) LookupType(s *Scope, spec ast.TypeSpec) *Type {
 		return t.lookupTypeName(s, p)
 	case *ast.Span:
 		return t.lookupSpan(s, p)
+	case *ast.Ref:
+		return t.lookupRef(s, p)
 	case *ast.InvType:
 		return t.common.Types.Invalid
 	default:
@@ -157,9 +159,21 @@ func (t *Typer) lookupSpan(s *Scope, p *ast.Span) *Type {
 	return t.common.Types.getSpan(typ)
 }
 
+func (t *Typer) lookupRef(s *Scope, r *ast.Ref) *Type {
+	typ := t.LookupType(s, r.Type)
+	if typ.IsInvalid() {
+		return typ
+	}
+
+	return t.common.Types.getRef(typ)
+}
+
 type TypeIndex struct {
 	Static StaticTypes
 	Known  KnownTypes
+
+	// Maps type referred by reference to corresponding reference type.
+	Refs map[ /* type referred by reference */ *Type]*Type
 
 	// Maps span element type to the corresponding span type.
 	Spans map[ /* span element type */ *Type]*Type
@@ -177,6 +191,7 @@ func (x *TypeIndex) init(archPointerSize uint32) {
 
 	x.Invalid = &Type{Kind: typk.Invalid}
 
+	x.Refs = make(map[*Type]*Type)
 	x.Spans = make(map[*Type]*Type)
 }
 
@@ -280,6 +295,20 @@ func (t *KnownTypes) init(archPointerSize uint32) {
 		Flags: TypeBuiltin,
 		Kind:  typk.String,
 	}
+}
+
+func (x *TypeIndex) getRef(t *Type) *Type {
+	typ, ok := x.Refs[t]
+	if ok {
+		return typ
+	}
+	typ = &Type{
+		Def:  &Ref{Type: t},
+		Size: x.ArchPointerSize,
+		Kind: typk.Ref,
+	}
+	x.Refs[t] = typ
+	return typ
 }
 
 func (x *TypeIndex) getSpan(t *Type) *Type {
