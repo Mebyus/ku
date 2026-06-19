@@ -161,7 +161,7 @@ func (p *Parser) skipBadCurly() {
 
 	er := ast.Error{
 		Pin:   p.peek.Pin,
-		Short: fmt.Sprintf("unbalanced curly brace"),
+		Short: "unbalanced curly brace",
 	}
 	er.Tokens = append(er.Tokens, p.peek)
 	p.advance()

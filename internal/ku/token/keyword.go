@@ -3,9 +3,11 @@ package token
 var kw = map[string]Kind{
 	"if":     If,
 	"fun":    Fun,
+	"type":   Type,
 	"else":   Else,
 	"const":  Const,
 	"return": Return,
+	"struct": Struct,
 	"true":   True,
 	"false":  False,
 }

@@ -21,6 +21,8 @@ func (p *Parser) top() {
 	switch p.peek.Kind {
 	case token.Fun:
 		p.topFun()
+	case token.Type:
+		p.topType()
 	case token.EOF:
 		p.abort(ast.Ok)
 	default:

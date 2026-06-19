@@ -31,6 +31,8 @@ type Text struct {
 
 	Stubs []FunStub
 
+	Types []Type
+
 	Consts []Const
 
 	// List of all (not only top-level) errors occured during parsing.
@@ -49,6 +51,10 @@ func (t *Text) AddFun(f Fun) {
 
 func (t *Text) AddStub(s FunStub) {
 	t.Stubs = append(t.Stubs, s)
+}
+
+func (t *Text) AddType(typ Type) {
+	t.Types = append(t.Types, typ)
 }
 
 func (t *Text) AddConst(c Const) {

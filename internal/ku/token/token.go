@@ -62,9 +62,12 @@ const (
 	LeftSquare  // [
 	RightSquare // ]
 
-	// Keywords.
+	// Keywords
 	Fun
+	Type
 	Const
+
+	Struct
 
 	If
 	Else

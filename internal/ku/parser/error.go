@@ -72,7 +72,7 @@ syncLoop:
 
 		switch p.peek.Kind {
 		case token.Semicolon, token.Walrus, token.Assign, token.LeftCurly, token.RightCurly,
-			token.Return, token.If, token.Else, token.Const:
+			token.Return, token.If, token.Else, token.Const, token.Type:
 			// these are likely to terminate expression
 			break syncLoop
 		case token.Fun:
@@ -93,6 +93,47 @@ syncLoop:
 
 	p.addError(&er)
 	return &ast.InvExp{Error: er}, 0
+}
+
+// report error and sync until after end of current type specifier
+func (p *Parser) syncTypeSpec(pin sx.Pin, msg string) (*ast.InvType, ss) {
+	er := ast.Error{
+		Short: msg,
+		Pin:   pin,
+	}
+
+	er.Tokens = append(er.Tokens, p.peek)
+	p.advance()
+
+	// sync until type specifier ends
+syncLoop:
+	for {
+		if p.stop {
+			p.addError(&er)
+			return &ast.InvType{Error: er}, ssAbort
+		}
+
+		switch p.peek.Kind {
+		case token.Semicolon, token.Walrus, token.Assign, token.LeftParen,
+			token.RightParen, token.Return, token.If, token.Else, token.Const,
+			token.True, token.False, token.String, token.Type:
+			// these are likely to terminate expression
+			// assume it's the end of malformed type specifier
+			break syncLoop
+		}
+
+		er.Tokens = append(er.Tokens, p.peek)
+		p.advance()
+
+		if len(er.Tokens) > 64 {
+			p.abort(ast.ErrorSyncFailed)
+			p.addError(&er)
+			return &ast.InvType{Error: er}, ssAbort
+		}
+	}
+
+	p.addError(&er)
+	return &ast.InvType{Error: er}, 0
 }
 
 // report error and sync until start of next statement
@@ -124,7 +165,7 @@ syncLoop:
 		case token.RightCurly:
 			// assume it closes encompassing block
 			break syncLoop
-		case token.Return, token.If, token.Const:
+		case token.Return, token.If, token.Const, token.Type:
 			// these always start a new statement
 			break syncLoop
 		case token.Fun:
