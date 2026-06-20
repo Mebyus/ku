@@ -1,0 +1,16 @@
+import (
+    fmt  -> "fmt";
+    math -> "math";
+)
+
+type Buffer struct {
+    buf: []u8 // TODO: replace with [&]
+    num: uint
+    cap: uint
+}
+
+type Status u64;
+
+fun change(b: &u32) {
+
+}

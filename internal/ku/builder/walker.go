@@ -17,6 +17,14 @@ type walker struct {
 	// all units loaded during walk
 	units []*unit
 
+	errors []*sx.Error
+
+	// Base directory for standard library units lookup.
+	std string
+
+	// Base directory for local units lookup.
+	loc string
+
 	// maps unit path to its unique id (which equals to its index inside units list)
 	m map[sx.Path]uid
 
@@ -38,6 +46,10 @@ func Walk(path string) []sx.Path {
 	var w walker
 	w.init(witem{path: p})
 	w.walk()
+
+	for _, e := range w.errors {
+		sx.FormatError(w.pool, os.Stderr, e)
+	}
 
 	if len(w.units) == 0 {
 		return nil
@@ -103,6 +115,10 @@ func (w *walker) load(item witem, u *unit) bool {
 		IncludeTestFiles: item.includeTestFiles,
 	})
 	if loadErr != nil {
+		w.addError(&sx.Error{
+			Pin:   item.pin,
+			Short: fmt.Sprintf("load unit \"%s\" source files: %v", item.path, loadErr),
+		})
 		return false
 	}
 
@@ -111,6 +127,7 @@ func (w *walker) load(item witem, u *unit) bool {
 	for _, f := range files {
 		t := parser.ParseText(f)
 		for _, e := range t.Errors {
+			// TODO: refactor into sx.Error
 			pos := w.pool.DecodePin(e.Pin)
 			fmt.Fprintf(os.Stderr, "%s: %s\n", pos, e.Short)
 		}
@@ -140,24 +157,28 @@ func (w *walker) load(item witem, u *unit) bool {
 func (w *walker) resolve(path sx.Path) string {
 	o, s := path.Import()
 	if s == "" {
-		// TODO: save error
+		// should be already reported during parsing
 		return ""
 	}
 
 	switch o {
 	case 0:
-		// TODO: save error
+		// should be already reported during parsing
 	case sx.Std:
-		panic("stub")
+		return filepath.Join(w.std, s)
 	case sx.Pkg:
 		panic("stub")
 	case sx.Loc:
 		// TODO: use absolute path for src?
-		return filepath.Join("src", s)
+		return filepath.Join(w.loc, s)
 	default:
-		// TODO: save error
+		// should be already reported during parsing
 	}
 	return ""
+}
+
+func (w *walker) addError(e *sx.Error) {
+	w.errors = append(w.errors, e)
 }
 
 // import site represents a place in source code which imports a unit

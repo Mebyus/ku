@@ -1,0 +1,16 @@
+fun use_span(s: []u8) -> []u8 {
+    // const a := 0x2;
+    return s;
+    // return 0x1;
+}
+
+fun use_span1(s: []u8) -> uint {
+    return s.num;
+}
+
+fun use_str() -> str {
+    if false {
+        return "";
+    }
+    return "hello";
+}

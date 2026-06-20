@@ -1,0 +1,65 @@
+import (
+    fmt  -> "fmt";
+    math -> "math";
+    mem  -> "mem";
+)
+
+fun test_func(a: u32) {
+    return;
+}
+
+fun test_func2(b: u32) -> u32 {
+    return 0 + 0x3;
+}
+
+fun test_func3(a: u32, b: u32) {
+}
+
+fun add(a: u32, b: u32, c: u32) -> u32 {
+    return a + b + c;
+}
+
+fun add_paren(a: u32, b: u32, c: u32) -> u32 {
+    return a + ((b + c));
+}
+
+fun add_mult(a: u32, b: u32, c: u32) -> u32 {
+    return (a + b) * c;
+}
+
+fun add_mult2(a: u32, b: u32, c: u32) -> u32 {
+    return a * (b + c);
+}
+
+fun stub_fun();
+
+fun stub_fun2(a: s32) -> s32;
+
+fun is_empty() -> bool {
+    return true;
+}
+
+fun is_ok() -> bool {
+    return false;
+}
+
+fun use_const(a: s32, b: s32) -> s32 {
+    const c := 0x4;
+    return a * (b + c);
+}
+
+fun test_branch(a: u32) -> u32 {
+    if a == 0 {
+        return a + 0xA;
+    }
+
+    if a != 2 * a  {
+        return a - 0x1;
+    }
+
+    if a != 0x3 {
+        return a * 0xB;
+    } else {
+        return a / 0x4;
+    }
+}

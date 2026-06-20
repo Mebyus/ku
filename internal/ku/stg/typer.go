@@ -47,10 +47,6 @@ func (p *Pool) Get() *Typer {
 		p.free = p.free[:n-1]
 		t.reset()
 	}
-
-	u := &Unit{}
-	u.init(&p.Global)
-	t.unit = u
 	// p.m[u] = t
 	return t
 }
@@ -81,15 +77,17 @@ func (t *Typer) reset() {
 	t.box.reset()
 }
 
-// Translate combines parsed source texts into a single unit and
+// Do combines parsed source texts into a single unit and
 // translates code into STG form.
 //
 // Assigns types and does typechecking for all symbols and expressions inside
 // resulting unit.
-func (t *Typer) Translate(texts []*ast.Text) *Unit {
+func (t *Typer) Do(unit *Unit, texts []*ast.Text) {
+	unit.init(&t.common.Global)
+	t.unit = unit
+
 	t.alloc(texts)
 	t.index()
 	t.toptype()
 	t.convert()
-	return t.unit
 }

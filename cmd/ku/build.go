@@ -8,11 +8,17 @@ import (
 	"github.com/mebyus/ku/goku/compiler/cc"
 	"github.com/mebyus/ku/goku/compiler/enums/bk"
 	"github.com/mebyus/ku/internal/ku/ast"
+	"github.com/mebyus/ku/internal/ku/builder"
 	"github.com/mebyus/ku/internal/ku/genc"
 	"github.com/mebyus/ku/internal/ku/parser"
 	"github.com/mebyus/ku/internal/ku/stg"
 	"github.com/mebyus/ku/internal/ku/sx"
 )
+
+func build2(path string) error {
+	r := builder.Build(&builder.Config{Unit: path})
+	return r.Error
+}
 
 func build(paths []string) error {
 	const debug = true
@@ -43,7 +49,8 @@ func build(paths []string) error {
 	t := tp.Get()
 
 	start = time.Now()
-	unit := t.Translate(parsed)
+	unit := stg.Unit{}
+	t.Do(&unit, parsed)
 	if debug {
 		fmt.Printf("stg:   %s\n", time.Since(start))
 	}
@@ -61,11 +68,11 @@ func build(paths []string) error {
 	}
 
 	prog.Common = tp.Common
-	prog.Units = []*stg.Unit{unit}
+	prog.Units = []*stg.Unit{&unit}
 
 	const progName = "out.c"
 	start = time.Now()
-	err = genProg(progName, &prog)
+	err = genc.GenProg(progName, &prog)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "genc: %s\n", err)
 		os.Exit(1)
@@ -85,14 +92,4 @@ func build(paths []string) error {
 	}
 
 	return nil
-}
-
-func genProg(out string, prog *stg.Program) error {
-	file, err := os.Create(out)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	return genc.Gen(file, prog)
 }

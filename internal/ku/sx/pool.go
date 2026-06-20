@@ -36,6 +36,13 @@ func (p *Pool) DecodePin(pin Pin) FilePos {
 	}
 }
 
+func (p *Pool) FormatPin(pin Pin) string {
+	if pin == 0 {
+		return ""
+	}
+	return p.DecodePin(pin).String()
+}
+
 // Load loads a file by given path and stores it into internal cache.
 // Returns Text created from loaded file.
 // If file was already loaded previously, then cached version is used.

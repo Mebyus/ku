@@ -20,6 +20,12 @@ type Unit struct {
 
 	Errors []*Error
 
+	// Unit path.
+	Path sx.Path
+
+	// System path of directory with unit source files.
+	Dir string
+
 	Name string
 
 	// Used to generate unique names (during codegen phase) for symbols from this unit.

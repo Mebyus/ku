@@ -21,7 +21,7 @@ func main() {
 		err = parse(paths)
 	case "build":
 		paths := os.Args[2:]
-		err = build(paths)
+		err = build2(paths[0])
 	case "walk":
 		path := os.Args[2]
 		err = walk(path)
