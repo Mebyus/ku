@@ -36,10 +36,34 @@ func (p *Parser) Statement() (ast.Statement, ss) {
 		return p.Return()
 	case token.Const:
 		return p.Const()
+	case token.For:
+		return p.For()
 	default:
 		s := p.syncNextNode(p.peek.Pin, fmt.Sprintf("expected new statement, found %s token instead", &p.peek))
 		return nil, s
 	}
+}
+
+func (p *Parser) For() (ast.Statement, ss) {
+	pin := p.peek.Pin
+	p.advance() // skip "for"
+
+	exp, s := p.Exp()
+	if s != 0 {
+		return nil, s
+	}
+
+	f := ast.While{Exp: exp, Pin: pin}
+
+	if p.peek.Kind != token.LeftCurly {
+		p.report(p.peek.Pin, fmt.Sprintf("expected \"{\" to start loop body in \"for\" statement, found %s token", &p.peek))
+		return &f, ssNode
+	}
+	s = p.block(&f.Body)
+	if s != 0 {
+		return &f, s
+	}
+	return &f, 0
 }
 
 func (p *Parser) If() (ast.Statement, ss) {

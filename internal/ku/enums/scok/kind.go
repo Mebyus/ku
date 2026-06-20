@@ -30,7 +30,9 @@ const (
 
 	// Scope produced by block statement.
 	Block
-	// Loop
+
+	// Produced by loop body.
+	Loop
 
 	// If or else branch block.
 	Branch

@@ -3,7 +3,6 @@ package genc
 import (
 	"io"
 	"os"
-	"path/filepath"
 	"strconv"
 
 	"github.com/mebyus/ku/internal/ku/stg"
@@ -20,23 +19,6 @@ func Gen(w io.Writer, prog *stg.Program) error {
 	buf.Gen(prog)
 	_, err = w.Write(buf.out)
 	return err
-}
-
-// GenProg generates C code into specified output file.
-func GenProg(out string, prog *stg.Program) error {
-	dir := filepath.Dir(out)
-	err := os.MkdirAll(dir, 0o755)
-	if err != nil {
-		return err
-	}
-
-	file, err := os.Create(out)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	return Gen(file, prog)
 }
 
 func copyFile(w io.Writer, path string) error {
@@ -66,8 +48,6 @@ type Buffer struct {
 
 func (g *Buffer) Gen(prog *stg.Program) {
 	g.types = make(map[*stg.Type]string)
-
-	stg.AssignLinkNames(prog.Units)
 
 	for _, u := range prog.Units {
 		g.prefix = u.LinkName + "_"

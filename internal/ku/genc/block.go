@@ -31,6 +31,8 @@ func (g *Buffer) node(s stg.Statement) {
 		g.ret(s)
 	case *stg.If:
 		g.ifs(s)
+	case *stg.While:
+		g.while(s)
 	default:
 		panic(fmt.Sprintf("unexpected %T statement", s))
 	}
@@ -47,6 +49,13 @@ func (g *Buffer) ifs(f *stg.If) {
 
 	g.puts(" else ")
 	g.block(f.Else)
+}
+
+func (g *Buffer) while(w *stg.While) {
+	g.puts("while (")
+	g.exp(w.Exp)
+	g.puts(") ")
+	g.block(&w.Body)
 }
 
 func (g *Buffer) ret(r *stg.Return) {

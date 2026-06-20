@@ -11,6 +11,8 @@ type Buffer struct {
 
 type Status u64;
 
-fun change(b: &u32) {
-
+fun change(b: &u32, a: u32) {
+    for a != 1 {
+        return;
+    }
 }

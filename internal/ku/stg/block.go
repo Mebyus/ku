@@ -111,3 +111,21 @@ var _ Statement = &If{}
 func (f *If) Pin() sx.Pin {
 	return f.pin
 }
+
+// While represents conditional loop statement.
+type While struct {
+	stm
+
+	Body Block
+
+	// Loop condition. Always not nil.
+	Exp Exp
+
+	pin sx.Pin
+}
+
+var _ Statement = &While{}
+
+func (w *While) Pin() sx.Pin {
+	return w.pin
+}

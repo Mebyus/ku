@@ -77,6 +77,7 @@ const (
 	If
 	Else
 	Return
+	For
 
 	True
 	False

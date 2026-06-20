@@ -100,6 +100,8 @@ func Build(config *Config) *Result {
 		prog.Units = append(prog.Units, unit)
 	}
 
+	stg.AssignLinkNames(prog.Units)
+
 	// TODO: should we pass Common to pool by pointer from Program instead?
 	prog.Common = pool.Common
 
@@ -108,7 +110,7 @@ func Build(config *Config) *Result {
 	const debug = false
 
 	start := time.Now()
-	err = genc.GenProg(progName, &prog)
+	err = genProg(progName, &prog)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "genc: %s\n", err)
 		os.Exit(1)
@@ -198,4 +200,21 @@ func GetLangDir() (string, error) {
 
 	// exec_path = lang_root/bin/ku
 	return filepath.Dir(filepath.Dir(path)), nil
+}
+
+// genProg generates C code into specified output file.
+func genProg(out string, prog *stg.Program) error {
+	dir := filepath.Dir(out)
+	err := os.MkdirAll(dir, 0o755)
+	if err != nil {
+		return err
+	}
+
+	file, err := os.Create(out)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	return genc.Gen(file, prog)
 }

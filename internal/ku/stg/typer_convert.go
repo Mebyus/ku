@@ -143,8 +143,8 @@ func (t *Typer) convertNode(c *Scope, s ast.Statement) (Statement, nodestat) {
 	// 	return t.translateDeferCall(s)
 	// case ast.Loop:
 	// 	return t.translateLoop(s)
-	// case ast.While:
-	// 	return t.translateWhile(s)
+	case *ast.While:
+		return t.convertWhile(c, s)
 	// case ast.ForRange:
 	// 	return t.translateForRange(s)
 	// case ast.Must:
@@ -207,6 +207,29 @@ func (t *Typer) convertConst(s *Scope, c *ast.Const) Statement {
 	// constants are saved as symbols with known compile-time value inside scope
 	// thus will not need separate constant definition statements in later stages
 	return nil
+}
+
+func (t *Typer) convertWhile(s *Scope, while *ast.While) (Statement, nodestat) {
+	exp := t.convertExp(&context{scope: s}, while.Exp)
+	typ := exp.Type()
+	if typ.Kind != typk.Invalid && typ.Kind != typk.Boolean {
+		// invalid expression was already reported earlier during expression conversion
+		// no sense reporting it twice
+		t.report(exp.Pin(), fmt.Sprintf("value of %s type used in branch condition (must be boolean type instead)", typ))
+	}
+
+	w := While{Exp: exp, pin: while.Pin}
+	w.Body.Scope.Init(scok.Loop, s)
+	t.convertBlock(&w.Body, &while.Body)
+	exits := w.Body.Exits
+
+	var etyp ExitType
+	switch w.Body.ExitType {
+	case ExitAlways, ExitBranch:
+		etyp = ExitBranch
+	}
+
+	return &w, nodestat{exits: exits, etyp: etyp}
 }
 
 func (t *Typer) convertIf(s *Scope, f *ast.If) (Statement, nodestat) {
