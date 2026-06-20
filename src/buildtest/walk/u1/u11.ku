@@ -1,0 +1,4 @@
+import (
+    u2 -> "buildtest/walk/u2";
+    u3 -> "buildtest/walk/u3";
+)

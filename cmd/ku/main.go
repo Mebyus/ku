@@ -22,6 +22,9 @@ func main() {
 	case "build":
 		paths := os.Args[2:]
 		err = build(paths)
+	case "walk":
+		path := os.Args[2]
+		err = walk(path)
 	}
 
 	if err != nil {

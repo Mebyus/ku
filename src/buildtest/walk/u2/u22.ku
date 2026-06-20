@@ -1,0 +1,3 @@
+import (
+    u3 -> "buildtest/walk/u3";
+)
