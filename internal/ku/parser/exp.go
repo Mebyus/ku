@@ -84,7 +84,7 @@ func (p *Parser) operand() (ast.Operand, ss) {
 		return p.parenExp()
 	}
 
-	return p.syncExp(p.peek.Pin, fmt.Sprintf("expected expression or operand, found %s token instead", p.peek.Kind))
+	return p.syncExp(p.peek.Pin, fmt.Sprintf("expected expression or operand, found %s token instead", &p.peek))
 }
 
 func (p *Parser) parenExp() (ast.Operand, ss) {
@@ -109,7 +109,7 @@ func (p *Parser) parenExp() (ast.Operand, ss) {
 	pin = p.peek.Pin
 	er := ast.Error{
 		Pin:   pin,
-		Short: fmt.Sprintf("expected \")\" to close parenthesized expression, found %s token instead", p.peek.Kind),
+		Short: fmt.Sprintf("expected \")\" to close parenthesized expression, found %s token instead", &p.peek),
 	}
 	p.addError(&er)
 	p.advance() // TODO: we should do a sync here

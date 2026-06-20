@@ -27,6 +27,8 @@ const (
 //
 // Contains all top-level nodes organized into lists of each type.
 type Text struct {
+	Imports []Import
+
 	Funs []Fun
 
 	Stubs []FunStub
@@ -43,6 +45,10 @@ type Text struct {
 
 func (t *Text) IsOk() bool {
 	return t.Status == Ok
+}
+
+func (t *Text) AddImport(i Import) {
+	t.Imports = append(t.Imports, i)
 }
 
 func (t *Text) AddFun(f Fun) {

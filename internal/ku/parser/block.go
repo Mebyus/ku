@@ -37,7 +37,7 @@ func (p *Parser) Statement() (ast.Statement, ss) {
 	case token.Const:
 		return p.Const()
 	default:
-		s := p.syncNextNode(p.peek.Pin, fmt.Sprintf("expected new statement, found %s token instead", p.peek.Kind))
+		s := p.syncNextNode(p.peek.Pin, fmt.Sprintf("expected new statement, found %s token instead", &p.peek))
 		return nil, s
 	}
 }
@@ -54,7 +54,7 @@ func (p *Parser) If() (ast.Statement, ss) {
 	f := ast.If{Exp: exp, Pin: pin}
 
 	if p.peek.Kind != token.LeftCurly {
-		p.report(p.peek.Pin, fmt.Sprintf("expected \"{\" to start true branch block in \"if\" statement, found %s token", p.peek.Kind))
+		p.report(p.peek.Pin, fmt.Sprintf("expected \"{\" to start true branch block in \"if\" statement, found %s token", &p.peek))
 		return &f, ssNode
 	}
 	s = p.block(&f.Body)
@@ -76,7 +76,7 @@ func (p *Parser) Const() (ast.Statement, ss) {
 	p.advance() // skip "const"
 
 	if p.peek.Kind != token.Word {
-		p.report(p.peek.Pin, fmt.Sprintf("expected constant name, found %s token instead", p.peek.Kind))
+		p.report(p.peek.Pin, fmt.Sprintf("expected constant name, found %s token instead", &p.peek))
 		// TODO: sync
 		return nil, ssNode
 	}
@@ -116,7 +116,7 @@ func (p *Parser) Const() (ast.Statement, ss) {
 		p.report(p.peek.Pin, "assign \"=\" operator used instead of \":=\" for constant definition")
 		p.advance() // skip "="
 	default:
-		p.report(p.peek.Pin, fmt.Sprintf("expected \":\" or \":=\" after constant name, found %s token instead", p.peek.Kind))
+		p.report(p.peek.Pin, fmt.Sprintf("expected \":\" or \":=\" after constant name, found %s token instead", &p.peek))
 		// TODO: sync?
 		p.advance()
 	}

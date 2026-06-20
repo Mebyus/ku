@@ -6,6 +6,7 @@ var kw = map[string]Kind{
 	"type":   Type,
 	"else":   Else,
 	"const":  Const,
+	"import": Import,
 	"return": Return,
 	"struct": Struct,
 	"true":   True,

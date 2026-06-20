@@ -11,7 +11,7 @@ func (p *Parser) topType() {
 	p.advance() // skip "type"
 
 	if p.peek.Kind != token.Word {
-		p.topError(p.peek.Pin, fmt.Sprintf("expected type name, found %s token instead", p.peek.Kind))
+		p.topError(p.peek.Pin, fmt.Sprintf("expected type name, found %s token instead", &p.peek))
 		return
 	}
 
@@ -57,7 +57,7 @@ func (p *Parser) TypeSpec() (ast.TypeSpec, ss) {
 		}
 	}
 
-	return p.syncTypeSpec(p.peek.Pin, fmt.Sprintf("expected type specifier, found %s token instead", p.peek.Kind))
+	return p.syncTypeSpec(p.peek.Pin, fmt.Sprintf("expected type specifier, found %s token instead", &p.peek))
 }
 
 func (p *Parser) typeSpan() (ast.TypeSpec, ss) {
@@ -81,7 +81,8 @@ func (p *Parser) Struct() (ast.TypeSpec, ss) {
 	p.advance() // skip "struct"
 
 	if p.peek.Kind != token.LeftCurly {
-		p.report(p.peek.Pin, fmt.Sprintf("expected \"{\" before struct fields, found %s token instead", p.peek.Kind))
+		p.report(p.peek.Pin, fmt.Sprintf("expected \"{\" before struct fields, found %s token instead", &p.peek))
+		// TODO: sync here
 		return &ast.InvType{}, ssNode
 	}
 
@@ -117,7 +118,7 @@ func (p *Parser) Struct() (ast.TypeSpec, ss) {
 
 func (p *Parser) field() (ast.Field, ss) {
 	if p.peek.Kind != token.Word {
-		p.report(p.peek.Pin, fmt.Sprintf("expected field name, found %s token instead", p.peek.Kind))
+		p.report(p.peek.Pin, fmt.Sprintf("expected field name, found %s token instead", &p.peek))
 		return ast.Field{}, ssTop
 	}
 	name := p.peek.Data

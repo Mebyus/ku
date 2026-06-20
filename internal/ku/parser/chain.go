@@ -29,7 +29,7 @@ func (p *Parser) Chain() (ast.Operand, ss) {
 					Pin:  pin,
 				})
 			default:
-				p.report(p.peek.Pin, fmt.Sprintf("expected name after select operand, found %s token instead", p.peek.Kind))
+				p.report(p.peek.Pin, fmt.Sprintf("expected name after select operand, found %s token instead", &p.peek))
 				p.advance() // TODO: sync
 			}
 		default:

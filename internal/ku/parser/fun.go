@@ -11,7 +11,7 @@ func (p *Parser) topFun() {
 	p.advance() // skip "fun"
 
 	if p.peek.Kind != token.Word {
-		p.topError(p.peek.Pin, fmt.Sprintf("expected function name, found %s token instead", p.peek.Kind))
+		p.topError(p.peek.Pin, fmt.Sprintf("expected function name, found %s token instead", &p.peek))
 		return
 	}
 
@@ -25,7 +25,7 @@ func (p *Parser) topFun() {
 	fun.Pin = pin
 
 	if p.peek.Kind != token.LeftParen {
-		p.topError(p.peek.Pin, fmt.Sprintf("expected \"(\" before function param list, found %s token instead", p.peek.Kind))
+		p.topError(p.peek.Pin, fmt.Sprintf("expected \"(\" before function param list, found %s token instead", &p.peek))
 		p.text.AddFun(fun)
 		return
 	}
@@ -54,7 +54,7 @@ func (p *Parser) topFun() {
 			p.report(p.peek.Pin, "missing \",\" between params in function signature")
 			// continue parsing, not a serious error
 		default:
-			p.topError(p.peek.Pin, fmt.Sprintf("expected \")\" or next param in function signature, found %s token instead", p.peek.Kind))
+			p.topError(p.peek.Pin, fmt.Sprintf("expected \")\" or next param in function signature, found %s token instead", &p.peek))
 			p.text.AddFun(fun)
 			return
 		}
@@ -115,7 +115,7 @@ func (p *Parser) topFun() {
 		})
 		return
 	default:
-		p.report(p.peek.Pin, fmt.Sprintf("expected \"{\" as function body start or \";\" as the end of function declaration, found %s token instead", p.peek.Kind))
+		p.report(p.peek.Pin, fmt.Sprintf("expected \"{\" as function body start or \";\" as the end of function declaration, found %s token instead", &p.peek))
 
 		// assume it's forward declaration with missing ";"
 		p.text.AddStub(ast.FunStub{
@@ -129,7 +129,7 @@ func (p *Parser) topFun() {
 
 func (p *Parser) funParam() (ast.Param, ss) {
 	if p.peek.Kind != token.Word {
-		p.report(p.peek.Pin, fmt.Sprintf("expected param name, found %s token instead", p.peek.Kind))
+		p.report(p.peek.Pin, fmt.Sprintf("expected param name, found %s token instead", &p.peek))
 		return ast.Param{}, ssTop
 	}
 	name := p.peek.Data

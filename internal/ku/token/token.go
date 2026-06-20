@@ -63,10 +63,14 @@ const (
 	LeftSquare  // [
 	RightSquare // ]
 
-	// Keywords
+	// start of keyword Kinds
+	// used by some formatting functions
+	keystart
+
 	Fun
 	Type
 	Const
+	Import
 
 	Struct
 
@@ -89,3 +93,27 @@ const (
 	OctInt
 	HexInt
 )
+
+// Category returns token kind category in string format.
+// Category indicates broad role of token in the language.
+//
+// It is mostly used for token listings and parser error reports.
+func (k Kind) Category() string {
+	switch k {
+	case INV:
+		return "INV"
+	case EOF:
+		return "EOF"
+	case Word:
+		return "WORD"
+	case Integer:
+		return "INTEGER"
+	case String:
+		return "STRING"
+	}
+
+	if k > keystart {
+		return "KEYWORD"
+	}
+	return "OTHER"
+}
