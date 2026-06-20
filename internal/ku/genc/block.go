@@ -29,16 +29,27 @@ func (g *Buffer) node(s stg.Statement) {
 	switch s := s.(type) {
 	case *stg.Return:
 		g.ret(s)
-	case *stg.If:
-		g.ifs(s)
+	case *stg.Branch:
+		g.branch(s)
+	case *stg.LineIf:
+		g.lineif(s)
 	case *stg.While:
 		g.while(s)
+	case *stg.Block:
+		g.block(s)
 	default:
 		panic(fmt.Sprintf("unexpected %T statement", s))
 	}
 }
 
-func (g *Buffer) ifs(f *stg.If) {
+func (g *Buffer) lineif(f *stg.LineIf) {
+	g.puts("if (")
+	g.exp(f.Exp)
+	g.puts(") ")
+	g.node(f.Then)
+}
+
+func (g *Buffer) branch(f *stg.Branch) {
 	g.puts("if (")
 	g.exp(f.Exp)
 	g.puts(") ")

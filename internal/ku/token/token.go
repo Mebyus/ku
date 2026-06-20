@@ -53,9 +53,13 @@ const (
 	Assign // =
 	Walrus // :=
 
-	Equal    // ==
-	NotEqual // !=
+	Equal          // ==
+	NotEqual       // !=
+	LessOrEqual    // <=
+	GreaterOrEqual // >=
 
+	LeftAngle   // <
+	RightAngle  // >
 	LeftCurly   // {
 	RightCurly  // }
 	LeftParen   // (

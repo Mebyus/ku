@@ -7,7 +7,7 @@ import "github.com/mebyus/ku/internal/ku/sx"
 //
 // Formal definition:
 //
-//	Block => "{" { Statement } "}"
+//	Block -> "{" { Statement } "}"
 type Block struct {
 	stm
 

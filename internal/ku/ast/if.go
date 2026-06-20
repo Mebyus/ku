@@ -2,7 +2,9 @@ package ast
 
 import "github.com/mebyus/ku/internal/ku/sx"
 
-type If struct {
+// Branch represents "if-else" branching statement.
+// Else branch is optional.
+type Branch struct {
 	stm
 
 	// condition
@@ -17,4 +19,19 @@ type If struct {
 	Else *Block
 }
 
-var _ Statement = &If{}
+var _ Statement = &Branch{}
+
+// LineIf represents short (one line) form of "if" branching statement.
+type LineIf struct {
+	stm
+
+	// condition
+	Exp Exp
+
+	// true branch
+	Then Statement
+
+	Pin sx.Pin
+}
+
+var _ Statement = &LineIf{}

@@ -78,30 +78,38 @@ func (t *Typer) checkBinExpType(exp *BinExp) {
 			t.checkMulIntegerType(exp, at, bt)
 		case bop.Div:
 			t.checkDivIntegerType(exp, at, bt)
-		case bop.Equal:
-			t.checkEqualIntegerType(exp, at, bt)
-		case bop.NotEqual:
-			t.checkNotEqualIntegerType(exp, at, bt)
+		case bop.Equal, bop.NotEqual:
+			t.checkEqualityIntegerType(exp, at, bt)
+		case bop.Less, bop.Greater, bop.LessOrEqual, bop.GreaterOrEqual:
+			t.checkComparisonIntegerType(exp, at, bt)
 		default:
 			panic(fmt.Sprintf("unexpected %s operator", exp.Op.Kind))
 		}
 		return
 	}
 
+	t.report(exp.Pin(), fmt.Sprintf("incompatible types %s and %s in binary expression", at, bt))
+	exp.typ = t.common.Types.Invalid
 }
 
-func (t *Typer) checkEqualIntegerType(exp *BinExp, at, bt *Type) {
+func (t *Typer) checkComparisonIntegerType(exp *BinExp, at, bt *Type) {
+	exp.typ = t.common.Types.Known.Bool
+	
 	if at == bt || at.IsStatic() || bt.IsStatic() {
-		exp.typ = t.common.Types.Known.Bool
 		return
 	}
+
+	t.report(exp.Pin(), fmt.Sprintf("incompatible integer types %s and %s in order comparison", at, bt))
 }
 
-func (t *Typer) checkNotEqualIntegerType(exp *BinExp, at, bt *Type) {
+func (t *Typer) checkEqualityIntegerType(exp *BinExp, at, bt *Type) {
+	exp.typ = t.common.Types.Known.Bool
+
 	if at == bt || at.IsStatic() || bt.IsStatic() {
-		exp.typ = t.common.Types.Known.Bool
 		return
 	}
+
+	t.report(exp.Pin(), fmt.Sprintf("incompatible integer types %s and %s in equality comparison", at, bt))
 }
 
 func (t *Typer) checkAddIntegerType(exp *BinExp, at, bt *Type) {

@@ -16,3 +16,13 @@ fun change(b: &u32, a: u32) {
         return;
     }
 }
+
+fun with_block(a: u32, s: str) -> str {
+    if a == 0 return s;
+    if a >= 5 return "hello";
+
+    {
+        const s := "world";
+        return s;
+    }
+}

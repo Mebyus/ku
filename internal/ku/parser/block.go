@@ -38,6 +38,10 @@ func (p *Parser) Statement() (ast.Statement, ss) {
 		return p.Const()
 	case token.For:
 		return p.For()
+	case token.LeftCurly:
+		var block ast.Block
+		s := p.block(&block)
+		return &block, s
 	default:
 		s := p.syncNextNode(p.peek.Pin, fmt.Sprintf("expected new statement, found %s token instead", &p.peek))
 		return nil, s
@@ -75,12 +79,28 @@ func (p *Parser) If() (ast.Statement, ss) {
 		return nil, s
 	}
 
-	f := ast.If{Exp: exp, Pin: pin}
+	f := ast.Branch{Exp: exp, Pin: pin}
 
-	if p.peek.Kind != token.LeftCurly {
-		p.report(p.peek.Pin, fmt.Sprintf("expected \"{\" to start true branch block in \"if\" statement, found %s token", &p.peek))
+	switch p.peek.Kind {
+	case token.Return:
+		// short form of if statement
+		stm, s := p.Statement()
+		return &ast.LineIf{
+			Pin:  pin,
+			Exp:  exp,
+			Then: stm,
+		}, s
+	case token.LeftCurly:
+		// continue execution
+	case token.Semicolon:
+		p.report(p.peek.Pin, "missing branch body after condition")
+		p.advance() // skip ";"
+		return &f, ssNode
+	default:
+		p.report(p.peek.Pin, fmt.Sprintf("expected statement or \"{\" to start true branch block in \"if\" statement, found %s token", &p.peek))
 		return &f, ssNode
 	}
+
 	s = p.block(&f.Body)
 	if s != 0 {
 		return &f, s

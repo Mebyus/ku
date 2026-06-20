@@ -128,14 +128,14 @@ func FromToken(t token.Kind) (Kind, bool) {
 		k = Equal
 	case token.NotEqual:
 		k = NotEqual
-	// case token.LeftAngle:
-	// 	k = Less
-	// case token.RightAngle:
-	// 	k = Greater
-	// case token.LessOrEqual:
-	// 	k = LessOrEqual
-	// case token.GreaterOrEqual:
-	// 	k = GreaterOrEqual
+	case token.LeftAngle:
+		k = Less
+	case token.RightAngle:
+		k = Greater
+	case token.LessOrEqual:
+		k = LessOrEqual
+	case token.GreaterOrEqual:
+		k = GreaterOrEqual
 	// case token.And:
 	// 	k = And
 	// case token.Or:

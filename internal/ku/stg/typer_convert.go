@@ -131,8 +131,10 @@ func (t *Typer) convertNode(c *Scope, s ast.Statement) (Statement, nodestat) {
 	// 	return t.translateVar(s)
 	case *ast.Const:
 		return t.convertConst(c, s), nodestat{}
-	case *ast.If:
-		return t.convertIf(c, s)
+	case *ast.Branch:
+		return t.convertBranch(c, s)
+	case *ast.LineIf:
+		return t.convertLineIf(c, s)
 	// case ast.Match:
 	// 	return t.translateMatch(s)
 	// case ast.Assign:
@@ -232,7 +234,7 @@ func (t *Typer) convertWhile(s *Scope, while *ast.While) (Statement, nodestat) {
 	return &w, nodestat{exits: exits, etyp: etyp}
 }
 
-func (t *Typer) convertIf(s *Scope, f *ast.If) (Statement, nodestat) {
+func (t *Typer) convertLineIf(s *Scope, f *ast.LineIf) (Statement, nodestat) {
 	exp := t.convertExp(&context{scope: s}, f.Exp)
 	typ := exp.Type()
 	if typ.Kind != typk.Invalid && typ.Kind != typk.Boolean {
@@ -241,7 +243,21 @@ func (t *Typer) convertIf(s *Scope, f *ast.If) (Statement, nodestat) {
 		t.report(exp.Pin(), fmt.Sprintf("value of %s type used in branch condition (must be boolean type instead)", typ))
 	}
 
-	m := If{Exp: exp, pin: f.Pin}
+	m := LineIf{Exp: exp, pin: f.Pin}
+	m.Then, _ = t.convertNode(s, f.Then)
+	return &m, nodestat{exits: 1, etyp: ExitBranch}
+}
+
+func (t *Typer) convertBranch(s *Scope, f *ast.Branch) (Statement, nodestat) {
+	exp := t.convertExp(&context{scope: s}, f.Exp)
+	typ := exp.Type()
+	if typ.Kind != typk.Invalid && typ.Kind != typk.Boolean {
+		// invalid expression was already reported earlier during expression conversion
+		// no sense reporting it twice
+		t.report(exp.Pin(), fmt.Sprintf("value of %s type used in branch condition (must be boolean type instead)", typ))
+	}
+
+	m := Branch{Exp: exp, pin: f.Pin}
 	m.Body.Scope.Init(scok.Branch, s)
 	t.convertBlock(&m.Body, &f.Body)
 	exits := m.Body.Exits

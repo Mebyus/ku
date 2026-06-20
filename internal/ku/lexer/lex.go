@@ -335,6 +335,18 @@ func (lx *Lexer) other(tok *token.Token) {
 			return
 		}
 		lx.emitOneByteToken(tok, token.Exclam)
+	case '<':
+		if lx.next() == '=' {
+			lx.emitTwoBytesToken(tok, token.LessOrEqual)
+			return
+		}
+		lx.emitOneByteToken(tok, token.LeftAngle)
+	case '>':
+		if lx.next() == '=' {
+			lx.emitTwoBytesToken(tok, token.GreaterOrEqual)
+			return
+		}
+		lx.emitOneByteToken(tok, token.RightAngle)
 	default:
 		lx.emitInvalidBytesToken(tok)
 	}

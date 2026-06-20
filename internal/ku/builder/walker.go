@@ -126,13 +126,9 @@ func (w *walker) load(item witem, u *unit) bool {
 	var texts []*ast.Text
 	for _, f := range files {
 		t := parser.ParseText(f)
-		for _, e := range t.Errors {
-			// TODO: refactor into sx.Error
-			pos := w.pool.DecodePin(e.Pin)
-			fmt.Fprintf(os.Stderr, "%s: %s\n", pos, e.Short)
-		}
 		texts = append(texts, t)
 		n += len(t.Imports)
+		u.errors = append(u.errors, t.Errors...)
 	}
 	u.texts = texts
 
@@ -199,6 +195,8 @@ type unit struct {
 	imports []isite
 
 	texts []*ast.Text
+
+	errors []*ast.Error
 
 	// identifies this unit within a program
 	path sx.Path

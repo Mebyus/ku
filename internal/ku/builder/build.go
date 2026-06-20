@@ -73,8 +73,21 @@ func Build(config *Config) *Result {
 	w.init(witem{path: config.unit})
 	w.walk()
 
+	n := 0 // total number of errors
+
+	// TODO: bring back these errors into total counter
+	// n += len(w.errors)
 	for _, e := range w.errors {
 		sx.FormatError(w.pool, os.Stderr, e)
+	}
+
+	for _, u := range w.units {
+		n += len(u.errors)
+		for _, e := range u.errors {
+			// TODO: refactor into sx.Error
+			pos := w.pool.DecodePin(e.Pin)
+			fmt.Fprintf(os.Stderr, "%s: %s\n", pos, e.Short)
+		}
 	}
 
 	// TODO: rank units based on imports
@@ -92,12 +105,17 @@ func Build(config *Config) *Result {
 		typer.Do(unit, u.texts)
 		pool.Put(typer)
 
+		n += len(unit.Errors)
 		for _, e := range unit.Errors {
 			pos := w.pool.DecodePin(e.Pin)
 			fmt.Fprintf(os.Stderr, "%s: %s\n", pos, e.Short)
 		}
 
 		prog.Units = append(prog.Units, unit)
+	}
+
+	if n != 0 {
+		os.Exit(1)
 	}
 
 	stg.AssignLinkNames(prog.Units)
