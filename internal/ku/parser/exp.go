@@ -78,6 +78,13 @@ func (p *Parser) operand() (ast.Operand, ss) {
 		tok := p.peek
 		p.advance() // skip "false"
 		return &ast.False{Pin: tok.Pin}, 0
+	case token.Rune:
+		tok := p.peek
+		p.advance() // skip rune
+		return &ast.Rune{
+			Pin: tok.Pin,
+			Val: tok.Val,
+		}, 0
 	case token.Word:
 		return p.Chain()
 	case token.LeftParen:

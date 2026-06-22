@@ -49,6 +49,7 @@ const (
 	Slash     // /
 	Exclam    // !
 	Ampersand // &
+	Pipe      // |
 
 	Assign // =
 	Walrus // :=
@@ -57,6 +58,9 @@ const (
 	NotEqual       // !=
 	LessOrEqual    // <=
 	GreaterOrEqual // >=
+
+	BoolOr  // ||
+	BoolAnd // &&
 
 	LeftAngle   // <
 	RightAngle  // >
@@ -67,11 +71,16 @@ const (
 	LeftSquare  // [
 	RightSquare // ]
 
+	Alter     // .{
+	AlterZero // .{}
+
 	// start of keyword Kinds
 	// used by some formatting functions
 	keystart
 
+	Pub
 	Fun
+	Var
 	Type
 	Const
 	Import
@@ -90,6 +99,7 @@ const (
 	Word
 	Integer
 	String
+	Rune
 )
 
 const (
@@ -115,6 +125,8 @@ func (k Kind) Category() string {
 		return "INTEGER"
 	case String:
 		return "STRING"
+	case Rune:
+		return "RUNE"
 	}
 
 	if k > keystart {

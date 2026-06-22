@@ -35,6 +35,10 @@ func (p *Parser) imports() {
 }
 
 func (p *Parser) top() {
+	if p.peek.Kind == token.Pub {
+		p.advance() // skip "pub"
+	}
+
 	switch p.peek.Kind {
 	case token.Fun:
 		p.topFun()

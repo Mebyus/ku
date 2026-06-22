@@ -8,9 +8,20 @@ import (
 )
 
 func (p *Parser) Chain() (ast.Operand, ss) {
+	pin := p.peek.Pin
+	name := p.peek.Data
+	if p.next.Kind == token.AlterZero {
+		p.advance() // skip word (symbol name)
+		p.advance() // skip ".{}"
+		return &ast.SymZeroExp{
+			Pin:  pin,
+			Name: name,
+		}, 0
+	}
+
 	chain := ast.Chain{
-		Pin:  p.peek.Pin,
-		Name: p.peek.Data,
+		Pin:  pin,
+		Name: name,
 	}
 	p.advance() // skip word (symbol name)
 

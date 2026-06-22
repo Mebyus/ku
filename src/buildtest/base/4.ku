@@ -1,7 +1,7 @@
-import (
-    fmt  -> "fmt";
-    math -> "math";
-)
+// import std (
+//     fmt  -> "fmt";
+//     math -> "math";
+// )
 
 type Buffer struct {
     buf: []u8 // TODO: replace with [&]
@@ -25,4 +25,9 @@ fun with_block(a: u32, s: str) -> str {
         const s := "world";
         return s;
     }
+}
+
+fun use_fixed_val() -> uint {
+    buf := Buffer.{};
+    return buf.num;
 }

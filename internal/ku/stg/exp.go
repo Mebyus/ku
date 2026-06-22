@@ -223,3 +223,20 @@ func (s *SpanNum) Type() *Type {
 func (s *SpanNum) Pin() sx.Pin {
 	return s.pin
 }
+
+// ZeroValue represents expression which has zero value of specific type.
+type ZeroValue struct {
+	operand
+
+	pin sx.Pin
+
+	typ *Type
+}
+
+func (z *ZeroValue) Type() *Type {
+	return z.typ
+}
+
+func (z *ZeroValue) Pin() sx.Pin {
+	return z.pin
+}

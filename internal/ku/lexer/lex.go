@@ -24,15 +24,21 @@ func (lx *Lexer) Lex(tok *token.Token) {
 }
 
 func (lx *Lexer) lex(tok *token.Token) {
+	if char.IsLatinLetterOrUnderscore(lx.peek()) {
+		lx.word(tok)
+		return
+	}
+
 	if lx.peek() == '"' {
 		lx.str(tok)
 		return
 	}
 
-	if char.IsLatinLetterOrUnderscore(lx.peek()) {
-		lx.word(tok)
+	if lx.peek() == '\'' {
+		lx.rune(tok)
 		return
 	}
+
 
 	if char.IsDecDigit(lx.peek()) {
 		lx.number(tok)
@@ -209,6 +215,99 @@ func (lx *Lexer) hexNumber(tok *token.Token) {
 	tok.Flags = token.HexInt
 }
 
+func (lx *Lexer) rune(tok *token.Token) {
+	lx.advance() // skip "'"
+	if lx.eof() {
+		tok.SetError(token.MalformedRune)
+		tok.Data = "'"
+		return
+	}
+
+	lx.start()
+	if lx.peek() == '\\' {
+		// handle escape sequence
+		var val uint64
+		switch lx.next() {
+		case '\\':
+			val = '\\'
+		case 'n':
+			val = '\n'
+		case 't':
+			val = '\t'
+		case 'r':
+			val = '\r'
+		case '\'':
+			val = '\''
+		default:
+			lx.advance() // skip "\"
+			lx.advance() // skip unknown escape rune
+
+			if !lx.eof() && lx.peek() == '\'' {
+				lx.advance()
+			}
+			tok.SetError(token.MalformedRune)
+			tok.Data, _ = lx.take()
+			return
+		}
+
+		lx.advance() // skip "\"
+		lx.advance() // skip escape rune
+		if lx.eof() {
+			tok.SetError(token.MalformedRune)
+			tok.Data, _ = lx.take()
+			return
+		}
+		if lx.peek() != '\'' {
+			lx.advance()
+			tok.SetError(token.MalformedRune)
+			tok.Data, _ = lx.take()
+			return
+		}
+
+		lx.advance() // skip "'"
+		tok.Kind = token.Rune
+		tok.Val = val
+		return
+	}
+
+	if lx.next() == '\'' {
+		// common case of ascii rune
+		tok.Val = uint64(lx.peek())
+		tok.Kind = token.Rune
+		lx.advance() // skip rune character
+		lx.advance() // skip "'"
+		return
+	}
+
+	// handle non-ascii runes
+	for !lx.eof() && lx.peek() != '\'' && lx.peek() != '\n' {
+		lx.advance()
+	}
+
+	data, ok := lx.take()
+	if !ok {
+		tok.SetError(token.LengthOverflow)
+		return
+	}
+
+	if lx.eof() || lx.peek() != '\'' {
+		tok.SetError(token.MalformedRune)
+		tok.Data = data
+		return
+	}
+	lx.advance() // skip "'"
+
+	runes := []rune(data)
+	if len(runes) != 1 {
+		tok.SetError(token.MalformedRune)
+		tok.Data = data
+		return
+	}
+
+	tok.Kind = token.Rune
+	tok.Val = uint64(runes[0])
+}
+
 func (lx *Lexer) str(tok *token.Token) {
 	lx.advance() // skip quote
 	if lx.eof() {
@@ -308,8 +407,31 @@ func (lx *Lexer) other(tok *token.Token) {
 	case ',':
 		lx.emitOneByteToken(tok, token.Comma)
 	case '.':
+		if lx.next() == '{' {
+			lx.advance() // skip "."
+			if lx.next() == '}' {
+				lx.advance() // skip "{"
+				lx.advance() // skip "}"
+				tok.Kind = token.AlterZero
+				return
+			}
+			lx.advance() // skip "{"
+			tok.Kind = token.Alter
+			return
+		}
+
 		lx.emitOneByteToken(tok, token.Period)
+	case '|':
+		if lx.next() == '|' {
+			lx.emitTwoBytesToken(tok, token.BoolOr)
+			return
+		}
+		lx.emitOneByteToken(tok, token.Pipe)
 	case '&':
+		if lx.next() == '&' {
+			lx.emitTwoBytesToken(tok, token.BoolAnd)
+			return
+		}
 		lx.emitOneByteToken(tok, token.Ampersand)
 	case '*':
 		lx.emitOneByteToken(tok, token.Asterisk)
@@ -383,7 +505,7 @@ func (lx *Lexer) emitInvalidBytesToken(tok *token.Token) {
 	tok.SetError(token.NonPrintableByte)
 
 	lx.advance() // enshure we consume first invalid byte even if it is printable
-	for !char.IsTextByte(lx.peek()) {
+	for !lx.eof() && !char.IsTextByte(lx.peek()) {
 		lx.advance()
 	}
 }

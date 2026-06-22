@@ -2,6 +2,8 @@ package token
 
 var kw = map[string]Kind{
 	"if":     If,
+	"var":    Var,
+	"pub":    Pub,
 	"fun":    Fun,
 	"for":    For,
 	"type":   Type,

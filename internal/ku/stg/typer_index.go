@@ -6,6 +6,7 @@ import (
 	"github.com/mebyus/ku/internal/ku/ast"
 	"github.com/mebyus/ku/internal/ku/enums/scok"
 	"github.com/mebyus/ku/internal/ku/enums/symk"
+	"github.com/mebyus/ku/internal/ku/enums/typk"
 )
 
 func (t *Typer) index() {
@@ -93,4 +94,14 @@ func (t *Typer) indexType(i int, s *ast.Type) {
 
 	symbol = t.unit.Scope.New(symk.Type, name, pin)
 	symbol.Aux = uint32(i)
+	symbol.Def = t.newTypeDef(symbol)
+}
+
+func (t *Typer) newTypeDef(s *Symbol) *Type {
+	def := &Custom{Symbol: s}
+	typ := &Type{
+		Def:  def,
+		Kind: typk.Custom,
+	}
+	return typ
 }

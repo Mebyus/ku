@@ -1,5 +1,6 @@
+// Returns integer number associated with decimal digit in ASCII encoding. 
 fun dec_digit_num(c: u8) -> u8 {
-	ret c - '0';
+	return c - '0';
 }
 
 // Transforms ASCII hexadecimal digit character (0 - 9, A - F, a - f)
@@ -7,9 +8,9 @@ fun dec_digit_num(c: u8) -> u8 {
 // identical results.
 fun hex_digit_num(c: u8) -> u8 {
 	if c <= '9' {
-		ret dec_digit_num(c);
+		return dec_digit_num(c);
 	}
-	ret capital_latin_letter(c) - 'A' + 10;
+	return capital_latin_letter(c) - 'A' + 10;
 }
 
 pub
@@ -19,5 +20,5 @@ fun parse_hex_digits(s: []u8) -> u64 {
 		v <<= 4;
 		v += hex_digit_num(s[i]);
 	}
-	ret v;
+	return v;
 }

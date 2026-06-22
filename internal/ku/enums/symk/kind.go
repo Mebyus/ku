@@ -26,6 +26,9 @@ const (
 	// Must be compile-time constant.
 	Const
 
+	// Variable with fixed value, which cannot be reassigned.
+	Fixed
+
 	// // Variable definition (name + type + initial value).
 	// Var
 
@@ -77,6 +80,7 @@ var text = [...]string{
 	Type:  "type",
 	Const: "const",
 	// Alias:  "alias",
+	Fixed: "fixed",
 	// Var:    "var",
 	// Gen:    "gen",
 	// Import: "import",

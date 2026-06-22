@@ -147,3 +147,17 @@ var _ Statement = &While{}
 func (w *While) Pin() sx.Pin {
 	return w.pin
 }
+
+// CreateFixed represents statement that creates fixed variable.
+type CreateFixed struct {
+	stm
+
+	Symbol *Symbol
+
+	// Initial expression. Always not nil.
+	Exp Exp
+}
+
+func (c *CreateFixed) Pin() sx.Pin {
+	return c.Symbol.Pin
+}

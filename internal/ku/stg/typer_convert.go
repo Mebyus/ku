@@ -131,6 +131,8 @@ func (t *Typer) convertNode(c *Scope, s ast.Statement) (Statement, nodestat) {
 	// 	return t.translateVar(s)
 	case *ast.Const:
 		return t.convertConst(c, s), nodestat{}
+	case *ast.Create:
+		return t.convertCreate(c, s), nodestat{}
 	case *ast.Branch:
 		return t.convertBranch(c, s)
 	case *ast.LineIf:
@@ -177,6 +179,28 @@ func (t *Typer) convertNode(c *Scope, s ast.Statement) (Statement, nodestat) {
 		return &block, nodestat{exits: block.Exits, etyp: block.ExitType}
 	default:
 		panic(fmt.Sprintf("unexpected %T statement", s))
+	}
+}
+
+func (t *Typer) convertCreate(s *Scope, c *ast.Create) Statement {
+	name := c.Name
+	pin := c.Pin
+
+	symbol := t.unit.Scope.Get(name)
+	if symbol != nil {
+		t.report(pin, fmt.Sprintf("symbol named \"%s\" was already declared in this block", name))
+		return nil
+	}
+
+	exp := t.convertExp(&context{scope: s}, c.Exp)
+	typ := exp.Type()
+
+	symbol = s.New(symk.Fixed, name, pin)
+	symbol.Type = typ
+
+	return &CreateFixed{
+		Symbol: symbol,
+		Exp:    exp,
 	}
 }
 
@@ -335,6 +359,8 @@ func (t *Typer) convertExp(c *context, exp ast.Exp) Exp {
 		return t.makeBoolean(e.Pin, false)
 	case *ast.SymExp:
 		return t.convertSymExp(c, e)
+	case *ast.SymZeroExp:
+		return t.convertSymZeroExp(c, e)
 	case *ast.Chain:
 		return t.convertChain(c, e)
 	case *ast.BinExp:
@@ -345,6 +371,25 @@ func (t *Typer) convertExp(c *context, exp ast.Exp) Exp {
 		return t.makeInvExp(e.Pin)
 	default:
 		panic(fmt.Sprintf("unexpected %T expression", e))
+	}
+}
+
+func (t *Typer) convertSymZeroExp(c *context, exp *ast.SymZeroExp) Exp {
+	name := exp.Name
+	pin := exp.Pin
+
+	symbol := c.scope.Lookup(name)
+	if symbol == nil {
+		t.report(pin, fmt.Sprintf("unknown symbol \"%s\" used as expression", name))
+		return t.makeInvExp(pin)
+	}
+
+	switch symbol.Kind {
+	case symk.Type:
+		typ := symbol.Def.(*Type)
+		return &ZeroValue{pin: pin, typ: typ}
+	default:
+		panic(fmt.Sprintf("unexpected %s symbol", symbol.Kind))
 	}
 }
 

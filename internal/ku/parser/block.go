@@ -38,6 +38,8 @@ func (p *Parser) Statement() (ast.Statement, ss) {
 		return p.Const()
 	case token.For:
 		return p.For()
+	case token.Word:
+		return p.AssignOrInvoke()
 	case token.LeftCurly:
 		var block ast.Block
 		s := p.block(&block)
@@ -46,6 +48,77 @@ func (p *Parser) Statement() (ast.Statement, ss) {
 		s := p.syncNextNode(p.peek.Pin, fmt.Sprintf("expected new statement, found %s token instead", &p.peek))
 		return nil, s
 	}
+}
+
+func (p *Parser) create() (ast.Statement, ss) {
+	name := p.peek.Data
+	pin := p.peek.Pin
+
+	p.advance() // skip fixed name
+	p.advance() // skip ":="
+
+	exp, s := p.Exp()
+	if s != 0 {
+		return &ast.Create{
+			Pin:  pin,
+			Name: name,
+			Exp:  exp,
+		}, s
+	}
+
+	if p.peek.Kind != token.Semicolon {
+		p.report(p.peek.Pin, "missing \";\" after fixed definition")
+	} else {
+		p.advance() // skip ";"
+	}
+
+	return &ast.Create{
+		Pin:  pin,
+		Name: name,
+		Exp:  exp,
+	}, 0
+}
+
+// func (p *Parser) symCall() (ast.Exp, ss) {
+
+// }
+
+
+func (p *Parser) AssignOrInvoke() (ast.Statement, ss) {
+	switch p.next.Kind {
+	case token.Walrus:
+		return p.create()
+	case token.Assign:
+		return p.assignSymbol()
+	case token.LeftParen:
+	}
+	// if p.next.Kind == token.LeftParen {
+	// 	exp, s := p.symCall()
+	// 	return
+	// }
+
+	p.report(p.peek.Pin, "stub")
+	p.advance()
+	return nil, ssNode
+	// panic("stub")
+	// left, s := p.Exp()
+	// if s != 0 {
+	// 	return nil, s
+	// }
+
+	// switch p.peek.Kind {
+	// case token.Walrus:
+	// 	p.advance() // skip ":="
+	// 	exp, s := p.Exp()
+	// 	if s != 0 {
+	// 		// return
+	// 	}
+	// case token.Assign:
+	// 	panic("stub")
+	// default:
+	// 	p.report(p.peek.Pin, fmt.Sprintf("expected call or assign operator, found %s token instead", &p.peek))
+	// 	return nil, ssNode
+	// }
 }
 
 func (p *Parser) For() (ast.Statement, ss) {

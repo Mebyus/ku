@@ -1,7 +1,0 @@
-import "std/core";
-
-include "pool.ku";
-
-test {
-    include "pool.test.ku";
-}

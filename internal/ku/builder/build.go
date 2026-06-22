@@ -67,7 +67,7 @@ func Build(config *Config) *Result {
 	}
 
 	w := walker{
-		std: filepath.Join(config.LangDir, "src"),
+		std: filepath.Join(config.LangDir, "src", "std"),
 		loc: filepath.Join(config.RootDir, "src"),
 	}
 	w.init(witem{path: config.unit})

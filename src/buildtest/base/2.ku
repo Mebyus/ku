@@ -1,7 +1,5 @@
-import (
-    fmt  -> "fmt";
-    math -> "math";
-    mem  -> "mem";
+import std (
+    chars  -> "chars";
 )
 
 fun test_func(a: u32) {

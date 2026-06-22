@@ -23,9 +23,9 @@ const (
 	LessOrEqual    // <=
 	GreaterOrEqual // >=
 
-	And // &&
-	Or  // ||
-	In  // in
+	BoolAnd // &&
+	BoolOr  // ||
+	In      // in
 
 	Add // +
 	Sub // -
@@ -53,9 +53,9 @@ var text = [...]string{
 	LessOrEqual:    "<=",
 	GreaterOrEqual: ">=",
 
-	And: "&&",
-	Or:  "||",
-	In:  "in",
+	BoolAnd: "&&",
+	BoolOr:  "||",
+	In:      "in",
 
 	Add: "+",
 	Sub: "-",
@@ -98,9 +98,9 @@ var precedence = [...]int{
 
 	In: 3,
 
-	And: 4,
+	BoolAnd: 4,
 
-	Or: 5,
+	BoolOr: 5,
 }
 
 // Precedence gives binary operator precedence.
@@ -136,10 +136,10 @@ func FromToken(t token.Kind) (Kind, bool) {
 		k = LessOrEqual
 	case token.GreaterOrEqual:
 		k = GreaterOrEqual
-	// case token.And:
-	// 	k = And
-	// case token.Or:
-	// 	k = Or
+	case token.BoolAnd:
+		k = BoolAnd
+	case token.BoolOr:
+		k = BoolOr
 	// case token.In:
 	// 	k = In
 	case token.Plus:
@@ -154,10 +154,10 @@ func FromToken(t token.Kind) (Kind, bool) {
 	// 	k = Mod
 	// case token.Caret:
 	// 	k = Xor
-	// case token.Ampersand:
-	// 	k = BitAnd
-	// case token.Pipe:
-	// 	k = BitOr
+	case token.Ampersand:
+		k = BitAnd
+	case token.Pipe:
+		k = BitOr
 	// case token.BitAndNot:
 	// 	k = BitAndNot
 	// case token.LeftShift:

@@ -124,7 +124,7 @@ const (
 	// Created via language construct:
 	//
 	//	type Name <OtherType>
-	// Custom
+	Custom
 
 	// Enum
 
@@ -154,7 +154,7 @@ var text = [...]string{
 	// Array:  "array",
 	Span: "span",
 	// Enum:   "enum",
-	// Custom: "custom",
+	Custom: "custom",
 	// Struct: "struct",
 	// Union:  "union",
 	// Tuple:  "tuple",
