@@ -137,6 +137,10 @@ func (c *Component) Symbols() []Symbol {
 	return list
 }
 
+func (c *Component) HasClusters() bool {
+	return len(c.clusters) != 0
+}
+
 // Element describes vertex as part of the cluster.
 type Element struct {
 	sym Symbol

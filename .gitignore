@@ -18,3 +18,9 @@
 *.log
 
 /coredump*
+
+*.zip
+*.gz
+*.tar
+
+/.vscode/

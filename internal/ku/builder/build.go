@@ -46,6 +46,12 @@ type Config struct {
 	//
 	// Default value will be used if empty.
 	OutPath string
+
+	// Build name. Used to generate names for default output name
+	// and various intermediate files.
+	//
+	// Default value will be used if empty (based on unit name).
+	Name string
 }
 
 // Result describes build result.
@@ -123,7 +129,7 @@ func Build(config *Config) *Result {
 	// TODO: should we pass Common to pool by pointer from Program instead?
 	prog.Common = pool.Common
 
-	progName := filepath.Join(config.OutDir, "genc", "out.c")
+	progName := filepath.Join(config.OutDir, "genc", config.Name+".c")
 
 	const debug = false
 
@@ -192,18 +198,33 @@ func (c *Config) setDefaults() error {
 	}
 
 	if c.OutDir == "" {
-		c.OutDir = filepath.Join(c.RootDir, ".kub")
+		c.OutDir = filepath.Join(c.RootDir, outDirName)
+	}
+
+	if c.Name == "" {
+		name := filepath.Base(c.Unit)
+		if name == "" {
+			panic("empty unit name")
+		}
+		c.Name = name
 	}
 
 	if c.OutPath == "" {
-		name := filepath.Base(c.Unit)
-		if name == "" {
-			panic("empty out name")
-		}
-		c.OutPath = filepath.Join(c.OutDir, "obj", "out.o")
+		c.OutPath = filepath.Join(c.OutDir, "obj", c.Name+".o")
 	}
 
 	return nil
+}
+
+const outDirName = ".kub"
+
+// GetOutDir returns path to default build output directory.
+func GetOutDir() (string, error) {
+	dir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, outDirName), nil
 }
 
 // GetLangDir determine Ku root directory based on currently running executable.

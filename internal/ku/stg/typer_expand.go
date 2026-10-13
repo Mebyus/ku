@@ -77,6 +77,12 @@ func (t *Typer) hoistConsts() {
 
 	for i := range len(components) {
 		c := &components[i]
+		if c.HasClusters() {
+			// TODO: report with pin
+			t.report(0, "constants form a cluster")
+			continue
+		}
+
 		t.rank.Reset(c)
 		tower := t.rank.Rank()
 

@@ -9,22 +9,37 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 3 {
-		fmt.Fprintf(os.Stderr, "target file of directory not specified\n")
+	if len(os.Args) < 2 {
+		fmt.Fprintf(os.Stderr, "command not specified\n")
 		os.Exit(1)
 	}
+	cname := os.Args[1] // command name
+	args := os.Args[2:]
 
 	var err error
-	switch os.Args[1] {
+	switch cname {
+	case "clean":
+		err = clean()
 	case "parse":
-		paths := os.Args[2:]
-		err = parse(paths)
+		if len(args) == 0 {
+			fmt.Fprintf(os.Stderr, "file or directory not specified\n")
+			os.Exit(1)
+		}
+		err = parse(args)
 	case "build":
-		paths := os.Args[2:]
-		err = build(paths[0])
+		if len(args) == 0 {
+			fmt.Fprintf(os.Stderr, "unit not specified\n")
+			os.Exit(1)
+		}
+		unit := args[0]
+		err = build(unit)
 	case "walk":
-		path := os.Args[2]
-		err = walk(path)
+		if len(args) == 0 {
+			fmt.Fprintf(os.Stderr, "unit not specified\n")
+			os.Exit(1)
+		}
+		unit := args[0]
+		err = walk(unit)
 	}
 
 	if err != nil {
