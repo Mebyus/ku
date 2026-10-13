@@ -15,7 +15,7 @@ const (
 	//	struct {} // empty struct
 	//	[0]int    // array with zero size
 	//
-	// There is always only one trivial type.
+	// There is always only one void type.
 	Void
 
 	// Static type for "nil" literal.
@@ -43,7 +43,7 @@ const (
 	Integer
 
 	// Builtin type which can hold fixed number of bytes. Inner structure
-	// of this type is identical to chunk of bytes []u8. The difference
+	// of this type is identical to bytes span []u8. The difference
 	// between these two types is logical, in most cases strings should
 	// hold utf-8 encoded text opposed to arbitrary byte sequence in
 	// span of bytes. However this is not a rule and not enforced by the
@@ -65,7 +65,7 @@ const (
 	//	- false
 	//
 	// This type is not a flavor of any integer type. Furthermore boolean
-	// flavors cannot be cast into integer flavors via tint operation.
+	// flavors cannot be cast into integer flavors via cast operation.
 	//
 	// Type for any boolean values (literals, constants and exressions).
 	//
@@ -102,6 +102,8 @@ const (
 	// (pointer to a string)
 	// Pointer
 
+	// Reference pointer to another Type. In Ku reference type is simply
+	// a pointer type which cannot be nil.
 	Ref
 
 	// Pointer to continuous region of memory holding

@@ -2,6 +2,7 @@ package stg
 
 import (
 	"github.com/mebyus/ku/internal/ku/ast"
+	"github.com/mebyus/ku/internal/ku/stg/hg"
 	"github.com/mebyus/ku/internal/ku/sx"
 )
 
@@ -58,10 +59,14 @@ func (p *Pool) Put(t *Typer) {
 }
 
 type Typer struct {
-	box NodeBox
+	graph hg.Builder
+	rank  hg.Ranker
+	box   NodeBox
+	deps  hg.DepSet
 
 	common *Common
 
+	// Unit that is currently being processed by typer.
 	unit *Unit
 
 	// Signature of current function or method being converted to STG form.
@@ -88,6 +93,7 @@ func (t *Typer) Do(unit *Unit, texts []*ast.Text) {
 
 	t.alloc(texts)
 	t.index()
+	t.expand()
 	t.toptype()
 	t.convert()
 }

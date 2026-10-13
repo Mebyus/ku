@@ -10,9 +10,16 @@ import (
 )
 
 func (t *Typer) index() {
+	t.indexConsts()
 	t.indexStubs()
 	t.indexFuns()
 	t.indexTypes()
+}
+
+func (t *Typer) indexConsts() {
+	for i, c := range t.box.consts {
+		t.indexConst(i, &c)
+	}
 }
 
 func (t *Typer) indexFuns() {
@@ -31,6 +38,22 @@ func (t *Typer) indexTypes() {
 	for i, s := range t.box.types {
 		t.indexType(i, &s)
 	}
+}
+
+func (t *Typer) indexConst(i int, c *ast.Const) {
+	name := c.Name
+	pin := c.Pin
+
+	symbol := t.unit.Scope.Get(name)
+	if symbol != nil {
+		t.report(pin, fmt.Sprintf("symbol with name \"%s\" was already declared inside this unit", name))
+		return
+	}
+
+	symbol = t.unit.Scope.New(symk.Const, name, pin)
+	symbol.Aux = uint32(i)
+
+	t.unit.Consts = append(t.unit.Consts, symbol)
 }
 
 func (t *Typer) indexStub(i int, s *ast.FunStub) {

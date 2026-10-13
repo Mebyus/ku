@@ -39,7 +39,6 @@ func (lx *Lexer) lex(tok *token.Token) {
 		return
 	}
 
-
 	if char.IsDecDigit(lx.peek()) {
 		lx.number(tok)
 		return

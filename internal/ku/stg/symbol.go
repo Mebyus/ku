@@ -1,7 +1,10 @@
 package stg
 
 import (
+	"unsafe"
+
 	"github.com/mebyus/ku/internal/ku/enums/symk"
+	"github.com/mebyus/ku/internal/ku/stg/hg"
 	"github.com/mebyus/ku/internal/ku/sx"
 )
 
@@ -84,6 +87,30 @@ const (
 	// Non-local symbols are global or unit-level.
 	SymbolLocal
 )
+
+// RawSym returns integer which uniquely identifies a Symbol accross whole program.
+// This id may not be stable, meaning its value may change between compiler runs.
+func (s *Symbol) RawSym() hg.Symbol {
+	return hg.Symbol(uintptr(unsafe.Pointer(s)))
+}
+
+// Get symbol by its raw id.
+func getSymbol(sym hg.Symbol) *Symbol {
+	return (*Symbol)(unsafe.Pointer(uintptr(sym)))
+}
+
+func getSymbolNames(list []hg.Symbol) []string {
+	if len(list) == 0 {
+		return nil
+	}
+
+	names := make([]string, 0, len(list))
+	for _, sym := range list {
+		s := getSymbol(sym)
+		names = append(names, s.Name)
+	}
+	return names
+}
 
 func (s *Symbol) IsPublic() bool {
 	return s.Flags&SymbolPublic != 0

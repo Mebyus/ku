@@ -94,7 +94,7 @@ func (t *Typer) checkBinExpType(exp *BinExp) {
 
 func (t *Typer) checkComparisonIntegerType(exp *BinExp, at, bt *Type) {
 	exp.typ = t.common.Types.Known.Bool
-	
+
 	if at == bt || at.IsStatic() || bt.IsStatic() {
 		return
 	}

@@ -40,6 +40,8 @@ func (p *Parser) top() {
 	}
 
 	switch p.peek.Kind {
+	case token.Const:
+		p.topConst()
 	case token.Fun:
 		p.topFun()
 	case token.Type:

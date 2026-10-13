@@ -18,6 +18,8 @@ type Unit struct {
 
 	Funs []*Symbol
 
+	Consts []*Symbol
+
 	Errors []*Error
 
 	// Unit path.

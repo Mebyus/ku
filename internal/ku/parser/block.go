@@ -83,7 +83,6 @@ func (p *Parser) create() (ast.Statement, ss) {
 
 // }
 
-
 func (p *Parser) AssignOrInvoke() (ast.Statement, ss) {
 	switch p.next.Kind {
 	case token.Walrus:
