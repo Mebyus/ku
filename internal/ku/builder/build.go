@@ -64,6 +64,8 @@ type Result struct {
 }
 
 func Build(config *Config) *Result {
+	const debug = false
+	start := time.Now()
 	r := &Result{}
 
 	err := config.setDefaults()
@@ -81,8 +83,7 @@ func Build(config *Config) *Result {
 
 	n := 0 // total number of errors
 
-	// TODO: bring back these errors into total counter
-	// n += len(w.errors)
+	n += len(w.errors)
 	for _, e := range w.errors {
 		sx.FormatError(w.pool, os.Stderr, e)
 	}
@@ -96,44 +97,60 @@ func Build(config *Config) *Result {
 		}
 	}
 
-	// TODO: rank units based on imports
+	tower, cycle := rankUnits(w.units, w.roots)
+	if len(cycle) != 0 {
+		// this error breaks program no import cycle assumption
+		// it is fatal to our model of compilation
+		fmt.Fprintf(os.Stderr, "import cycle found:\n")
+		for _, id := range cycle {
+			ipath := w.units[id].path
+			fmt.Fprintf(os.Stderr, "    [%d] %s\n", id, ipath)
+		}
+		os.Exit(1)
+	}
+
 	// TODO: output parsing errors based on rank order
 
 	var prog stg.Program
 	pool := stg.NewPool(w.pool)
-	for _, u := range w.units {
-		typer := pool.Get()
-		unit := &stg.Unit{
-			Path: u.path,
-			Dir:  u.dir,
-			Name: u.name,
-		}
-		typer.Do(unit, u.texts)
-		pool.Put(typer)
+	for _, cohort := range tower.Cohorts {
+		for _, id := range cohort.Symbols {
+			u := w.units[id]
 
-		n += len(unit.Errors)
-		for _, e := range unit.Errors {
-			pos := w.pool.DecodePin(e.Pin)
-			fmt.Fprintf(os.Stderr, "%s: %s\n", pos, e.Short)
-		}
+			typer := pool.Get()
+			unit := &stg.Unit{
+				Path: u.path,
+				Dir:  u.dir,
+				Name: u.name,
+			}
+			typer.Do(unit, u.texts)
+			pool.Put(typer)
 
-		prog.Units = append(prog.Units, unit)
+			n += len(unit.Errors)
+			for _, e := range unit.Errors {
+				pos := w.pool.DecodePin(e.Pin)
+				fmt.Fprintf(os.Stderr, "%s: %s\n", pos, e.Short)
+			}
+
+			prog.Units = append(prog.Units, unit)
+		}
+	}
+	stg.AssignLinkNames(prog.Units)
+
+	if debug {
+		fmt.Printf("uwalk: %s\n", time.Since(start))
 	}
 
 	if n != 0 {
 		os.Exit(1)
 	}
 
-	stg.AssignLinkNames(prog.Units)
-
 	// TODO: should we pass Common to pool by pointer from Program instead?
 	prog.Common = pool.Common
 
 	progName := filepath.Join(config.OutDir, "genc", config.Name+".c")
 
-	const debug = false
-
-	start := time.Now()
+	start = time.Now()
 	err = genProg(progName, &prog)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "genc: %s\n", err)

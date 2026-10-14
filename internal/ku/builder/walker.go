@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/mebyus/ku/internal/ku/ast"
 	"github.com/mebyus/ku/internal/ku/parser"
+	"github.com/mebyus/ku/internal/ku/stg/hg"
 	"github.com/mebyus/ku/internal/ku/sx"
 )
 
@@ -15,7 +17,13 @@ type walker struct {
 	queue queue
 
 	// all units loaded during walk
+	//
+	// due to construction algorithm unit index in this slice
+	// always equals its id
 	units []*unit
+
+	// list of unit ids with no imports in them
+	roots []uid
 
 	errors []*sx.Error
 
@@ -27,6 +35,9 @@ type walker struct {
 
 	// maps unit path to its unique id (which equals to its index inside units list)
 	m map[sx.Path]uid
+
+	// set for checking duplicate imports inside single unit.
+	iset map[sx.Path]struct{}
 
 	pool *sx.Pool
 }
@@ -67,6 +78,7 @@ func (w *walker) init(items ...witem) {
 	w.queue.init()
 	w.pool = sx.New()
 	w.m = make(map[sx.Path]uid)
+	w.iset = make(map[sx.Path]struct{})
 
 	for _, item := range items {
 		w.queue.add(item)
@@ -77,12 +89,15 @@ func (w *walker) walk() {
 	for {
 		var item witem
 		if !w.queue.next(&item) {
+			w.fill()
 			return
 		}
 
 		var u unit
 		ok := w.load(item, &u)
 		if !ok {
+			// failed to load due to error, which
+			// is already reported
 			continue
 		}
 		id := uid(len(w.units))
@@ -97,6 +112,46 @@ func (w *walker) walk() {
 			})
 		}
 	}
+}
+
+// fill each unit ancestors, descendants from imports,
+// select root units
+func (w *walker) fill() {
+	const debug = false
+
+	for i, u := range w.units {
+		u.anc = w.getlist(u.imports)
+		if len(u.anc) == 0 {
+			w.roots = append(w.roots, uid(i))
+		}
+
+		for _, j := range u.anc {
+			w.units[j].des = append(w.units[j].des, uid(i))
+		}
+	}
+
+	if debug {
+		for _, u := range w.units {
+			fmt.Printf("[uwalk] %s | %d -> %v\n", u.path, u.id, u.anc)
+		}
+	}
+}
+
+func (w *walker) getlist(imports []isite) []uid {
+	if len(imports) == 0 {
+		return nil
+	}
+
+	list := make([]uid, 0, len(imports))
+	for _, p := range imports {
+		id, ok := w.m[p.path]
+		if !ok {
+			panic(fmt.Sprintf("unit \"%s\" not found in index map", p.path))
+		}
+		list = append(list, id)
+	}
+	slices.Sort(list)
+	return list
 }
 
 // returns true if unit was loaded successfully (there may still be some errors)
@@ -115,7 +170,7 @@ func (w *walker) load(item witem, u *unit) bool {
 		IncludeTestFiles: item.includeTestFiles,
 	})
 	if loadErr != nil {
-		w.addError(&sx.Error{
+		w.report(&sx.Error{
 			Pin:   item.pin,
 			Short: fmt.Sprintf("load unit \"%s\" source files: %v", item.path, loadErr),
 		})
@@ -134,16 +189,47 @@ func (w *walker) load(item witem, u *unit) bool {
 
 	var imports []isite
 	if n != 0 {
+		clear(w.iset)
+		imports = make([]isite, 0, n)
 		for _, t := range texts {
-			for _, m := range t.Imports {
+			for _, p := range t.Imports {
+				if p.Path == "" {
+					// Imports with empty paths can come from
+					// source bad syntax.
+					//
+					// It was already reported during parsing.
+					// No need to produce error here.
+					continue
+				}
+
+				if p.Path == item.path {
+					w.report(&sx.Error{
+						Pin:   p.ImpPin,
+						Short: fmt.Sprintf("unit \"%s\" imports itself", item.path),
+					})
+					continue
+				}
+
+				_, ok := w.iset[p.Path]
+				if ok {
+					w.report(&sx.Error{
+						Pin:   p.ImpPin,
+						Short: fmt.Sprintf("unit \"%s\" imported multiple times", p.Path),
+					})
+					continue
+				}
+				w.iset[p.Path] = struct{}{}
+
 				imports = append(imports, isite{
-					path: m.Path,
-					pin:  m.ImpPin,
+					path: p.Path,
+					pin:  p.ImpPin,
 				})
 			}
 		}
 	}
-	u.imports = imports
+	if len(imports) != 0 {
+		u.imports = imports
+	}
 
 	return true
 }
@@ -173,7 +259,7 @@ func (w *walker) resolve(path sx.Path) string {
 	return ""
 }
 
-func (w *walker) addError(e *sx.Error) {
+func (w *walker) report(e *sx.Error) {
 	w.errors = append(w.errors, e)
 }
 
@@ -187,12 +273,26 @@ type isite struct {
 }
 
 // unique (within a program) unit id
-type uid uint32
+type uid = hg.UnitID
 
 // intermediate object for holding various data related to loaded unit
 type unit struct {
 	// list of unit paths imported by this unit
 	imports []isite
+
+	// list of unit ancestors
+	//
+	// in other words this list contains unit ids imported
+	// by this unit
+	//
+	// empty for root units
+	anc []uid
+
+	// list of unit descendants
+	//
+	// in other words this list contains unit ids which
+	// import this unit
+	des []uid
 
 	texts []*ast.Text
 

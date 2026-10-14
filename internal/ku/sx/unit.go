@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/mebyus/ku/internal/ku/char"
 )
 
 // Origin denotes context in which import string should be resolved.
@@ -118,4 +120,62 @@ func (p Path) Name() string {
 		return s
 	}
 	return s[i+1:]
+}
+
+// ValidImport returns (s, "") if provided string was valid,
+// original string is returned unchanged in this case.
+//
+// Returns (s1, <error text>) if provided string was invalid.
+// Returned string s1 is a corrected import string. Which is
+// a best guess what original string meant.
+//
+// Compiler should report produced error message and keep going
+// when operating in error tolerant mode, but still must mark
+// build as failed.
+func ValidImport(s string) (string, string) {
+	if s == "" {
+		return "", "empty import string"
+	}
+
+	var errtext string
+
+	n := len(s)
+	s = strings.TrimSpace(s)
+	if len(s) != n {
+		errtext = "import string contains whitespace"
+	}
+	if s == "" {
+		return "", errtext
+	}
+
+	// TODO: optimize to avoid allocations
+	parts := strings.Split(s, "/")
+	v := 0 // number of valid parts
+	for i := range len(parts) {
+		p := parts[i]
+		if p == "" || strings.ReplaceAll(p, ".", "") == "" {
+			// skip empty or containing only dots parts
+			if errtext == "" {
+				errtext = "import string contains empty parts"
+			}
+			continue
+		}
+
+		for i := range len(p) {
+			c := p[i]
+			if !char.IsAlphanum(c) {
+				return "", "import string contains non-alphanumerical characters"
+			}
+		}
+
+		parts[v] = p
+		v += 1
+	}
+
+	if v == len(parts) && errtext == "" {
+		return s, ""
+	}
+
+	s = strings.Join(parts[:v], "/")
+	return s, errtext
 }

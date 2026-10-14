@@ -124,10 +124,18 @@ func (p *Parser) imp(origin sx.Origin) ss {
 	var ipin sx.Pin
 	switch p.peek.Kind {
 	case token.String:
-		// TODO: validate import string
 		s = p.peek.Data
 		ipin = p.peek.Pin
 		p.advance() // skip import string
+
+		var verr string
+		s, verr = sx.ValidImport(s)
+		if s == "" && verr == "" {
+			verr = "bad import string"
+		}
+		if verr != "" {
+			p.report(ipin, verr)
+		}
 	case token.Semicolon:
 		p.report(p.peek.Pin, "missing import string")
 	default:

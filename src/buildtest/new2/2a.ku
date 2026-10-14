@@ -1,5 +1,7 @@
 import (
-    new1 -> "buildtest/new1";
+    new1  -> "buildtest/new1";
+    // new2  -> "buildtest/new2";
+    // new11 -> "buildtest/new1";
 )
 
 const d = 2 * a + c; // i=0 r=2

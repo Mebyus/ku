@@ -84,7 +84,7 @@ func (t *Typer) hoistConsts() {
 		}
 
 		t.rank.Reset(c)
-		tower := t.rank.Rank()
+		tower := t.rank.RankNoCycle()
 
 		if debug {
 			fmt.Printf("[chst] tower %d:\n", i)
