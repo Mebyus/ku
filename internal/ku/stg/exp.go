@@ -51,40 +51,6 @@ type operand struct{}
 func (operand) _exp()     {}
 func (operand) _operand() {}
 
-// Integer represents an integer constant (directly from source or evaluated)
-// which value is known at compile time.
-type Integer struct {
-	operand
-
-	Val uint64
-
-	pin sx.Pin
-
-	typ *Type
-
-	Neg bool
-}
-
-// Explicit interface implementation check.
-var _ Operand = &Integer{}
-
-func (n *Integer) Type() *Type {
-	return n.typ
-}
-
-func (n *Integer) Pin() sx.Pin {
-	return n.pin
-}
-
-// create static integer value.
-func (t *Typer) makeInteger(pin sx.Pin, v uint64) *Integer {
-	return &Integer{
-		pin: pin,
-		Val: v,
-		typ: t.common.Types.Static.Integer,
-	}
-}
-
 // Integer represents a string constant (directly from source or evaluated)
 // which value is known at compile time.
 type String struct {

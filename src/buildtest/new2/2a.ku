@@ -17,5 +17,6 @@ const z = 1 + d * a; // r=3
 // const hello: str = "Hello, world!";
 
 // cluster
-// const a1 = a2;
-// const a2 = a1;
+// const a1 = c + 3 * a3;
+// const a2 = a1 + c;
+// const a3 = a2 + z;

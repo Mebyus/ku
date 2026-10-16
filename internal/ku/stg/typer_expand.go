@@ -33,7 +33,7 @@ import (
 //  7. resolve type specifiers for each rank
 func (t *Typer) expand() {
 	t.gatherConstDeps()
-	t.hoistConsts()
+	t.hoistEvalConsts()
 }
 
 // Inspect AST and gather dependencies between unit-level constants.
@@ -46,8 +46,9 @@ func (t *Typer) gatherConstDeps() {
 }
 
 // Hoist and rank usage of unit-level constants based on dependencies
-// between them.
-func (t *Typer) hoistConsts() {
+// between them. After hoisting is done evaluate constant values via
+// simple AST walk.
+func (t *Typer) hoistEvalConsts() {
 	t.graph.Build()
 
 	const debug = false
@@ -77,20 +78,29 @@ func (t *Typer) hoistConsts() {
 
 	for i := range len(components) {
 		c := &components[i]
-		if c.HasClusters() {
-			// TODO: report with pin
-			t.report(0, "constants form a cluster")
+		t.rank.Reset(c)
+		tower, cycle := t.rank.RankOrFindCycle()
+
+		if len(cycle) != 0 {
+			s := getSymbol(cycle[0])
+			cycleText := strings.Join(getSymbolNames(cycle), " -> ")
+			t.report(s.Pin, fmt.Sprintf("cycle dependency in constant definitions (%s)", cycleText))
 			continue
 		}
-
-		t.rank.Reset(c)
-		tower := t.rank.RankNoCycle()
 
 		if debug {
 			fmt.Printf("[chst] tower %d:\n", i)
 
 			for _, c := range tower.Cohorts {
 				fmt.Printf("     | %s\n", strings.Join(getSymbolNames(c.Symbols), ", "))
+			}
+		}
+
+		for _, cohort := range tower.Cohorts {
+			for _, sym := range cohort.Symbols {
+				s := getSymbol(sym)
+				def := &t.box.consts[s.Aux]
+				t.evalConstDef(s, def)
 			}
 		}
 	}

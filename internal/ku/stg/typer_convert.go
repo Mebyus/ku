@@ -350,7 +350,7 @@ func (t *Typer) convertExp(c *context, exp ast.Exp) Exp {
 	// case ast.Nil:
 	// return s.Types.MakeNil(e.Pin), nil
 	case *ast.Integer:
-		return t.makeInteger(e.Pin, e.Val)
+		return t.makeInteger(e.Pin, e.Val, uint16(e.Aux))
 	case *ast.String:
 		return t.makeString(e.Pin, e.Val)
 	case *ast.True:
