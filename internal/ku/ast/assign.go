@@ -12,7 +12,7 @@ import "github.com/mebyus/ku/internal/ku/sx"
 type AssignSymbol struct {
 	stm
 
-	// Always not nil
+	// Always not nil.
 	Exp Exp
 
 	// Name of symbol baing assigned.

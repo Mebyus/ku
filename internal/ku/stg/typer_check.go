@@ -63,6 +63,26 @@ func (t *Typer) checkReturnType(rt *Type, exp Exp) {
 	t.report(exp.Pin(), fmt.Sprintf("cannot use expression of %s value as %s in return statement", et, rt))
 }
 
+// checks that assignment has compatible types between target and assigned expression
+func (t *Typer) checkAssignType(at *Type, exp Exp) {
+	typ := exp.Type()
+	if at == typ {
+		return
+	}
+	if at.Kind == typk.Invalid || typ.Kind == typk.Invalid {
+		return
+	}
+
+	if at.Kind == typk.Integer && typ.Kind == typk.Integer {
+		if typ.IsStatic() && typ.Size == 0 {
+			// TODO: check sizes for static and signedness sized integers
+			return
+		}
+	}
+
+	t.report(exp.Pin(), fmt.Sprintf("cannot use expression of %s value as %s in assignment", typ, at))
+}
+
 // does typechecking of binary expression and sets its resulting type
 func (t *Typer) checkBinExpType(exp *BinExp) {
 	at := exp.A.Type()

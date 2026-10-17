@@ -16,3 +16,22 @@ type Return struct {
 }
 
 var _ Stm = &Return{}
+
+type Assign struct {
+	stm
+
+	Exp Exp
+
+	// each local variable uses zero-based index as name
+	Name uint32
+}
+
+var _ Stm = &Assign{}
+
+type While struct {
+	stm
+
+	Body []Stm
+
+	Exp Exp
+}

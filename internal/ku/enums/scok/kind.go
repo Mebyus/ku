@@ -56,3 +56,7 @@ var text = [...]string{
 func (k Kind) String() string {
 	return text[k]
 }
+
+func (k Kind) IsLocal() bool {
+	return k > Unit
+}

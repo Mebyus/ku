@@ -29,8 +29,8 @@ const (
 	// Variable with fixed value, which cannot be reassigned.
 	Fixed
 
-	// // Variable definition (name + type + initial value).
-	// Var
+	// Variable which can be mutated freely.
+	Var
 
 	// // Loop variable.
 	// Loop
@@ -81,7 +81,7 @@ var text = [...]string{
 	Const: "const",
 	// Alias:  "alias",
 	Fixed: "fixed",
-	// Var:    "var",
+	Var:   "var",
 	// Gen:    "gen",
 	// Import: "import",
 	Param: "param",

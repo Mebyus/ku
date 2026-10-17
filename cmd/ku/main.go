@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/mebyus/ku/internal/ku/parser"
 	"github.com/mebyus/ku/internal/ku/sx"
@@ -13,7 +14,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "command not specified\n")
 		os.Exit(1)
 	}
-	cname := os.Args[1] // command name
+	cname := strings.TrimSpace(os.Args[1]) // command name
 	args := os.Args[2:]
 
 	var err error
@@ -48,6 +49,8 @@ func main() {
 		}
 		unit := args[0]
 		err = walk(unit)
+	default:
+		err = fmt.Errorf("unknown command \"%s\"", cname)
 	}
 
 	if err != nil {

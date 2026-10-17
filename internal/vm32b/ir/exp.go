@@ -1,5 +1,7 @@
 package ir
 
+import "github.com/mebyus/ku/internal/ku/enums/bop"
+
 type Exp interface {
 	_exp()
 }
@@ -7,3 +9,31 @@ type Exp interface {
 type exp struct{}
 
 func (exp) _exp() {}
+
+// Interger constant used as expression.
+type Integer struct {
+	exp
+
+	Val uint32
+}
+
+var _ Exp = &Integer{}
+
+// local variable used as expression
+type Local struct {
+	exp
+
+	Name uint32
+}
+
+var _ Exp = &Local{}
+
+// binary expression
+type BinExp struct {
+	exp
+
+	A, B Exp
+	Op   bop.Kind
+}
+
+var _ Exp = &BinExp{}

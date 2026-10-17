@@ -133,12 +133,16 @@ func (t *Typer) convertNode(c *Scope, s ast.Statement) (Statement, nodestat) {
 		return t.convertConst(c, s), nodestat{}
 	case *ast.Create:
 		return t.convertCreate(c, s), nodestat{}
+	case *ast.Var:
+		return t.convertVar(c, s), nodestat{}
 	case *ast.Branch:
 		return t.convertBranch(c, s)
 	case *ast.LineIf:
 		return t.convertLineIf(c, s)
 	// case ast.Match:
 	// 	return t.translateMatch(s)
+	case *ast.AssignSymbol:
+		return t.convertAssignSymbol(c, s)
 	// case ast.Assign:
 	// 	return t.translateAssign(s)
 	// case ast.Invoke:
@@ -182,11 +186,48 @@ func (t *Typer) convertNode(c *Scope, s ast.Statement) (Statement, nodestat) {
 	}
 }
 
+func (t *Typer) convertVar(s *Scope, c *ast.Var) Statement {
+	name := c.Name
+	pin := c.Pin
+
+	symbol := s.Get(name)
+	if symbol != nil {
+		t.report(pin, fmt.Sprintf("symbol named \"%s\" was already declared in this block", name))
+		return nil
+	}
+
+	var vt *Type // variable declared type
+	if c.Type != nil {
+		vt = t.LookupType(s, c.Type)
+	}
+
+	if c.Exp == nil {
+		// TODO: need to assign zero value
+		panic("stub")
+	}
+
+	exp := t.convertExp(&context{scope: s}, c.Exp)
+	typ := exp.Type()
+
+	// TODO: typecheck expression and variable declared types
+	if vt == nil {
+		vt = typ
+	}
+
+	symbol = s.New(symk.Var, name, pin)
+	symbol.Type = vt
+
+	return &AssignVar{
+		Symbol: symbol,
+		Exp:    exp,
+	}
+}
+
 func (t *Typer) convertCreate(s *Scope, c *ast.Create) Statement {
 	name := c.Name
 	pin := c.Pin
 
-	symbol := t.unit.Scope.Get(name)
+	symbol := s.Get(name)
 	if symbol != nil {
 		t.report(pin, fmt.Sprintf("symbol named \"%s\" was already declared in this block", name))
 		return nil
@@ -208,7 +249,7 @@ func (t *Typer) convertConst(s *Scope, c *ast.Const) Statement {
 	name := c.Name
 	pin := c.Pin
 
-	symbol := t.unit.Scope.Get(name)
+	symbol := s.Get(name)
 	if symbol != nil {
 		t.report(pin, fmt.Sprintf("symbol named \"%s\" was already declared in this block", name))
 		return nil
@@ -216,7 +257,7 @@ func (t *Typer) convertConst(s *Scope, c *ast.Const) Statement {
 
 	var typ *Type
 	if c.Type != nil {
-		typ = t.LookupType(&t.unit.Scope, c.Type)
+		typ = t.LookupType(s, c.Type)
 	}
 
 	exp := t.convertExp(&context{scope: s, static: true}, c.Exp)
@@ -233,6 +274,29 @@ func (t *Typer) convertConst(s *Scope, c *ast.Const) Statement {
 	// constants are saved as symbols with known compile-time value inside scope
 	// thus will not need separate constant definition statements in later stages
 	return nil
+}
+
+func (t *Typer) convertAssignSymbol(s *Scope, c *ast.AssignSymbol) (Statement, nodestat) {
+	name := c.Name
+	pin := c.Pin
+
+	symbol := s.Lookup(name)
+	if symbol == nil {
+		t.report(pin, fmt.Sprintf("unknown symbol \"%s\" used as assignment target", name))
+		return nil, nodestat{}
+	}
+	if symbol.Kind != symk.Var {
+		t.report(pin, fmt.Sprintf("symbol \"%s\" is not a variable and thus cannot be target for assignment", name))
+		return nil, nodestat{}
+	}
+
+	exp := t.convertExp(&context{scope: s}, c.Exp)
+	t.checkAssignType(symbol.Type, exp)
+
+	return &AssignVar{
+		Symbol: symbol,
+		Exp:    exp,
+	}, nodestat{}
 }
 
 func (t *Typer) convertWhile(s *Scope, while *ast.While) (Statement, nodestat) {
@@ -413,7 +477,7 @@ func (t *Typer) convertSymExp(c *context, exp *ast.SymExp) Exp {
 	case symk.Const:
 		return symbol.Def.(*StaticValue).Exp
 	case
-		// symk.Var,
+		symk.Var,
 		// symk.Loop,
 		symk.Param:
 

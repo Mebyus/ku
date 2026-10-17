@@ -161,3 +161,16 @@ type CreateFixed struct {
 func (c *CreateFixed) Pin() sx.Pin {
 	return c.Symbol.Pin
 }
+
+type AssignVar struct {
+	stm
+
+	Symbol *Symbol
+
+	// Initial expression. Always not nil.
+	Exp Exp
+}
+
+func (c *AssignVar) Pin() sx.Pin {
+	return c.Symbol.Pin
+}
