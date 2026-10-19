@@ -23,5 +23,7 @@ type FunDef struct {
 
 	Signature
 
+	// Number of parameters always equals to number of inputs
+	// in function signature.
 	Params []*Symbol
 }

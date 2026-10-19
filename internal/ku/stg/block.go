@@ -109,6 +109,24 @@ func (f *LineIf) Pin() sx.Pin {
 	return f.pin
 }
 
+type IfBlock struct {
+	stm
+
+	// true branch code block
+	Body Block
+
+	// condition, must have boolean type
+	Exp Exp
+
+	pin sx.Pin
+}
+
+var _ Statement = &IfBlock{}
+
+func (f *IfBlock) Pin() sx.Pin {
+	return f.pin
+}
+
 type Branch struct {
 	stm
 
@@ -173,4 +191,17 @@ type AssignVar struct {
 
 func (c *AssignVar) Pin() sx.Pin {
 	return c.Symbol.Pin
+}
+
+// DiscardExp statement that evaluates expression and discards its result.
+type DiscardExp struct {
+	stm
+
+	Exp Exp
+
+	pin sx.Pin
+}
+
+func (c *DiscardExp) Pin() sx.Pin {
+	return c.pin
 }

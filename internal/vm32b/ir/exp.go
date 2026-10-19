@@ -37,3 +37,14 @@ type BinExp struct {
 }
 
 var _ Exp = &BinExp{}
+
+type FunCall struct {
+	exp
+
+	Args []Exp
+
+	// function name (=index)
+	Name uint32
+}
+
+var _ Exp = &FunCall{}

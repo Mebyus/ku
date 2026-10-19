@@ -14,6 +14,9 @@ type VM struct {
 	// function call stack
 	frames []frame
 
+	// contains information about all program functions
+	funs []finfo
+
 	// instruction pointer (=index into text)
 	ip ia
 
@@ -22,6 +25,9 @@ type VM struct {
 
 	// number of pushed call arguments
 	na uint32
+
+	// number of expected return values
+	// nr uint32
 }
 
 type frame struct {
@@ -32,15 +38,15 @@ type frame struct {
 	base uint32
 }
 
-func (g *VM) Exec(prog *Prog) {
+func (g *VM) Exec(prog *Prog, args []uint32) {
 	if len(prog.text) == 0 || len(prog.funs) == 0 {
 		return
 	}
-	g.reset(prog)
+	g.reset(prog, args)
 	g.exec(prog.text)
 }
 
-func (g *VM) reset(prog *Prog) {
+func (g *VM) reset(prog *Prog, args []uint32) {
 	g.ip = 0
 	g.bp = 0
 	g.na = 0
@@ -50,9 +56,15 @@ func (g *VM) reset(prog *Prog) {
 	g.smem = g.smem[:0]
 	g.frames = g.frames[:0]
 	// m.rom = rom
-	// m.funs = funs
+	g.funs = prog.funs
 
-	g.allocn(prog.funs[0].nloc)
+	// setup start function initial frame
+	start := prog.funs[0]
+	g.allocn(start.nloc)
+	// g.nr = start.nret
+	if uint32(len(args)) != start.narg {
+		panic(fmt.Sprintf("number of start arguments mismatch (got %d, want %d)", len(args), start.narg))
+	}
 }
 
 func (g *VM) exec(text []inst) {
@@ -62,15 +74,20 @@ func (g *VM) exec(text []inst) {
 
 		switch x.op {
 		case opTRAP:
-			panic(fmt.Sprintf("trap at %d", g.ip-1))
+			panic(fmt.Sprintf("TRAP (0x%04X)", g.ip-1))
 		case opHALT:
 			return
+		case opCALL:
+			g.call(x.arg)
 		case opRET:
 			if len(g.frames) == 0 {
 				// stop execution since we are exiting
 				// start function frame
 				return
 			}
+			// if g.nr != uint32(len(g.evs)) {
+			// 	panic(fmt.Sprintf("number of return values mismatch (got %d, want %d)", len(g.evs), g.nr))
+			// }
 
 			i := len(g.frames) - 1
 			frame := g.frames[i]
@@ -91,6 +108,11 @@ func (g *VM) exec(text []inst) {
 			if v != 0 {
 				g.ip = ia(x.arg)
 			}
+		case opTAKE:
+			v := g.pop()
+			g.pusharg(v)
+		case opDRAIN:
+			g.pop()
 		case opPUSH:
 			name := uint32(x.arg)
 			v := g.get(name)
@@ -134,6 +156,24 @@ func (g *VM) exec(text []inst) {
 			panic(fmt.Sprintf("ins %d at %d", x.op, g.ip-1))
 		}
 	}
+}
+
+// call function under specified name (=index into funs)
+func (g *VM) call(name uint32) {
+	f := g.funs[name]
+	if g.na != f.narg {
+		panic("number of arguments mismatch")
+	}
+
+	g.frames = append(g.frames, frame{
+		addr: g.ip,
+		base: g.bp,
+	})
+	g.bp = uint32(len(g.smem)) - g.na
+	g.allocn(f.nloc)
+	g.na = 0
+	// g.nr = f.nret
+	g.ip = f.addr
 }
 
 // push call argument to stack memory

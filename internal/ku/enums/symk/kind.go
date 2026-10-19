@@ -26,10 +26,11 @@ const (
 	// Must be compile-time constant.
 	Const
 
-	// Variable with fixed value, which cannot be reassigned.
-	Fixed
+	// Carrier variable, which can only be reassigned with special
+	// language construct.
+	Car
 
-	// Variable which can be mutated freely.
+	// Mutable variable which can be mutated freely.
 	Var
 
 	// // Loop variable.
@@ -80,8 +81,8 @@ var text = [...]string{
 	Type:  "type",
 	Const: "const",
 	// Alias:  "alias",
-	Fixed: "fixed",
-	Var:   "var",
+	Car: "car",
+	Var: "var",
 	// Gen:    "gen",
 	// Import: "import",
 	Param: "param",

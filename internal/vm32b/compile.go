@@ -72,14 +72,16 @@ func (c *compiler) stm(s ir.Stm) {
 	// case *Print:
 	// 	c.exp(s.exp)
 	// 	c.add(inst{typ: opPRINT})
+	case *ir.Discard:
+		c.exp(s.Exp)
+		c.emit(opDRAIN, 0)
 	case *ir.Assign:
 		c.exp(s.Exp)
 		c.emit(opPOP, s.Name)
 		c.def(s.Name)
 	case *ir.Return:
 		if s.Exp != nil {
-			panic("stub")
-			// c.exp(s.exp)
+			c.exp(s.Exp)
 		}
 		c.emit(opRET, 0)
 	// case *Call:
@@ -91,13 +93,13 @@ func (c *compiler) stm(s ir.Stm) {
 	// 		// returned values from EVS
 	// 		c.add(inst{typ: opDRAIN})
 	// 	}
-	// case *Ifthen:
-	// 	c.exp(s.exp)
-	// 	i := c.add(inst{typ: opJZ})
-	// 	c.block(s.body)
+	case *ir.IfBlock:
+		c.exp(s.Exp)
+		i := c.emit(opJZ, 0)
+		c.block(s.Body)
 
-	// 	// backpatch jump address
-	// 	c.prog.text[i].arg = int32(len(c.prog.text))
+		// backpatch jump address
+		c.prog.text[i].arg = uint32(len(c.prog.text))
 	case *ir.While:
 		i := c.emit(opJUMP, 0) // jump to loop epilogue
 		c.block(s.Body)
@@ -123,8 +125,8 @@ func (c *compiler) exp(exp ir.Exp) {
 			panic(fmt.Sprintf("undefined local variable [%d] used in expression", e.Name))
 		}
 		c.emit(opPUSH, e.Name)
-	// case *Call:
-	// 	c.call(e)
+	case *ir.FunCall:
+		c.call(e)
 	case *ir.BinExp:
 		c.exp(e.A)
 		c.exp(e.B)
@@ -148,6 +150,23 @@ func (c *compiler) exp(exp ir.Exp) {
 	default:
 		panic(fmt.Sprintf("unexpected %T expression", e))
 	}
+}
+
+func (c *compiler) call(call *ir.FunCall) {
+	if call.Name >= c.nfun {
+		panic(fmt.Sprintf("call to undefined function (%d)", call.Name))
+	}
+
+	narg := c.prog.funs[call.Name].narg
+	if uint32(len(call.Args)) != narg {
+		panic("number of arguments mismatch")
+	}
+
+	for _, arg := range call.Args {
+		c.exp(arg)
+		c.emit(opTAKE, 0)
+	}
+	c.emit(opCALL, call.Name)
 }
 
 // start new function

@@ -42,6 +42,8 @@ func (p *Parser) Statement() (ast.Statement, ss) {
 		return p.For()
 	case token.Word:
 		return p.AssignOrInvoke()
+	case token.Under:
+		return p.Discard()
 	case token.LeftCurly:
 		var block ast.Block
 		s := p.block(&block)
@@ -177,6 +179,31 @@ func (p *Parser) create() (ast.Statement, ss) {
 
 // }
 
+func (p *Parser) Discard() (ast.Statement, ss) {
+	pin := p.peek.Pin
+
+	p.advance() // skip "_"
+
+	if p.peek.Kind != token.Assign {
+		// TODO: sync this
+		return nil, ssNode
+	}
+	p.advance() // skip "="
+
+	exp, s := p.Exp()
+
+	if p.peek.Kind != token.Semicolon {
+		p.report(p.peek.Pin, "missing \";\" after fixed definition")
+	} else {
+		p.advance() // skip ";"
+	}
+
+	return &ast.AssignDiscard{
+		Exp: exp,
+		Pin: pin,
+	}, s
+}
+
 func (p *Parser) AssignOrInvoke() (ast.Statement, ss) {
 	switch p.next.Kind {
 	case token.Walrus:
@@ -251,7 +278,7 @@ func (p *Parser) If() (ast.Statement, ss) {
 	case token.Return:
 		// short form of if statement
 		stm, s := p.Statement()
-		return &ast.LineIf{
+		return &ast.IfFlow{
 			Pin:  pin,
 			Exp:  exp,
 			Then: stm,
@@ -273,7 +300,11 @@ func (p *Parser) If() (ast.Statement, ss) {
 	}
 
 	if p.peek.Kind != token.Else {
-		return &f, 0
+		return &ast.IfBlock{
+			Exp:  f.Exp,
+			Body: f.Body,
+			Pin:  f.Pin,
+		}, 0
 	}
 	p.advance() // skip "else"
 

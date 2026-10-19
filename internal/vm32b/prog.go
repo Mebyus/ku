@@ -85,12 +85,11 @@ func PrintProg(prog *Prog) {
 			if fun != 0 {
 				fmt.Println()
 			}
-			fmt.Printf("FUN %d (0x%04X):\n", fun, i)
+			fmt.Printf("FUN %d (0x%04X):\n\n", fun, i)
 			fun += 1
-		} else if i%4 == 0 {
-			fmt.Printf("0x%04X:\n", i)
 		}
 
+		fmt.Printf("  %04X:", i)
 		switch x.op {
 		case opTRAP:
 			fmt.Printf("    TRAP\n")

@@ -48,6 +48,12 @@ func (lx *Lexer) lex(tok *token.Token) {
 }
 
 func (lx *Lexer) word(tok *token.Token) {
+	if lx.peek() == '_' && !char.IsAlphanum(lx.next()) {
+		lx.advance() // skip "_"
+		tok.Kind = token.Under
+		return
+	}
+
 	lx.start()
 	lx.skipWord()
 	word, ok := lx.take()

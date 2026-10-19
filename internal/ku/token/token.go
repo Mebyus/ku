@@ -51,6 +51,7 @@ const (
 	Ampersand // &
 	Pipe      // |
 
+	Under  // _
 	Assign // =
 	Walrus // :=
 

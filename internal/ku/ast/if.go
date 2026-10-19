@@ -2,7 +2,24 @@ package ast
 
 import "github.com/mebyus/ku/internal/ku/sx"
 
-// Branch represents "if-else" branching statement.
+// IfBlock represents "if-then" branching statement which
+// does not have else block.
+type IfBlock struct {
+	stm
+
+	// condition
+	Exp Exp
+
+	// then branch
+	Body Block
+
+	// "if" pin
+	Pin sx.Pin
+}
+
+var _ Statement = &IfBlock{}
+
+// Branch represents "if-then-else" branching statement.
 // Else branch is optional.
 type Branch struct {
 	stm
@@ -21,8 +38,14 @@ type Branch struct {
 
 var _ Statement = &Branch{}
 
-// LineIf represents short (one line) form of "if" branching statement.
-type LineIf struct {
+// IfFlow represents short (one line) form of "if" branching statement.
+// It supports only restricted set of statements which affect control flow:
+//
+//   - return
+//   - break
+//   - gonext
+//   - goto
+type IfFlow struct {
 	stm
 
 	// condition
@@ -34,4 +57,4 @@ type LineIf struct {
 	Pin sx.Pin
 }
 
-var _ Statement = &LineIf{}
+var _ Statement = &IfFlow{}

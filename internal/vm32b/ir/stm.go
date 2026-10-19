@@ -8,6 +8,15 @@ type stm struct{}
 
 func (stm) _stm() {}
 
+type Discard struct {
+	stm
+
+	// Always not nil.
+	Exp Exp
+}
+
+var _ Stm = &Discard{}
+
 type Return struct {
 	stm
 
@@ -28,6 +37,16 @@ type Assign struct {
 
 var _ Stm = &Assign{}
 
+// if without else branch
+type IfBlock struct {
+	stm
+
+	Body []Stm
+	Exp  Exp
+}
+
+var _ Stm = &IfBlock{}
+
 type While struct {
 	stm
 
@@ -35,3 +54,5 @@ type While struct {
 
 	Exp Exp
 }
+
+var _ Stm = &While{}

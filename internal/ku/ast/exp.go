@@ -117,6 +117,21 @@ type SymExp struct {
 // Explicit interface implementation check.
 var _ Operand = &SymExp{}
 
+// SymCall represents expression operand formed by function-like
+// call to a symbol.
+type SymCall struct {
+	operand
+
+	// can be nil if call does not have arguments
+	Args []Exp
+
+	// name of the called symbol
+	Name string
+
+	// name pin
+	Pin sx.Pin
+}
+
 // ParenExp represents an expression which consists of another expression and
 // parenthesis surrounding it.
 //

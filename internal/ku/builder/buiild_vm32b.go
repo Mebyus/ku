@@ -55,7 +55,7 @@ func CompileFileForVM32B(path string) error {
 	vm32b.PrintProg(p)
 
 	var vm vm32b.VM
-	vm.Exec(p)
+	vm.Exec(p, nil)
 
 	fmt.Println()
 	vm.PrintState()

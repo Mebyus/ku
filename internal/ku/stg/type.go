@@ -63,6 +63,10 @@ func (t *Type) IsStatic() bool {
 	return t.Flags&TypeStatic != 0
 }
 
+func (t *Type) IsStaticInteger() bool {
+	return t.IsStatic() && t.Kind == typk.Integer
+}
+
 func (t *Type) String() string {
 	switch t.Kind {
 	case typk.Span:
@@ -248,6 +252,7 @@ type KnownTypes struct {
 	// VoidRef *Type
 
 	Uint *Type
+	Sint *Type
 
 	U8  *Type
 	U32 *Type
@@ -263,6 +268,11 @@ func (t *KnownTypes) init(archPointerSize uint32) {
 	t.Uint = &Type{
 		Size:  archPointerSize,
 		Flags: TypeBuiltin,
+		Kind:  typk.Integer,
+	}
+	t.Sint = &Type{
+		Size:  archPointerSize,
+		Flags: TypeBuiltin | TypeSigned,
 		Kind:  typk.Integer,
 	}
 

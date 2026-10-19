@@ -135,14 +135,18 @@ func (t *Typer) convertNode(c *Scope, s ast.Statement) (Statement, nodestat) {
 		return t.convertCreate(c, s), nodestat{}
 	case *ast.Var:
 		return t.convertVar(c, s), nodestat{}
+	case *ast.IfBlock:
+		return t.convertIfBlock(c, s)
 	case *ast.Branch:
 		return t.convertBranch(c, s)
-	case *ast.LineIf:
+	case *ast.IfFlow:
 		return t.convertLineIf(c, s)
 	// case ast.Match:
 	// 	return t.translateMatch(s)
 	case *ast.AssignSymbol:
 		return t.convertAssignSymbol(c, s)
+	case *ast.AssignDiscard:
+		return t.convertAssignDiscard(c, s)
 	// case ast.Assign:
 	// 	return t.translateAssign(s)
 	// case ast.Invoke:
@@ -235,8 +239,11 @@ func (t *Typer) convertCreate(s *Scope, c *ast.Create) Statement {
 
 	exp := t.convertExp(&context{scope: s}, c.Exp)
 	typ := exp.Type()
+	if typ.IsStaticInteger() {
+		typ = t.common.Types.Known.Sint
+	}
 
-	symbol = s.New(symk.Fixed, name, pin)
+	symbol = s.New(symk.Car, name, pin)
 	symbol.Type = typ
 
 	return &CreateFixed{
@@ -299,6 +306,18 @@ func (t *Typer) convertAssignSymbol(s *Scope, c *ast.AssignSymbol) (Statement, n
 	}, nodestat{}
 }
 
+func (t *Typer) convertAssignDiscard(s *Scope, c *ast.AssignDiscard) (Statement, nodestat) {
+	exp := t.convertExp(&context{scope: s}, c.Exp)
+	if exp.Type() == nil {
+		t.report(exp.Pin(), "cannot discard expression which yields nothing")
+	}
+
+	return &DiscardExp{
+		pin: c.Pin,
+		Exp: exp,
+	}, nodestat{}
+}
+
 func (t *Typer) convertWhile(s *Scope, while *ast.While) (Statement, nodestat) {
 	exp := t.convertExp(&context{scope: s}, while.Exp)
 	typ := exp.Type()
@@ -322,7 +341,7 @@ func (t *Typer) convertWhile(s *Scope, while *ast.While) (Statement, nodestat) {
 	return &w, nodestat{exits: exits, etyp: etyp}
 }
 
-func (t *Typer) convertLineIf(s *Scope, f *ast.LineIf) (Statement, nodestat) {
+func (t *Typer) convertLineIf(s *Scope, f *ast.IfFlow) (Statement, nodestat) {
 	exp := t.convertExp(&context{scope: s}, f.Exp)
 	typ := exp.Type()
 	if typ.Kind != typk.Invalid && typ.Kind != typk.Boolean {
@@ -334,6 +353,28 @@ func (t *Typer) convertLineIf(s *Scope, f *ast.LineIf) (Statement, nodestat) {
 	m := LineIf{Exp: exp, pin: f.Pin}
 	m.Then, _ = t.convertNode(s, f.Then)
 	return &m, nodestat{exits: 1, etyp: ExitBranch}
+}
+
+func (t *Typer) convertIfBlock(s *Scope, f *ast.IfBlock) (Statement, nodestat) {
+	exp := t.convertExp(&context{scope: s}, f.Exp)
+	typ := exp.Type()
+	if typ.Kind != typk.Invalid && typ.Kind != typk.Boolean {
+		// invalid expression was already reported earlier during expression conversion
+		// no sense reporting it twice
+		t.report(exp.Pin(), fmt.Sprintf("value of %s type used in branch condition (must be boolean type instead)", typ))
+	}
+
+	m := IfBlock{Exp: exp, pin: f.Pin}
+	m.Body.Scope.Init(scok.Branch, s)
+	t.convertBlock(&m.Body, &f.Body)
+	exits := m.Body.Exits
+
+	var etyp ExitType
+	switch m.Body.ExitType {
+	case ExitAlways, ExitBranch:
+		etyp = ExitBranch
+	}
+	return &m, nodestat{exits: exits, etyp: etyp}
 }
 
 func (t *Typer) convertBranch(s *Scope, f *ast.Branch) (Statement, nodestat) {
@@ -427,6 +468,8 @@ func (t *Typer) convertExp(c *context, exp ast.Exp) Exp {
 		return t.convertSymZeroExp(c, e)
 	case *ast.Chain:
 		return t.convertChain(c, e)
+	case *ast.SymCall:
+		return t.convertSymCall(c, e)
 	case *ast.BinExp:
 		return t.convertBinExp(c, e)
 	case *ast.ParenExp:
@@ -435,6 +478,57 @@ func (t *Typer) convertExp(c *context, exp ast.Exp) Exp {
 		return t.makeInvExp(e.Pin)
 	default:
 		panic(fmt.Sprintf("unexpected %T expression", e))
+	}
+}
+
+func (t *Typer) convertSymCall(c *context, exp *ast.SymCall) Exp {
+	name := exp.Name
+	pin := exp.Pin
+
+	symbol := c.scope.Lookup(name)
+	if symbol == nil {
+		t.report(pin, fmt.Sprintf("call to unknown symbol \"%s\"", name))
+		return t.makeInvExp(pin)
+	}
+	if symbol.Kind != symk.Fun {
+		t.report(pin, fmt.Sprintf("cannot call \"%s\" which is not a function", name))
+		return t.makeInvExp(pin)
+	}
+
+	inv := false // should produce invalid expression after typechecking errors
+	def := symbol.Def.(*FunDef)
+	if def.Result == nil {
+		if def.Never {
+			t.report(pin, fmt.Sprintf("call to \"%s\" never returns and thus cannot be used as expression", name))
+		} else {
+			t.report(pin, fmt.Sprintf("call to \"%s\" returns nothing and thus cannot be used as expression", name))
+		}
+		inv = true
+	}
+
+	var args []Exp
+	if len(exp.Args) < len(def.Params) {
+		t.report(pin, fmt.Sprintf("not enough arguments to call \"%s\" (got %d, want %d)", name, len(exp.Args), len(def.Params)))
+	} else if len(exp.Args) < len(def.Params) {
+		t.report(pin, fmt.Sprintf("too many arguments in call to \"%s\" (got %d, want %d)", name, len(exp.Args), len(def.Params)))
+	} else {
+		for i := range len(def.Params) {
+			arg := t.convertExp(c, exp.Args[i])
+			want := def.Inputs[i]
+			t.checkArgType(want, arg)
+			args = append(args, arg)
+		}
+	}
+
+	if inv {
+		return t.makeInvExp(pin)
+	}
+
+	return &FunCall{
+		pin:    pin,
+		typ:    def.Result,
+		Args:   args,
+		Symbol: symbol,
 	}
 }
 
@@ -478,6 +572,7 @@ func (t *Typer) convertSymExp(c *context, exp *ast.SymExp) Exp {
 		return symbol.Def.(*StaticValue).Exp
 	case
 		symk.Var,
+		symk.Car,
 		// symk.Loop,
 		symk.Param:
 

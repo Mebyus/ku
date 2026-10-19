@@ -83,6 +83,26 @@ func (t *Typer) checkAssignType(at *Type, exp Exp) {
 	t.report(exp.Pin(), fmt.Sprintf("cannot use expression of %s value as %s in assignment", typ, at))
 }
 
+// check call argument type against parameter type
+func (t *Typer) checkArgType(pt *Type, exp Exp) {
+	typ := exp.Type()
+	if pt == typ {
+		return
+	}
+	if pt.Kind == typk.Invalid || typ.Kind == typk.Invalid {
+		return
+	}
+
+	if pt.Kind == typk.Integer && typ.Kind == typk.Integer {
+		if typ.IsStatic() && typ.Size == 0 {
+			// TODO: check sizes for static and signedness sized integers
+			return
+		}
+	}
+
+	t.report(exp.Pin(), fmt.Sprintf("cannot use expression of %s value as %s call argument", typ, pt))
+}
+
 // does typechecking of binary expression and sets its resulting type
 func (t *Typer) checkBinExpType(exp *BinExp) {
 	at := exp.A.Type()
