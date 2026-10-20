@@ -424,6 +424,18 @@ func (lx *Lexer) other(tok *token.Token) {
 			tok.Kind = token.Alter
 			return
 		}
+		if lx.next() == '*' {
+			lx.advance() // skip "."
+			lx.advance() // skip "*"
+			tok.Kind = token.Deref
+			return
+		}
+		if lx.next() == '&' {
+			lx.advance() // skip "."
+			lx.advance() // skip "&"
+			tok.Kind = token.Address
+			return
+		}
 
 		lx.emitOneByteToken(tok, token.Period)
 	case '|':

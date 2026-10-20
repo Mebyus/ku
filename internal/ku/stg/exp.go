@@ -7,12 +7,17 @@ import (
 
 // Exp node that represents an arbitrary (but not empty) expression.
 type Exp interface {
+	// Where expression starts.
 	Pin() sx.Pin
 
 	// Must return value's type of evaluated expression.
 	//
 	// Can return nil only for function calls that return nothing.
 	Type() *Type
+
+	// Returns true for expressions which can be used in LHS context.
+	// Such expression can be target for assignment.
+	Target() bool
 
 	// Discriminator method for interface implementations.
 	// Only serves as a trick to enhance Go typechecking in
@@ -73,6 +78,10 @@ func (s *String) Pin() sx.Pin {
 	return s.pin
 }
 
+func (*String) Target() bool {
+	return false
+}
+
 // create static integer value.
 func (t *Typer) makeString(pin sx.Pin, s string) *String {
 	return &String{
@@ -110,6 +119,10 @@ func (b *BinExp) Pin() sx.Pin {
 	return b.pin
 }
 
+func (b *BinExp) Target() bool {
+	return false
+}
+
 // Boolean represents a boolean constant true/false (directly from source or evaluated)
 // which value is known at compile time.
 type Boolean struct {
@@ -131,6 +144,10 @@ func (b *Boolean) Type() *Type {
 
 func (b *Boolean) Pin() sx.Pin {
 	return b.pin
+}
+
+func (b *Boolean) Target() bool {
+	return false
 }
 
 // create static boolean value.
@@ -166,6 +183,62 @@ func (s *SymExp) Pin() sx.Pin {
 	return s.pin
 }
 
+func (s *SymExp) Target() bool {
+	return true
+}
+
+type SymAddr struct {
+	operand
+
+	pin sx.Pin
+
+	// Type of resulting pointer.
+	typ *Type
+
+	Symbol *Symbol
+}
+
+// Explicit interface implementation check.
+var _ Operand = &SymAddr{}
+
+func (s *SymAddr) Type() *Type {
+	return s.typ
+}
+
+func (s *SymAddr) Pin() sx.Pin {
+	return s.pin
+}
+
+func (s *SymAddr) Target() bool {
+	return false
+}
+
+type SymDeref struct {
+	operand
+
+	pin sx.Pin
+
+	// Type of dereferenced symbol.
+	typ *Type
+
+	Symbol *Symbol
+}
+
+// Explicit interface implementation check.
+var _ Operand = &SymDeref{}
+
+func (s *SymDeref) Type() *Type {
+	return s.typ
+}
+
+func (s *SymDeref) Pin() sx.Pin {
+	return s.pin
+}
+
+func (s *SymDeref) Target() bool {
+	return true
+}
+
 // FunCall represents expression which calls a specific function.
 type FunCall struct {
 	operand
@@ -193,6 +266,10 @@ func (c *FunCall) Pin() sx.Pin {
 	return c.pin
 }
 
+func (c *FunCall) Target() bool {
+	return false
+}
+
 // SpanNum represents expression of selecting span elements number via ".num".
 type SpanNum struct {
 	operand
@@ -217,6 +294,10 @@ func (s *SpanNum) Pin() sx.Pin {
 	return s.pin
 }
 
+func (s *SpanNum) Target() bool {
+	return false
+}
+
 // ZeroValue represents expression which has zero value of specific type.
 type ZeroValue struct {
 	operand
@@ -226,10 +307,16 @@ type ZeroValue struct {
 	typ *Type
 }
 
+var _ Operand = &ZeroValue{}
+
 func (z *ZeroValue) Type() *Type {
 	return z.typ
 }
 
 func (z *ZeroValue) Pin() sx.Pin {
 	return z.pin
+}
+
+func (*ZeroValue) Target() bool {
+	return false
 }

@@ -37,6 +37,12 @@ func (t *Typer) convertFun(def *FunDef, f *ast.Fun) {
 
 // provides context for converting statements and expressions to STG form
 type context struct {
+	// fallback location for reporting errors
+	//
+	// used when down the call chain it is not clear where error is
+	// originating
+	pin sx.Pin
+
 	scope *Scope
 
 	// if true means that expression must be evaluated at compile-time
@@ -147,10 +153,10 @@ func (t *Typer) convertNode(c *Scope, s ast.Statement) (Statement, nodestat) {
 		return t.convertAssignSymbol(c, s)
 	case *ast.AssignDiscard:
 		return t.convertAssignDiscard(c, s)
-	// case ast.Assign:
-	// 	return t.translateAssign(s)
-	// case ast.Invoke:
-	// 	return t.translateInvoke(s)
+	case *ast.Assign:
+		return t.convertAssign(c, s)
+	case *ast.InvokeSymbol:
+		return t.convertInvokeSymbol(c, s)
 	// case ast.DeferCall:
 	// 	return t.translateDeferCall(s)
 	// case ast.Loop:
@@ -281,6 +287,20 @@ func (t *Typer) convertConst(s *Scope, c *ast.Const) Statement {
 	// constants are saved as symbols with known compile-time value inside scope
 	// thus will not need separate constant definition statements in later stages
 	return nil
+}
+
+func (t *Typer) convertAssign(s *Scope, c *ast.Assign) (Statement, nodestat) {
+	target := t.convertExp(&context{scope: s, wuse: true}, c.Target)
+	if !target.Target() {
+		t.report(target.Pin(), "cannot assign to expression of this form")
+	}
+	exp := t.convertExp(&context{scope: s}, c.Exp)
+	t.checkAssignType(target.Type(), exp)
+
+	return &Assign{
+		Target: target,
+		Exp:    exp,
+	}, nodestat{}
 }
 
 func (t *Typer) convertAssignSymbol(s *Scope, c *ast.AssignSymbol) (Statement, nodestat) {
@@ -470,6 +490,10 @@ func (t *Typer) convertExp(c *context, exp ast.Exp) Exp {
 		return t.convertChain(c, e)
 	case *ast.SymCall:
 		return t.convertSymCall(c, e)
+	case *ast.SymAddr:
+		return t.convertSymAddr(c, e)
+	case *ast.SymDeref:
+		return t.convertSymDeref(c, e)
 	case *ast.BinExp:
 		return t.convertBinExp(c, e)
 	case *ast.ParenExp:
@@ -479,6 +503,114 @@ func (t *Typer) convertExp(c *context, exp ast.Exp) Exp {
 	default:
 		panic(fmt.Sprintf("unexpected %T expression", e))
 	}
+}
+
+func (t *Typer) convertSymAddr(c *context, exp *ast.SymAddr) Exp {
+	name := exp.Name
+	pin := exp.Pin
+
+	symbol := c.scope.Lookup(name)
+	if symbol == nil {
+		t.report(pin, fmt.Sprintf("call to unknown symbol \"%s\"", name))
+		return t.makeInvExp(pin)
+	}
+	switch symbol.Kind {
+	case symk.Var, symk.Car, symk.Param:
+		// continue execution
+	default:
+		t.report(pin, fmt.Sprintf("cannot take address of \"%s\" which is a %s", name, symbol.Kind))
+		return t.makeInvExp(pin)
+	}
+
+	typ := t.common.Types.getRef(symbol.Type)
+	return &SymAddr{
+		pin:    pin,
+		typ:    typ,
+		Symbol: symbol,
+	}
+}
+
+func (t *Typer) convertSymDeref(c *context, exp *ast.SymDeref) Exp {
+	name := exp.Name
+	pin := exp.Pin
+
+	symbol := c.scope.Lookup(name)
+	if symbol == nil {
+		t.report(pin, fmt.Sprintf("call to unknown symbol \"%s\"", name))
+		return t.makeInvExp(pin)
+	}
+
+	var typ *Type
+	if symbol.Type.Kind != typk.Ref {
+		t.report(pin, fmt.Sprintf("symbol \"%s\" is not a reference type and thus cannot be dereferenced", name))
+		typ = t.common.Types.Invalid
+	} else {
+		typ = symbol.Type.Def.(*Ref).Type
+	}
+
+	if c.wuse {
+		symbol.wnum += 1
+	}
+	symbol.rnum += 1
+
+	return &SymDeref{
+		pin:    pin,
+		typ:    typ,
+		Symbol: symbol,
+	}
+}
+
+func (t *Typer) convertInvokeSymbol(c *Scope, s *ast.InvokeSymbol) (Statement, nodestat) {
+	name := s.Name
+	pin := s.Pin
+
+	symbol := c.Lookup(name)
+	if symbol == nil {
+		t.report(pin, fmt.Sprintf("call to unknown symbol \"%s\"", name))
+		return nil, nodestat{}
+	}
+	if symbol.Kind != symk.Fun {
+		t.report(pin, fmt.Sprintf("cannot call \"%s\" which is not a function", name))
+		return nil, nodestat{}
+	}
+
+	def := symbol.Def.(*FunDef)
+	if def.Result != nil {
+		t.report(pin, fmt.Sprintf("implicit discard of function \"%s\" call result"))
+	}
+
+	args := t.convertCallArgs(&context{scope: c, pin: pin}, name, def.Inputs, s.Args)
+	return &InvokeFun{
+		pin:    pin,
+		Args:   args,
+		Symbol: symbol,
+	}, nodestat{}
+}
+
+func (t *Typer) convertCallArgs(c *context, name string, inputs []*Type, list []ast.Exp) []Exp {
+	n := len(list)
+	args := make([]Exp, 0, len(list))
+	for i := range len(list) {
+		arg := t.convertExp(c, list[i])
+		args = append(args, arg)
+	}
+
+	if len(list) < len(inputs) {
+		t.report(c.pin, fmt.Sprintf("not enough arguments to call \"%s\" (got %d, want %d)", name, len(list), len(list)))
+		return nil
+	}
+	if len(list) > len(inputs) {
+		t.report(c.pin, fmt.Sprintf("too many arguments in call to \"%s\" (got %d, want %d)", name, len(list), len(list)))
+		return nil
+	}
+
+	// true: n == len(list) == len(inputs)
+	for i := range n {
+		want := inputs[i]
+		t.checkArgType(want, args[i])
+	}
+
+	return args
 }
 
 func (t *Typer) convertSymCall(c *context, exp *ast.SymCall) Exp {
@@ -506,20 +638,7 @@ func (t *Typer) convertSymCall(c *context, exp *ast.SymCall) Exp {
 		inv = true
 	}
 
-	var args []Exp
-	if len(exp.Args) < len(def.Params) {
-		t.report(pin, fmt.Sprintf("not enough arguments to call \"%s\" (got %d, want %d)", name, len(exp.Args), len(def.Params)))
-	} else if len(exp.Args) < len(def.Params) {
-		t.report(pin, fmt.Sprintf("too many arguments in call to \"%s\" (got %d, want %d)", name, len(exp.Args), len(def.Params)))
-	} else {
-		for i := range len(def.Params) {
-			arg := t.convertExp(c, exp.Args[i])
-			want := def.Inputs[i]
-			t.checkArgType(want, arg)
-			args = append(args, arg)
-		}
-	}
-
+	args := t.convertCallArgs(&context{scope: c.scope, pin: pin}, name, def.Inputs, exp.Args)
 	if inv {
 		return t.makeInvExp(pin)
 	}

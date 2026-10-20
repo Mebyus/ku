@@ -79,20 +79,27 @@ func (c *compiler) stm(s ir.Stm) {
 		c.exp(s.Exp)
 		c.emit(opPOP, s.Name)
 		c.def(s.Name)
+	case *ir.AssignAddr:
+		c.exp(s.Exp)
+		c.exp(s.Addr)
+		c.emit(opMOVE, 0)
 	case *ir.Return:
 		if s.Exp != nil {
 			c.exp(s.Exp)
 		}
 		c.emit(opRET, 0)
-	// case *Call:
-	// 	c.call(s)
-	// 	nret := c.prog.funs[s.name].nret
-	// 	for range nret {
-	// 		// since call was used as statement
-	// 		// that means we need to discard
-	// 		// returned values from EVS
-	// 		c.add(inst{typ: opDRAIN})
-	// 	}
+	case *ir.Invoke:
+		c.call(&ir.Call{
+			Args: s.Args,
+			Name: s.Name,
+		})
+		nret := c.prog.funs[s.Name].nret
+		for range nret {
+			// since call was used as statement
+			// that means we need to discard
+			// returned values from EVS
+			c.emit(opDRAIN, 0)
+		}
 	case *ir.IfBlock:
 		c.exp(s.Exp)
 		i := c.emit(opJZ, 0)
@@ -125,7 +132,9 @@ func (c *compiler) exp(exp ir.Exp) {
 			panic(fmt.Sprintf("undefined local variable [%d] used in expression", e.Name))
 		}
 		c.emit(opPUSH, e.Name)
-	case *ir.FunCall:
+	case *ir.Addr:
+		c.emit(opADDR, e.Name)
+	case *ir.Call:
 		c.call(e)
 	case *ir.BinExp:
 		c.exp(e.A)
@@ -152,7 +161,7 @@ func (c *compiler) exp(exp ir.Exp) {
 	}
 }
 
-func (c *compiler) call(call *ir.FunCall) {
+func (c *compiler) call(call *ir.Call) {
 	if call.Name >= c.nfun {
 		panic(fmt.Sprintf("call to undefined function (%d)", call.Name))
 	}

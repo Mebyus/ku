@@ -2,6 +2,24 @@ package ast
 
 import "github.com/mebyus/ku/internal/ku/sx"
 
+// Assign represents assign statement where assign target can
+// be any syntactically correct expression.
+type Assign struct {
+	stm
+
+	// What is being changed by assignment.
+	//
+	// Always not nil.
+	Target Exp
+
+	// Represents value being assigned.
+	//
+	// Always being nil.
+	Exp Exp
+}
+
+var _ Statement = &Assign{}
+
 // AssignSymbol represents statement that assign a new value to
 // existing symbol.
 //
@@ -39,3 +57,5 @@ type AssignDiscard struct {
 	// Discard pin.
 	Pin sx.Pin
 }
+
+var _ Statement = &AssignDiscard{}

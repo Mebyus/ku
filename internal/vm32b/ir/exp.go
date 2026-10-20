@@ -28,6 +28,15 @@ type Local struct {
 
 var _ Exp = &Local{}
 
+// take address of local variable
+type Addr struct {
+	exp
+
+	Name uint32
+}
+
+var _ Exp = &Addr{}
+
 // binary expression
 type BinExp struct {
 	exp
@@ -38,7 +47,7 @@ type BinExp struct {
 
 var _ Exp = &BinExp{}
 
-type FunCall struct {
+type Call struct {
 	exp
 
 	Args []Exp
@@ -47,4 +56,4 @@ type FunCall struct {
 	Name uint32
 }
 
-var _ Exp = &FunCall{}
+var _ Exp = &Call{}

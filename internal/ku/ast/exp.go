@@ -132,6 +132,37 @@ type SymCall struct {
 	Pin sx.Pin
 }
 
+// Explicit interface implementation check.
+var _ Operand = &SymCall{}
+
+// SymAddr represents expression formed by taking a symbol's address.
+type SymAddr struct {
+	operand
+
+	// symbol name which is being addressed
+	Name string
+
+	// name pin
+	Pin sx.Pin
+}
+
+// Explicit interface implementation check.
+var _ Operand = &SymAddr{}
+
+// SymDeref represents expression formed by dereferencing a symbol.
+type SymDeref struct {
+	operand
+
+	// symbol which is being dereferenced
+	Name string
+
+	// name pin
+	Pin sx.Pin
+}
+
+// Explicit interface implementation check.
+var _ Operand = &SymDeref{}
+
 // ParenExp represents an expression which consists of another expression and
 // parenthesis surrounding it.
 //

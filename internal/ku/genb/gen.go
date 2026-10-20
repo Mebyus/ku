@@ -110,6 +110,8 @@ func (g *builder) stm(s stg.Statement) ir.Stm {
 		return &ir.Discard{Exp: g.exp(s.Exp)}
 	case *stg.Return:
 		return &ir.Return{Exp: g.exp(s.Exp)}
+	case *stg.Assign:
+		return g.assign(s)
 	case *stg.AssignVar:
 		return &ir.Assign{
 			Name: g.mloc[s.Symbol],
@@ -129,6 +131,16 @@ func (g *builder) stm(s stg.Statement) ir.Stm {
 		return &ir.While{
 			Exp:  g.exp(s.Exp),
 			Body: g.block(&s.Body),
+		}
+	case *stg.InvokeFun:
+		sym := s.Symbol
+		name, ok := g.fnames[sym]
+		if !ok {
+			panic(fmt.Sprintf("unknown function \"%s\"", sym.Name))
+		}
+		return &ir.Invoke{
+			Args: g.args(s.Args),
+			Name: name,
 		}
 	default:
 		panic(fmt.Sprintf("unexpected %T statement", s))
@@ -150,6 +162,17 @@ func (g *builder) exp(exp stg.Exp) ir.Exp {
 		}
 
 		return &ir.Local{Name: name}
+	case *stg.SymAddr:
+		s := e.Symbol
+		if !s.Scope.Kind.IsLocal() {
+			panic("stub")
+		}
+		name, ok := g.mloc[s]
+		if !ok {
+			panic(fmt.Sprintf("unknown local variable \"%s\"", s.Name))
+		}
+
+		return &ir.Addr{Name: name}
 	case *stg.BinExp:
 		a := g.exp(e.A)
 		b := g.exp(e.B)
@@ -160,12 +183,33 @@ func (g *builder) exp(exp stg.Exp) ir.Exp {
 		if !ok {
 			panic(fmt.Sprintf("unknown function \"%s\"", s.Name))
 		}
-		return &ir.FunCall{
+		return &ir.Call{
 			Args: g.args(e.Args),
 			Name: name,
 		}
 	default:
 		panic(fmt.Sprintf("unexpected %T expression", e))
+	}
+}
+
+func (g *builder) assign(a *stg.Assign) ir.Stm {
+	switch t := a.Target.(type) {
+	case *stg.SymDeref:
+		s := t.Symbol
+		if !s.Scope.Kind.IsLocal() {
+			panic("stub")
+		}
+		name, ok := g.mloc[s]
+		if !ok {
+			panic(fmt.Sprintf("unknown local variable \"%s\"", s.Name))
+		}
+
+		return &ir.AssignAddr{
+			Addr: &ir.Local{Name: name},
+			Exp:  g.exp(a.Exp),
+		}
+	default:
+		panic(fmt.Sprintf("unexpected %T expression", t))
 	}
 }
 

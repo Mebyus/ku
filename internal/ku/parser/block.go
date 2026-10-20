@@ -210,7 +210,10 @@ func (p *Parser) AssignOrInvoke() (ast.Statement, ss) {
 		return p.create()
 	case token.Assign:
 		return p.assignSymbol()
+	case token.Deref:
+		return p.symbolDerefStart()
 	case token.LeftParen:
+		return p.invokeSymbol()
 	}
 	// if p.next.Kind == token.LeftParen {
 	// 	exp, s := p.symCall()

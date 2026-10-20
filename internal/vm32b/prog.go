@@ -63,6 +63,8 @@ const (
 	opDRAIN // pop value from EVS and discard it
 	opPUSH  // push value stored in local variable onto EVS
 	opPOP   // pop value from EVS and store it into local variable
+	opMOVE  // pop address, then pop value and store value at memory address
+	opADDR  // push address of local variable onto EVS
 	opPUT   // push constant value onto EVS
 	opADD
 	opSUB
@@ -72,6 +74,18 @@ const (
 
 	// opLOAD     // push global variable value onto EVS
 	// opSTORE    // pop value from EVS and save it to global variable
+)
+
+// encoded pointer address regions
+const (
+	// program read-only memory
+	ptrROM = 0b00
+
+	// program global variables
+	ptrVAR = 0b01
+
+	// local variable on stack memory
+	ptrLOC = 0b10
 )
 
 func PrintProg(prog *Prog) {
@@ -85,7 +99,15 @@ func PrintProg(prog *Prog) {
 			if fun != 0 {
 				fmt.Println()
 			}
-			fmt.Printf("FUN %d (0x%04X):\n\n", fun, i)
+
+			var fsize ia
+			if fun >= len(prog.funs)-1 {
+				fsize = ia(len(prog.text)) - prog.funs[fun].addr
+			} else {
+				fsize = prog.funs[fun+1].addr - prog.funs[fun].addr
+			}
+
+			fmt.Printf("FUN #.%d (0x%04X | %d):\n\n", fun, i, fsize)
 			fun += 1
 		}
 
@@ -115,6 +137,10 @@ func PrintProg(prog *Prog) {
 			fmt.Printf("    PUSH   [%d]\n", x.arg)
 		case opPOP:
 			fmt.Printf("    POP    [%d]\n", x.arg)
+		case opMOVE:
+			fmt.Printf("    MOVE\n")
+		case opADDR:
+			fmt.Printf("    ADDR   [%d]\n", x.arg)
 		case opPUT:
 			fmt.Printf("    PUT    0x%X  (%d)\n", x.arg, int32(x.arg))
 		case opADD:

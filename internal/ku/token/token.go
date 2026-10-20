@@ -72,6 +72,8 @@ const (
 	LeftSquare  // [
 	RightSquare // ]
 
+	Address   // .&
+	Deref     // .*
 	Alter     // .{
 	AlterZero // .{}
 

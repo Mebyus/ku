@@ -114,13 +114,21 @@ func (g *VM) exec(text []inst) {
 		case opDRAIN:
 			g.pop()
 		case opPUSH:
-			name := uint32(x.arg)
+			name := x.arg
 			v := g.get(name)
 			g.push(v)
 		case opPOP:
-			name := uint32(x.arg)
+			name := x.arg
 			v := g.pop()
 			g.set(name, v)
+		case opMOVE:
+			a := g.pop()
+			v := g.pop()
+			g.move(a, v)
+		case opADDR:
+			name := x.arg
+			a := g.addr(name)
+			g.push(a)
 		case opPUT:
 			v := x.arg
 			g.push(v)
@@ -153,7 +161,7 @@ func (g *VM) exec(text []inst) {
 			}
 			g.push(v)
 		default:
-			panic(fmt.Sprintf("ins %d at %d", x.op, g.ip-1))
+			panic(fmt.Sprintf("ins %d (0x%04X)", x.op, g.ip-1))
 		}
 	}
 }
@@ -203,6 +211,28 @@ func (g *VM) set(name uint32, v uint32) {
 // get value stored in local variable/argument
 func (g *VM) get(name uint32) uint32 {
 	return g.smem[g.bp+name]
+}
+
+// get encoded address of a local variable
+func (g *VM) addr(name uint32) uint32 {
+	a := g.bp + name
+	return (ptrLOC << 30) | (a << 2)
+}
+
+// store value at memory address
+func (g *VM) move(addr uint32, v uint32) {
+	typ := addr >> 30
+	switch typ {
+	case ptrROM:
+		panic("rom write")
+	case ptrVAR:
+		panic("stub")
+	case ptrLOC:
+		slot := (addr << 2) >> 4
+		g.smem[slot] = v
+	default:
+		panic("stub")
+	}
 }
 
 // allocate n local variables on stack memory

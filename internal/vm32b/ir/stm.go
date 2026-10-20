@@ -26,6 +26,7 @@ type Return struct {
 
 var _ Stm = &Return{}
 
+// Assign expression value to local variable.
 type Assign struct {
 	stm
 
@@ -36,6 +37,19 @@ type Assign struct {
 }
 
 var _ Stm = &Assign{}
+
+// AssignAddr assign expression value at memory address.
+type AssignAddr struct {
+	stm
+
+	// evaluates to target address
+	Addr Exp
+
+	// expression being assigned
+	Exp Exp
+}
+
+var _ Stm = &AssignAddr{}
 
 // if without else branch
 type IfBlock struct {
@@ -56,3 +70,14 @@ type While struct {
 }
 
 var _ Stm = &While{}
+
+type Invoke struct {
+	stm
+
+	Args []Exp
+
+	// function name (=index)
+	Name uint32
+}
+
+var _ Stm = &Invoke{}

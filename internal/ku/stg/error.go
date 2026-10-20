@@ -32,6 +32,10 @@ func (e *InvExp) Pin() sx.Pin {
 	return e.pin
 }
 
+func (e *InvExp) Target() bool {
+	return true
+}
+
 func (t *Typer) makeInvExp(pin sx.Pin) *InvExp {
 	return &InvExp{
 		pin: pin,

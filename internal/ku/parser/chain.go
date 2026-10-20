@@ -27,6 +27,15 @@ func (p *Parser) Chain() (ast.Operand, ss) {
 
 	for {
 		switch p.peek.Kind {
+		case token.Address:
+			p.advance() // skip ".&"
+			if len(chain.Parts) == 0 {
+				return &ast.SymAddr{
+					Name: chain.Name,
+					Pin:  chain.Pin,
+				}, 0
+			}
+			panic("stub")
 		case token.Period:
 			p.advance() // skip "."
 

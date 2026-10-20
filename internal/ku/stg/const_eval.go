@@ -102,6 +102,10 @@ func (n *Integer) Pin() sx.Pin {
 	return n.pin
 }
 
+func (*Integer) Target() bool {
+	return false
+}
+
 // create static unsized integer value that comes from source.
 func (t *Typer) makeInteger(pin sx.Pin, v uint64, style uint16) *Integer {
 	return &Integer{
