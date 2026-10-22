@@ -36,6 +36,13 @@ func (p *Parser) Chain() (ast.Operand, ss) {
 				}, 0
 			}
 			panic("stub")
+		case token.SliceAll:
+			pin := p.peek.Pin
+			p.advance() // skip "[:]"
+			return &ast.SliceAll{
+				Pin:   pin,
+				Chain: chain,
+			}, 0
 		case token.Period:
 			p.advance() // skip "."
 
@@ -56,6 +63,7 @@ func (p *Parser) Chain() (ast.Operand, ss) {
 			args, s := p.args()
 			if s != 0 {
 				// return &ast.InvExp{Error: }, 0
+				panic("stub")
 			}
 			if len(chain.Parts) == 0 {
 				return &ast.SymCall{
@@ -65,6 +73,20 @@ func (p *Parser) Chain() (ast.Operand, ss) {
 				}, 0
 			}
 			panic("stub")
+		case token.LeftSquare:
+			pin := p.peek.Pin
+			x, s := p.index()
+			if s != 0 {
+				panic("stub")
+			}
+			if x.slice {
+				// TODO: should return finished expression here
+				panic("stub")
+			}
+			chain.Parts = append(chain.Parts, &ast.Index{
+				Pin: pin,
+				Exp: x.a,
+			})
 		default:
 			if len(chain.Parts) == 0 {
 				return &ast.SymExp{
@@ -103,4 +125,34 @@ func (p *Parser) args() ([]ast.Exp, ss) {
 			return args, ssNode
 		}
 	}
+}
+
+type indexlike struct {
+	a ast.Exp
+
+	// not nil only when slice part was parsed
+	b ast.Exp
+
+	// true when slice part was parsed instead of index
+	slice bool
+}
+
+func (p *Parser) index() (indexlike, ss) {
+	p.advance() // skip "["
+	if p.peek.Kind == token.Colon {
+		// TODO: parse slice
+		panic("stub")
+	}
+
+	exp, s := p.Exp()
+	if s != 0 {
+		return indexlike{}, s
+	}
+
+	if p.peek.Kind != token.RightSquare {
+		return indexlike{}, ssNode
+	}
+	p.advance() // skip "]"
+
+	return indexlike{a: exp}, 0
 }

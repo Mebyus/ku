@@ -52,8 +52,11 @@ func (p *Parser) TypeSpec() (ast.TypeSpec, ss) {
 		typ, s := p.TypeSpec()
 		return &ast.Ref{Pin: pin, Type: typ}, s
 	case token.LeftSquare:
-		if p.next.Kind == token.RightSquare {
+		switch p.next.Kind {
+		case token.RightSquare:
 			return p.typeSpan()
+		default:
+			return p.array()
 		}
 	}
 
@@ -74,6 +77,32 @@ func (p *Parser) typeSpan() (ast.TypeSpec, ss) {
 	return &ast.Span{
 		Pin:  pin,
 		Type: typ,
+	}, 0
+}
+
+func (p *Parser) array() (ast.TypeSpec, ss) {
+	pin := p.peek.Pin
+	p.advance() // skip "["
+
+	exp, s := p.Exp()
+	if s != 0 {
+		return &ast.InvType{Error: ast.Error{Pin: pin}}, s
+	}
+
+	if p.peek.Kind != token.RightSquare {
+		return &ast.InvType{Error: ast.Error{Pin: pin}}, ssNode
+	}
+	p.advance() // skip "]"
+
+	typ, s := p.TypeSpec()
+	if s != 0 {
+		return &ast.InvType{Error: ast.Error{Pin: pin}}, s
+	}
+
+	return &ast.Array{
+		Exp:  exp,
+		Type: typ,
+		Pin:  pin,
 	}, 0
 }
 

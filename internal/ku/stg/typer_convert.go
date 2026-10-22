@@ -211,17 +211,21 @@ func (t *Typer) convertVar(s *Scope, c *ast.Var) Statement {
 		vt = t.LookupType(s, c.Type)
 	}
 
+	var exp Exp
 	if c.Exp == nil {
-		// TODO: need to assign zero value
-		panic("stub")
-	}
+		if vt == nil {
+			panic("no variable type")
+		}
+		exp = &Zero{pin: pin, typ: vt}
+	} else {
+		exp = t.convertExp(&context{scope: s}, c.Exp)
+		typ := exp.Type()
 
-	exp := t.convertExp(&context{scope: s}, c.Exp)
-	typ := exp.Type()
-
-	// TODO: typecheck expression and variable declared types
-	if vt == nil {
-		vt = typ
+		if vt == nil {
+			vt = typ
+		} else {
+			t.checkAssignType(vt, exp)
+		}
 	}
 
 	symbol = s.New(symk.Var, name, pin)
@@ -488,6 +492,8 @@ func (t *Typer) convertExp(c *context, exp ast.Exp) Exp {
 		return t.convertSymZeroExp(c, e)
 	case *ast.Chain:
 		return t.convertChain(c, e)
+	case *ast.SliceAll:
+		return t.convertSliceAll(c, e)
 	case *ast.SymCall:
 		return t.convertSymCall(c, e)
 	case *ast.SymAddr:
@@ -664,7 +670,7 @@ func (t *Typer) convertSymZeroExp(c *context, exp *ast.SymZeroExp) Exp {
 	switch symbol.Kind {
 	case symk.Type:
 		typ := symbol.Def.(*Type)
-		return &ZeroValue{pin: pin, typ: typ}
+		return &Zero{pin: pin, typ: typ}
 	default:
 		panic(fmt.Sprintf("unexpected %s symbol", symbol.Kind))
 	}
@@ -711,6 +717,38 @@ func (t *Typer) convertSymExp(c *context, exp *ast.SymExp) Exp {
 	}
 }
 
+func (t *Typer) convertSliceAll(c *context, s *ast.SliceAll) Exp {
+	pin := s.Pin
+
+	exp := t.convertChain(c, &s.Chain)
+	typ := exp.Type()
+	if typ.IsInvalid() {
+		return t.makeInvExp(pin)
+	}
+
+	switch typ.Kind {
+	case typk.Array:
+		def := typ.Def.(*Array)
+		return &SliceArray{
+			pin:  pin,
+			Exp:  exp,
+			A:    t.makeInteger(pin, 0, 0),
+			B:    t.makeInteger(pin, uint64(def.Num), 0),
+			typ:  t.common.Types.getSpan(def.Type),
+			safe: true,
+		}
+	case typk.Span:
+		// slice all applied to span just gives the same span
+		return exp
+	case typk.String:
+		// slice all applied to string just gives the same string
+		return exp
+	default:
+		t.report(pin, fmt.Sprintf("cannot slice %s expression", typ))
+		return t.makeInvExp(pin)
+	}
+}
+
 func (t *Typer) convertChain(c *context, chain *ast.Chain) Exp {
 	name := chain.Name
 	pin := chain.Pin
@@ -743,8 +781,53 @@ func (t *Typer) applyChainPart(c *context, exp Exp, part ast.Part) Exp {
 	switch p := part.(type) {
 	case *ast.Select:
 		return t.applySelect(c, exp, p)
+	case *ast.Index:
+		return t.applyIndex(c, exp, p)
 	default:
 		panic(fmt.Sprintf("unexpected %T part", p))
+	}
+}
+
+func (t *Typer) applyIndex(c *context, exp Exp, x *ast.Index) Exp {
+	index := t.convertExp(c, x.Exp)
+	xtyp := index.Type()
+
+	if xtyp.IsInvalid() {
+		index = t.makeInvExp(index.Pin())
+	} else if xtyp.Kind != typk.Integer {
+		t.report(index.Pin(), fmt.Sprintf("cannot use %s expression as index", xtyp))
+		index = t.makeInvExp(index.Pin())
+	}
+
+	if xtyp.IsStaticInteger() {
+		n := exp.(*Integer)
+		if n.Neg && n.Val != 0 {
+			t.report(index.Pin(), fmt.Sprintf("negative number (-%d) used as index", n.Val))
+			index = t.makeInvExp(index.Pin())
+		}
+	}
+
+	typ := exp.Type()
+	switch typ.Kind {
+	case typk.Span:
+		return &IndexSpan{
+			pin:   x.Pin,
+			typ:   typ.Def.(*Span).Type,
+			Exp:   exp,
+			Index: index,
+		}
+	case typk.Array:
+		return &IndexSpan{
+			pin:   x.Pin,
+			typ:   typ.Def.(*Array).Type,
+			Exp:   exp,
+			Index: index,
+		}
+	case typk.Invalid:
+		return exp
+	default:
+		t.report(x.Pin, fmt.Sprintf("cannot index into %s expression", typ))
+		return t.makeInvExp(x.Pin)
 	}
 }
 
@@ -772,10 +855,7 @@ func (t *Typer) applySelect(c *context, exp Exp, s *ast.Select) Exp {
 		return exp
 	default:
 		t.report(s.Pin, fmt.Sprintf("cannot use select operation on %s type", typ))
-		return &InvExp{
-			pin: s.Pin,
-			typ: t.common.Types.Invalid,
-		}
+		return t.makeInvExp(s.Pin)
 	}
 }
 

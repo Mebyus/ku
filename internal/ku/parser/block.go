@@ -88,10 +88,18 @@ func (p *Parser) Var() (ast.Statement, ss) {
 			}
 			typ = t
 
-			if p.peek.Kind != token.Assign {
-				p.report(p.peek.Pin, "missing \"=\" before variable initial value expression")
-			} else {
+			switch p.peek.Kind {
+			case token.Semicolon:
+				p.advance() // skip ";"
+				return &ast.Var{
+					Pin:  pin,
+					Name: name,
+					Type: typ,
+				}, 0
+			case token.Assign:
 				p.advance() // skip "="
+			default:
+				p.report(p.peek.Pin, "missing \"=\" before variable initial value expression")
 			}
 		}
 	case token.Assign:

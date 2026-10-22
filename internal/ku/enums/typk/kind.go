@@ -92,7 +92,7 @@ const (
 	// fixed number of elements of another Type
 	//
 	//	[5]u64 - an array of five u64 numbers
-	// Array
+	Array
 
 	Span
 
@@ -153,8 +153,8 @@ var text = [...]string{
 	// ErrId: "errid",
 	// Error: "error",
 
-	// Array:  "array",
-	Span: "span",
+	Array: "array",
+	Span:  "span",
 	// Enum:   "enum",
 	Custom: "custom",
 	// Struct: "struct",

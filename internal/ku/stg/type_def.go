@@ -1,5 +1,6 @@
 package stg
 
+// TypeDef type definition data specific to each Type.Kind.
 type TypeDef interface {
 	// Discriminator method for interface implementations.
 	// Only serves as a trick to enhance Go typechecking in
@@ -49,3 +50,16 @@ type Ref struct {
 
 // Explicit interface implementation check.
 var _ TypeDef = &Ref{}
+
+type Array struct {
+	typdef
+
+	// Array element type.
+	Type *Type
+
+	// Number of elements in array.
+	Num uint
+}
+
+// Explicit interface implementation check.
+var _ TypeDef = &Array{}

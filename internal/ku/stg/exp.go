@@ -297,26 +297,3 @@ func (s *SpanNum) Pin() sx.Pin {
 func (s *SpanNum) Target() bool {
 	return false
 }
-
-// ZeroValue represents expression which has zero value of specific type.
-type ZeroValue struct {
-	operand
-
-	pin sx.Pin
-
-	typ *Type
-}
-
-var _ Operand = &ZeroValue{}
-
-func (z *ZeroValue) Type() *Type {
-	return z.typ
-}
-
-func (z *ZeroValue) Pin() sx.Pin {
-	return z.pin
-}
-
-func (*ZeroValue) Target() bool {
-	return false
-}

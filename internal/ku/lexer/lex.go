@@ -398,6 +398,17 @@ func (lx *Lexer) other(tok *token.Token) {
 	case '}':
 		lx.emitOneByteToken(tok, token.RightCurly)
 	case '[':
+		if lx.next() == ':' {
+			lx.advance() // skip "["
+			if lx.next() == ']' {
+				lx.advance() // skip ":"
+				lx.advance() // skip "]"
+				tok.Kind = token.SliceAll
+				return
+			}
+			tok.Kind = token.LeftSquare
+			return
+		}
 		lx.emitOneByteToken(tok, token.LeftSquare)
 	case ']':
 		lx.emitOneByteToken(tok, token.RightSquare)

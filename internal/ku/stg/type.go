@@ -130,6 +130,8 @@ func (t *Typer) LookupType(s *Scope, spec ast.TypeSpec) *Type {
 		return t.lookupSpan(s, p)
 	case *ast.Ref:
 		return t.lookupRef(s, p)
+	case *ast.Array:
+		return t.lookupArray(s, p)
 	case *ast.InvType:
 		return t.common.Types.Invalid
 	default:
@@ -172,15 +174,66 @@ func (t *Typer) lookupRef(s *Scope, r *ast.Ref) *Type {
 	return t.common.Types.getRef(typ)
 }
 
+func (t *Typer) lookupArray(s *Scope, a *ast.Array) *Type {
+	c := context{
+		scope:  s,
+		static: true,
+	}
+	exp := t.convertExp(&c, a.Exp)
+	typ := t.LookupType(s, a.Type)
+	if typ.IsInvalid() || exp.Type().IsInvalid() {
+		return t.common.Types.Invalid
+	}
+
+	num, errtext := asArrayNum(exp)
+	if errtext != "" {
+		t.report(exp.Pin(), errtext)
+		return t.common.Types.Invalid
+	}
+	if num == 0 {
+		panic("stub: array of zero size")
+	}
+
+	return t.common.Types.getArray(typ, num)
+}
+
+// Try to convert static expression into array
+// element number at compile time
+//
+// Returns (num, "") when operation was successful.
+// Return (0, "<...>") with error description otherwise.
+func asArrayNum(exp Exp) (uint, string) {
+	typ := exp.Type()
+	if !typ.IsStaticInteger() {
+		return 0, fmt.Sprintf("cannot use %s expression as number of array elements", typ)
+	}
+
+	n := exp.(*Integer)
+	if n.Val == 0 {
+		return 0, ""
+	}
+
+	if n.Neg {
+		return 0, fmt.Sprintf("negative number (-%d) of array elements", n.Val)
+	}
+
+	return uint(n.Val), ""
+}
+
 type TypeIndex struct {
 	Static StaticTypes
 	Known  KnownTypes
 
-	// Maps type referred by reference to corresponding reference type.
+	// Maps type referred by reference to corresponding
+	// reference type.
 	Refs map[ /* type referred by reference */ *Type]*Type
 
 	// Maps span element type to the corresponding span type.
 	Spans map[ /* span element type */ *Type]*Type
+
+	// Maps array type definition (element type + size)
+	// to the corresponding array type.
+	Arrays map[Array]*Type
 
 	Invalid *Type
 
@@ -197,6 +250,7 @@ func (x *TypeIndex) init(archPointerSize uint32) {
 
 	x.Refs = make(map[*Type]*Type)
 	x.Spans = make(map[*Type]*Type)
+	x.Arrays = make(map[Array]*Type)
 }
 
 // StaticTypes contains instances of various predefined (builtin) static types.
@@ -332,5 +386,20 @@ func (x *TypeIndex) getSpan(t *Type) *Type {
 		Kind: typk.Span,
 	}
 	x.Spans[t] = typ
+	return typ
+}
+
+func (x *TypeIndex) getArray(elem *Type, num uint) *Type {
+	a := Array{Type: elem, Num: num}
+	typ, ok := x.Arrays[a]
+	if ok {
+		return typ
+	}
+	typ = &Type{
+		Def:  &a,
+		Size: uint32(num) * elem.Size,
+		Kind: typk.Array,
+	}
+	x.Arrays[a] = typ
 	return typ
 }

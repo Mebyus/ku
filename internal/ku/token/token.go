@@ -77,6 +77,8 @@ const (
 	Alter     // .{
 	AlterZero // .{}
 
+	SliceAll // [:]
+
 	// start of keyword Kinds
 	// used by some formatting functions
 	keystart
@@ -97,6 +99,7 @@ const (
 
 	True
 	False
+	Nil
 
 	// Identifiers and basic type literals.
 	Word

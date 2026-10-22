@@ -14,6 +14,7 @@ var kw = map[string]Kind{
 	"struct": Struct,
 	"true":   True,
 	"false":  False,
+	"nil":    Nil,
 }
 
 const (

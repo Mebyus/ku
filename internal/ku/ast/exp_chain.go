@@ -34,6 +34,7 @@ type part struct{}
 
 func (part) _part() {}
 
+// Select named field from chain operand.
 type Select struct {
 	part
 
@@ -44,3 +45,14 @@ type Select struct {
 
 // Explicit interface implementation check.
 var _ Part = &Select{}
+
+// Index into chain operand.
+type Index struct {
+	part
+
+	Exp Exp
+
+	Pin sx.Pin
+}
+
+var _ Part = &Index{}
