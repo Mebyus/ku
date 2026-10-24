@@ -166,8 +166,9 @@ func (w *While) Pin() sx.Pin {
 	return w.pin
 }
 
-// CreateFixed represents statement that creates fixed variable.
-type CreateFixed struct {
+// InitVar represents statement that assigns initial
+// value to variable or carrier.
+type InitVar struct {
 	stm
 
 	Symbol *Symbol
@@ -176,7 +177,7 @@ type CreateFixed struct {
 	Exp Exp
 }
 
-func (c *CreateFixed) Pin() sx.Pin {
+func (c *InitVar) Pin() sx.Pin {
 	return c.Symbol.Pin
 }
 
@@ -196,12 +197,14 @@ func (a *Assign) Pin() sx.Pin {
 	return a.Target.Pin()
 }
 
+// AssignVar represents statement that changes value of
+// variable or carrier.
 type AssignVar struct {
 	stm
 
 	Symbol *Symbol
 
-	// Initial expression. Always not nil.
+	// Assigned value expression. Always not nil.
 	Exp Exp
 }
 

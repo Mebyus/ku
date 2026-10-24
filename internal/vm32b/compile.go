@@ -28,7 +28,7 @@ type compiler struct {
 	// total number of functions in program
 	nfun uint32
 
-	// number of allocated local variables
+	// number of allocated local slots
 	// including function arguments and
 	// stack memory gaps
 	lcap uint32
@@ -44,6 +44,7 @@ func (c *compiler) compile(funs []ir.Fun) {
 	c.prog.funs = make([]finfo, len(funs))
 	for i := range len(funs) {
 		c.prog.funs[i] = finfo{
+			nloc: funs[i].Nloc - funs[i].Narg,
 			narg: funs[i].Narg,
 			nret: funs[i].Nret,
 		}
@@ -53,7 +54,7 @@ func (c *compiler) compile(funs []ir.Fun) {
 		c.prog.funs[i].addr = ia(len(c.prog.text))
 		c.startfun(&f)
 		c.block(f.Body)
-		c.prog.funs[i].nloc = c.lcap - f.Narg
+		// c.prog.funs[i].nloc = c.lcap - f.Narg
 		// TODO: ? insert return if function
 		// has no return values and has no return
 		// at the end of body, otherwise should
@@ -119,23 +120,71 @@ func (c *compiler) stm(s ir.Stm) {
 	}
 }
 
-func (c *compiler) exp(exp ir.Exp) {
+// returns number of slots used to store result
+// when vm executes generated expression
+func (c *compiler) exp(exp ir.Exp) uint32 {
 	switch e := exp.(type) {
 	case *ir.Integer:
 		c.emit(opPUT, e.Val)
+		return 1
 	// case *String:
 	// 	p, n := c.str(e.Val)
 	// 	c.add(inst{typ: opPUT, arg: int32(n)})
 	// 	c.add(inst{typ: opPUT, arg: int32(p)})
+	// return 2
 	case *ir.Local:
 		if !c.has(e.Name) {
 			panic(fmt.Sprintf("undefined local variable [%d] used in expression", e.Name))
 		}
 		c.emit(opPUSH, e.Name)
+		return 1
 	case *ir.Addr:
 		c.emit(opADDR, e.Name)
+		return 1
+	case *ir.SliceLocal:
+		a, ok := e.A.(*ir.Integer)
+		if ok && a.Val == 0 {
+			// this case simplifies and optimizes
+			// code generation, since we can just take
+			// end index as number of elements and
+			// local address as span start pointer
+			c.exp(e.B)             // number of elements
+			c.emit(opADDR, e.Name) // span start pointer
+			return 2
+		}
+		panic("stub")
+
+		// evaluate number of span elements
+		c.exp(e.B)
+		c.exp(e.A)
+		c.emit(opSUB, 0)
+
+		// evaluate span start pointer
+		c.emit(opADDR, e.Name)
+		switch e.Stride {
+		case 0:
+			panic("empty stride")
+		case 1:
+		default:
+
+		}
+		return 2
+	case *ir.Index:
+		if e.Stride == 0 {
+			panic("empty stride")
+		}
+
+		c.exp(e.Addr)
+		c.exp(e.Index)
+		c.emit(opINDEX, e.Stride)
+		return e.Stride
 	case *ir.Call:
+		n := c.prog.funs[e.Name].nret
+		if n == 0 {
+			panic("call with no result cannot be expression")
+		}
 		c.call(e)
+		return n
 	case *ir.BinExp:
 		c.exp(e.A)
 		c.exp(e.B)
@@ -156,6 +205,7 @@ func (c *compiler) exp(exp ir.Exp) {
 			panic(e.Op)
 		}
 		c.emit(op, 0)
+		return 1
 	default:
 		panic(fmt.Sprintf("unexpected %T expression", e))
 	}
@@ -167,13 +217,15 @@ func (c *compiler) call(call *ir.Call) {
 	}
 
 	narg := c.prog.funs[call.Name].narg
-	if uint32(len(call.Args)) != narg {
+	if uint32(len(call.Args)) > narg {
 		panic("number of arguments mismatch")
 	}
 
 	for _, arg := range call.Args {
-		c.exp(arg)
-		c.emit(opTAKE, 0)
+		n := c.exp(arg)
+		for range n {
+			c.emit(opTAKE, 0)
+		}
 	}
 	c.emit(opCALL, call.Name)
 }

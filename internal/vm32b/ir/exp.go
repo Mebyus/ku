@@ -57,3 +57,38 @@ type Call struct {
 }
 
 var _ Exp = &Call{}
+
+// slice local array
+type SliceLocal struct {
+	exp
+
+	// start index
+	A Exp
+
+	// end index
+	B Exp
+
+	// local slot name, where to slice
+	Name uint32
+
+	// number of slots occupied by one element
+	// cannot be 0
+	Stride uint32
+}
+
+var _ Exp = &SliceLocal{}
+
+// take element by index starting from address
+type Index struct {
+	exp
+
+	Addr Exp
+
+	Index Exp
+
+	// number of slots occupied by one element
+	// cannot be 0
+	Stride uint32
+}
+
+var _ Exp = &Index{}

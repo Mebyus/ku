@@ -129,6 +129,11 @@ func (g *VM) exec(text []inst) {
 			name := x.arg
 			a := g.addr(name)
 			g.push(a)
+		case opINDEX:
+			index := g.pop()
+			addr := g.pop()
+			stride := x.arg
+			g.index(addr, index, stride)
 		case opPUT:
 			v := x.arg
 			g.push(v)
@@ -163,6 +168,23 @@ func (g *VM) exec(text []inst) {
 		default:
 			panic(fmt.Sprintf("ins %d (0x%04X)", x.op, g.ip-1))
 		}
+	}
+}
+
+func (g *VM) index(addr uint32, index uint32, stride uint32) {
+	typ := addr >> 30
+	switch typ {
+	case ptrROM:
+		panic("stub")
+	case ptrVAR:
+		panic("stub")
+	case ptrLOC:
+		slot := stride*index + (addr<<2)>>4
+		for i := range stride {
+			g.push(g.smem[slot+i])
+		}
+	default:
+		panic("stub")
 	}
 }
 

@@ -5,6 +5,7 @@ type Fun struct {
 	// Thus it should contain at least one statement.
 	Body []Stm
 
-	Narg uint32 // number of required arguments
+	Nloc uint32 // total number of required local slots (parameters + local variables)
+	Narg uint32 // number of required local argument slots
 	Nret uint32 // number of returned values (0 or 1 for now)
 }

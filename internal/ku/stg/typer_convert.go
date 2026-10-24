@@ -231,7 +231,7 @@ func (t *Typer) convertVar(s *Scope, c *ast.Var) Statement {
 	symbol = s.New(symk.Var, name, pin)
 	symbol.Type = vt
 
-	return &AssignVar{
+	return &InitVar{
 		Symbol: symbol,
 		Exp:    exp,
 	}
@@ -256,7 +256,7 @@ func (t *Typer) convertCreate(s *Scope, c *ast.Create) Statement {
 	symbol = s.New(symk.Car, name, pin)
 	symbol.Type = typ
 
-	return &CreateFixed{
+	return &InitVar{
 		Symbol: symbol,
 		Exp:    exp,
 	}
@@ -582,7 +582,7 @@ func (t *Typer) convertInvokeSymbol(c *Scope, s *ast.InvokeSymbol) (Statement, n
 
 	def := symbol.Def.(*FunDef)
 	if def.Result != nil {
-		t.report(pin, fmt.Sprintf("implicit discard of function \"%s\" call result"))
+		t.report(pin, fmt.Sprintf("implicit discard of function \"%s\" call result", name))
 	}
 
 	args := t.convertCallArgs(&context{scope: c, pin: pin}, name, def.Inputs, s.Args)

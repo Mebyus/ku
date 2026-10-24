@@ -15,10 +15,11 @@ type finfo struct {
 	// start instruction index
 	addr ia
 
-	// number of arguments required to make a call
+	// number of local slots for arguments
+	// required to make a call
 	narg uint32
 
-	// number of allocated local variables
+	// number of allocated local slots
 	// does not include arguments but does
 	// include stack memory gaps
 	nloc uint32
@@ -53,7 +54,7 @@ const (
 	// should be zero value
 	opTRAP op = iota
 	opHALT
-	opPRINT
+	opSYS // do system operation that interacts with outside world
 	opCALL
 	opRET
 	opJUMP  // unconditional jump to target instruction address
@@ -65,6 +66,7 @@ const (
 	opPOP   // pop value from EVS and store it into local variable
 	opMOVE  // pop address, then pop value and store value at memory address
 	opADDR  // push address of local variable onto EVS
+	opINDEX // pop index, pop address and push slots located at address + stride * index
 	opPUT   // push constant value onto EVS
 	opADD
 	opSUB
@@ -74,6 +76,15 @@ const (
 
 	// opLOAD     // push global variable value onto EVS
 	// opSTORE    // pop value from EVS and save it to global variable
+)
+
+// syscall numbers
+const (
+	sysPRINT = iota
+	sysOPEN
+	sysREAD
+	sysWRITE
+	sysMMAP
 )
 
 // encoded pointer address regions
@@ -117,8 +128,8 @@ func PrintProg(prog *Prog) {
 			fmt.Printf("    TRAP\n")
 		case opHALT:
 			fmt.Printf("    HALT\n")
-		case opPRINT:
-			fmt.Printf("    PRINT\n")
+		case opSYS:
+			fmt.Printf("    SYS    %d\n", x.arg)
 		case opCALL:
 			fmt.Printf("    CALL   #.%d\n", x.arg)
 		case opRET:
@@ -141,6 +152,8 @@ func PrintProg(prog *Prog) {
 			fmt.Printf("    MOVE\n")
 		case opADDR:
 			fmt.Printf("    ADDR   [%d]\n", x.arg)
+		case opINDEX:
+			fmt.Printf("    INDEX  %d\n", x.arg)
 		case opPUT:
 			fmt.Printf("    PUT    0x%X  (%d)\n", x.arg, int32(x.arg))
 		case opADD:
