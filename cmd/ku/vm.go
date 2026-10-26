@@ -1,7 +1,12 @@
 package main
 
-import "github.com/mebyus/ku/internal/ku/builder"
+import (
+	"strings"
+
+	"github.com/mebyus/ku/internal/ku/builder"
+)
 
 func vmc(path string) error {
-	return builder.CompileFileForVM32B(path)
+	out := strings.TrimSuffix(path, ".ku") + ".kvx"
+	return builder.CompileFileForVM32B(path, out)
 }

@@ -2,6 +2,7 @@ package builder
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/mebyus/ku/internal/ku/ast"
@@ -12,11 +13,11 @@ import (
 	"github.com/mebyus/ku/internal/vm32b"
 )
 
-func CompileFileForVM32B(path string) error {
+func CompileForVM32B(path string) (*vm32b.Prog, error) {
 	pool := sx.New()
 	tf, err := pool.Load(path)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	text := parser.ParseText(tf)
@@ -51,14 +52,37 @@ func CompileFileForVM32B(path string) error {
 	prog.Common = typers.Common
 
 	funs := genb.Gen(&prog)
-	p := vm32b.Compile(funs)
-	vm32b.PrintProg(p)
+	return vm32b.Compile(funs), nil
+}
 
-	var vm vm32b.VM
-	vm.Exec(p, nil)
+// CompileEncodeForVM32B compile Ku source file specified by path and
+// encode resulting bytecode program into output writer.
+func CompileEncodeForVM32B(path string, out io.Writer) error {
+	prog, err := CompileForVM32B(path)
+	if err != nil {
+		return err
+	}
 
-	fmt.Println()
-	vm.PrintState()
+	return vm32b.Encode(out, prog)
+}
 
-	return nil
+func CompileFileForVM32B(path string, out string) error {
+	prog, err := CompileForVM32B(path)
+	if err != nil {
+		return err
+	}
+
+	// vm32b.PrintProg(p)
+
+	// var vm vm32b.VM
+	// vm.Exec(p, nil)
+
+	// fmt.Println()
+	// vm.PrintState()
+
+	if out == "" {
+		return nil
+	}
+
+	return vm32b.Save(prog, out)
 }

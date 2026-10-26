@@ -4,9 +4,6 @@ import "fmt"
 
 type Prog struct {
 	text []inst
-
-	// must containt instruction adderreses (=index into text)
-	// in ascending order
 	funs []finfo
 }
 
@@ -50,29 +47,40 @@ type ia uint32
 // holds vm opcode
 type op uint32
 
+// opcodes without argument
 const (
 	// should be zero value
 	opTRAP op = iota
 	opHALT
-	opSYS // do system operation that interacts with outside world
-	opCALL
 	opRET
-	opJUMP  // unconditional jump to target instruction address
-	opJZ    // pop EVS and jump to target instruction address if value is 0
-	opJNZ   // pop EVS and jump to target instruction address if value is not 0
 	opTAKE  // pop value from EVS and place it into stack memory as call argument
 	opDRAIN // pop value from EVS and discard it
-	opPUSH  // push value stored in local variable onto EVS
-	opPOP   // pop value from EVS and store it into local variable
 	opMOVE  // pop address, then pop value and store value at memory address
-	opADDR  // push address of local variable onto EVS
-	opINDEX // pop index, pop address and push slots located at address + stride * index
-	opPUT   // push constant value onto EVS
 	opADD
 	opSUB
 	opMUL
 	opEQUAL
 	opLESS
+
+	// threshold value, equals number of opcodes without argument
+	//
+	// do not use as real opcode, only for convenience in maintaining
+	// two constant blocks with opcodes
+	_opARG1
+)
+
+// opcodes with one argument
+const (
+	opSYS op = _opARG1 + iota // do system operation that interacts with outside world
+	opCALL
+	opJUMP  // unconditional jump to target instruction address
+	opJZ    // pop EVS and jump to target instruction address if value is 0
+	opJNZ   // pop EVS and jump to target instruction address if value is not 0
+	opPUSH  // push value stored in local variable onto EVS
+	opPOP   // pop value from EVS and store it into local variable
+	opADDR  // push address of local variable onto EVS
+	opPUT   // push constant value onto EVS
+	opINDEX // pop index, pop address and push slots located at address + stride * index
 
 	// opLOAD     // push global variable value onto EVS
 	// opSTORE    // pop value from EVS and save it to global variable
