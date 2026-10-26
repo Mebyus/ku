@@ -2,6 +2,83 @@ package vm32b
 
 import "fmt"
 
+// Implements 32-bit stack-based bytecode virtual machine.
+//
+// Evaluation stack (EVS for short) is used as "infinite"
+// set of general purpose registers. It can hold
+// temporary and intermediate values for evaluating
+// expressions, passing return values, preparing
+// call arguments, etc. EVS is not addressable and
+// offers only push/pop like operations.
+//
+// Call frames are stored in a separate stack
+// inaccessible to executed code, so there is
+// no way to corrupt it, besided call stack overflow.
+//
+// Each call frame gets its own local variables via
+// access to shared stack memory which is automatically
+// managed by VM. Call arguments and local variables
+// share "namespace" and are addressed by their local "names".
+// Local variable "name" is basically index into call frame
+// stack memory. For example if function was called
+// with 2 arguments, then:
+//
+//	0 - first argument
+//	1 - second argument
+//	2 - first local variable
+//	3 - second local variable
+//	...
+//
+// Essentially arguments and local variables are all just
+// low-level stack memory address slots for a function.
+//
+// Calling convention is quite simple. To make a call
+// caller must place required (and it should exactly match
+// number of function parameters) number of arguments
+// onto stack memory in direct order, meaning that
+// first argument gets lower address. VM offers special
+// instruction TAKE for this operation of arranging call
+// argument, it pops value from EVS and places it into
+// correct stack memory slot. Later (after executing CALL
+// instruction) that slot just becomes addressable local
+// variable in the new call frame.
+//
+// When function call ends it must push returned values
+// (if any) onto EVS. Returned values are pushed in
+// direct order, meaning that first returned value
+// comes onto EVS first. Thus when caller wants to
+// pop and use results from EVS they will come in
+// reverse order.
+//
+// Beyond arranging call arguments via TAKE instruction
+// both caller and callee are not required to do any magic
+// function prologue or epilogue, just CALL + RET pair.
+// However there is a special case when function is
+// called, but its returned values are not needed by the
+// caller. In that case caller must explicitly pop
+// returned values and discard them via DRAIN.
+//
+// Pointers can work with 4 distinct memory regions:
+//
+//	0 - read-only memory (comes with the program) (=0b00)
+//	1 - slots for global variables                (=0b01)
+//	2 - stack memory                              (=0b10)
+//	3 - heap memory                               (=0b11)
+//
+// In each pointer 2 highest bits are reserved for
+// encoding memory region. Zero pointer value is used
+// as nil.
+//
+// Strings are recognized as a pair of pointer + length
+// (in bytes). Each function that accepts string as an
+// argument (at high-level) must expect two argument
+// slots used for a single string argument. First slot
+// of the pair must contain string pointer and second
+// its length.
+//
+// PRINT instruction accepts string pair of pointer +
+// length and pops them from EVS in direct order,
+// meaning pointer will be poped first and length second.
 type VM struct {
 	// evaluation stack
 	evs []uint32
