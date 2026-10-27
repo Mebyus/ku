@@ -115,12 +115,28 @@ type frame struct {
 	base uint32
 }
 
-func (g *VM) Exec(prog *Prog, args []uint32) {
+func (g *VM) Exec(prog *Prog, args []uint32) (exit *Exit) {
 	if len(prog.text) == 0 || len(prog.funs) == 0 {
-		return
+		return &Exit{Error: RuntimeError{Code: CodeEmpty}}
 	}
+
+	defer func() {
+		p := recover()
+		if p == nil {
+			return
+		}
+
+		exit = &Exit{
+			Error: RuntimeError{
+				Code: CodePanic,
+			},
+		}
+	}()
+
 	g.reset(prog, args)
 	g.exec(prog.text)
+
+	return &Exit{Ret: g.evs}
 }
 
 func (g *VM) reset(prog *Prog, args []uint32) {
@@ -137,11 +153,13 @@ func (g *VM) reset(prog *Prog, args []uint32) {
 
 	// setup start function initial frame
 	start := prog.funs[0]
-	g.allocn(start.nloc)
-	// g.nr = start.nret
 	if uint32(len(args)) != start.narg {
 		panic(fmt.Sprintf("number of start arguments mismatch (got %d, want %d)", len(args), start.narg))
 	}
+
+	g.smem = append(g.smem, args...)
+	g.allocn(start.nloc)
+	// g.nr = start.nret
 }
 
 func (g *VM) exec(text []inst) {

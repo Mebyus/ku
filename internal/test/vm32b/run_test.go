@@ -3,6 +3,9 @@ package vm32b
 import (
 	"bytes"
 	"path/filepath"
+	"slices"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/mebyus/ku/internal/ku/builder"
@@ -12,8 +15,9 @@ import (
 // TestRun is an end-to-end test of Ku compiler and
 // 32-bit bytecode virtual machine.
 //
-// Test imitates real-world scenario, which consists
-// of following steps:
+// Test imitates real-world scenario when program is compiled and
+// saved into output file and then executed via VM. In more detail
+// test consists of the following steps:
 //
 //  1. Compile program from a Ku source file into bytecode program.
 //  2. Encode resulting program in KVX format (as if saving it into file).
@@ -93,19 +97,40 @@ func TestRun(t *testing.T) {
 		buf.Reset()
 		err := builder.CompileEncodeForVM32B(path, &buf)
 		if err != nil {
-			t.Errorf("compile \"%s\": %v", name, err)
+			t.Errorf("compile program \"%s\": %v", name, err)
 			continue
 		}
 		prog, err := vm32b.DecodeFromBytes(buf.Bytes())
 		if err != nil {
-			t.Errorf("decode \"%s\": %v", name, err)
+			t.Errorf("decode program \"%s\": %v", name, err)
 			continue
 		}
 
 		for _, c := range b.tests {
-			vm.Exec(prog, c.args)
+			exit := vm.Exec(prog, c.args)
+			if !exit.IsOK() {
+				t.Errorf("program \"%s\": Exec(%s) = RuntimeError (=%d)", name, formatArgs(c.args), exit.Error.Code)
+				continue
+			}
+
+			got := exit.Ret
+			if !slices.Equal(got, c.want) {
+				t.Errorf("program \"%s\": Exec(%s) = %v, want %v", name, formatArgs(c.args), got, c.want)
+			}
 		}
 	}
+}
+
+func formatArgs(args []uint32) string {
+	if len(args) == 0 {
+		return ""
+	}
+
+	list := make([]string, 0, len(args))
+	for _, a := range args {
+		list = append(list, strconv.FormatUint(uint64(a), 10))
+	}
+	return strings.Join(list, ", ")
 }
 
 type TestCase struct {

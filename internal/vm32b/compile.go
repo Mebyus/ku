@@ -232,11 +232,11 @@ func (c *compiler) call(call *ir.Call) {
 
 // start new function
 func (c *compiler) startfun(f *ir.Fun) {
-	// clear(c.local)
-	// for i := range f.narg {
-	// 	c.local[i] = struct{}{}
-	// }
-	// c.lcap = f.narg
+	clear(c.local)
+	for i := range f.Narg {
+		c.local[i] = struct{}{}
+	}
+	c.lcap = f.Narg
 }
 
 // add new instruction to compiled program output

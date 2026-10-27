@@ -97,8 +97,13 @@ func (c *encoder) text(text []inst) {
 
 // returns true if instruction with this opcode has an argument
 func (c *encoder) opcode(op op) bool {
-	c.out = append(c.out, byte(op))
-	return op >= _opARG1
+	if op < _opARG1 {
+		c.out = append(c.out, byte(op))
+		return false
+	}
+
+	c.out = append(c.out, byte((1<<7)|op))
+	return true
 }
 
 func (c *encoder) magic(target byte) {
