@@ -1,0 +1,4 @@
+fun start(x: uint) -> uint {
+    if x == 16 return 3;
+    return x + 1;
+}

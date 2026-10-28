@@ -236,6 +236,54 @@ func TestRun(t *testing.T) {
 				},
 			},
 		},
+		{
+			// use short if-flow (with return)
+			src: "0011_if_return.ku",
+			tests: []TestCase{
+				{
+					args: []uint32{0},
+					want: []uint32{1},
+				},
+				{
+					args: []uint32{5},
+					want: []uint32{6},
+				},
+				{
+					args: []uint32{16},
+					want: []uint32{3},
+				},
+				{
+					args: []uint32{95814},
+					want: []uint32{95815},
+				},
+			},
+		},
+	}
+
+	// validate bundles and test cases
+	n := 0 // number of validation errors
+	set := make(map[string]struct{}, len(bundles))
+	for i, b := range bundles {
+		name := b.src
+		if name == "" {
+			t.Errorf("bundle (i=%d) has no source file", i)
+			n += 1
+		} else {
+			_, ok := set[name]
+			if ok {
+				t.Errorf("duplicate source file \"%s\" in bundles", name)
+				n += 1
+			}
+			set[name] = struct{}{}
+		}
+
+		if len(b.tests) == 0 {
+			t.Errorf("no test cases in \"%s\" bundle", name)
+			n += 1
+		}
+	}
+	if n != 0 {
+		return
 	}
 
 	var buf bytes.Buffer // stores encoded bytecode after compilation
