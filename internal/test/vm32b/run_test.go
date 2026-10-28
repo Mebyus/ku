@@ -86,6 +86,156 @@ func TestRun(t *testing.T) {
 				},
 			},
 		},
+		{
+			// start returns a local variable
+			src: "0004_var_local.ku",
+			tests: []TestCase{
+				{
+					args: nil,
+					want: []uint32{96},
+				},
+			},
+		},
+		{
+			// start returns a mutated local variable
+			src: "0005_var_change.ku",
+			tests: []TestCase{
+				{
+					args: []uint32{0},
+					want: []uint32{3},
+				},
+				{
+					args: []uint32{1},
+					want: []uint32{5},
+				},
+				{
+					args: []uint32{10},
+					want: []uint32{23},
+				},
+			},
+		},
+		{
+			// start returns n-th fibonacci number
+			src: "0006_fib_loop.ku",
+			tests: []TestCase{
+				{
+					args: []uint32{0},
+					want: []uint32{0},
+				},
+				{
+					args: []uint32{1},
+					want: []uint32{1},
+				},
+				{
+					args: []uint32{2},
+					want: []uint32{1},
+				},
+				{
+					args: []uint32{3},
+					want: []uint32{2},
+				},
+				{
+					args: []uint32{4},
+					want: []uint32{3},
+				},
+				{
+					args: []uint32{5},
+					want: []uint32{5},
+				},
+				{
+					args: []uint32{6},
+					want: []uint32{8},
+				},
+				{
+					args: []uint32{7},
+					want: []uint32{13},
+				},
+				{
+					args: []uint32{8},
+					want: []uint32{21},
+				},
+				{
+					args: []uint32{9},
+					want: []uint32{34},
+				},
+				{
+					args: []uint32{10},
+					want: []uint32{55},
+				},
+				{
+					args: []uint32{11},
+					want: []uint32{89},
+				},
+			},
+		},
+		{
+			// use function call with no args
+			src: "0007_call_noargs.ku",
+			tests: []TestCase{
+				{
+					args: []uint32{0},
+					want: []uint32{2},
+				},
+				{
+					args: []uint32{10},
+					want: []uint32{12},
+				},
+				{
+					args: []uint32{777},
+					want: []uint32{779},
+				},
+			},
+		},
+		{
+			// change local variable via reference
+			src: "0008_ref_local.ku",
+			tests: []TestCase{
+				{
+					args: []uint32{0},
+					want: []uint32{8},
+				},
+				{
+					args: []uint32{5},
+					want: []uint32{13},
+				},
+			},
+		},
+		{
+			// change local variable via reference
+			src: "0009_if_block.ku",
+			tests: []TestCase{
+				{
+					args: []uint32{0},
+					want: []uint32{6},
+				},
+				{
+					args: []uint32{4},
+					want: []uint32{10},
+				},
+				{
+					args: []uint32{16},
+					want: []uint32{22},
+				},
+				{
+					args: []uint32{17},
+					want: []uint32{0},
+				},
+				{
+					args: []uint32{20},
+					want: []uint32{3},
+				},
+			},
+		},
+		{
+			// discard expression
+			src: "0010_discard.ku",
+			tests: []TestCase{
+				{
+					args: []uint32{5},
+					want: nil,
+				},
+			},
+		},
 	}
 
 	var buf bytes.Buffer // stores encoded bytecode after compilation

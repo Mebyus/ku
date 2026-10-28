@@ -1,0 +1,4 @@
+fun start(x: uint) {
+    var a: uint = 0;
+    _ = a + x;
+}

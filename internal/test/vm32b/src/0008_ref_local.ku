@@ -1,0 +1,7 @@
+fun start(x: uint) -> uint {
+    var a := x;
+    p := a.&;
+
+    p.* = 8;
+    return a + x;
+}

@@ -1,0 +1,14 @@
+fun start(n: uint) -> uint {
+    var a: uint = 0;
+    var b: uint = 1;
+
+    var i: uint = 0;
+    for i < n {
+        c := b;
+        b = a + b;
+        a = c;
+        i = i + 1;
+    }
+
+    return a;
+}

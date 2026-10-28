@@ -1,0 +1,6 @@
+fun start(x: uint) -> uint {
+    if x < 17 {
+        return x + 6;
+    }
+    return x - 17;
+}

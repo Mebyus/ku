@@ -1,0 +1,4 @@
+fun start() -> sint {
+    x := 96;
+    return x;
+}

@@ -69,7 +69,7 @@ func (t *Typer) checkAssignType(at *Type, exp Exp) {
 	if at == typ {
 		return
 	}
-	if at.Kind == typk.Invalid || typ.Kind == typk.Invalid {
+	if at.IsInvalid() || typ.IsInvalid() {
 		return
 	}
 
@@ -89,7 +89,7 @@ func (t *Typer) checkArgType(pt *Type, exp Exp) {
 	if pt == typ {
 		return
 	}
-	if pt.Kind == typk.Invalid || typ.Kind == typk.Invalid {
+	if pt.IsInvalid() || typ.IsInvalid() {
 		return
 	}
 
@@ -107,6 +107,11 @@ func (t *Typer) checkArgType(pt *Type, exp Exp) {
 func (t *Typer) checkBinExpType(exp *BinExp) {
 	at := exp.A.Type()
 	bt := exp.B.Type()
+
+	if at.IsInvalid() || bt.IsInvalid() {
+		exp.typ = t.common.Types.Invalid
+		return
+	}
 
 	if at.Kind == typk.Integer && bt.Kind == typk.Integer {
 		switch exp.Op.Kind {
