@@ -2,6 +2,7 @@ package stg
 
 import (
 	"github.com/mebyus/ku/internal/ku/ast"
+	"github.com/mebyus/ku/internal/ku/builder/kub"
 	"github.com/mebyus/ku/internal/ku/stg/hg"
 	"github.com/mebyus/ku/internal/ku/sx"
 )
@@ -21,14 +22,14 @@ type Pool struct {
 	// m map[*Unit]*Typer
 }
 
-func NewPool(pool *sx.Pool) *Pool {
+func NewPool(build kub.Build, pool *sx.Pool) *Pool {
 	p := &Pool{}
-	p.init(pool)
+	p.init(build, pool)
 	return p
 }
 
-func (p *Pool) init(pool *sx.Pool) {
-	p.Common.Init(pool, 8)
+func (p *Pool) init(build kub.Build, pool *sx.Pool) {
+	p.Common.Init(build, pool)
 }
 
 // Get returns a Typer object attached to a given unit.

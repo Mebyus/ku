@@ -1,4 +1,4 @@
-package vm32b
+package vm32b_test
 
 import (
 	"bytes"

@@ -1,6 +1,7 @@
 package stg
 
 import (
+	"github.com/mebyus/ku/internal/ku/builder/kub"
 	"github.com/mebyus/ku/internal/ku/enums/symk"
 	"github.com/mebyus/ku/internal/ku/sx"
 )
@@ -15,12 +16,15 @@ type Common struct {
 
 	Global Scope
 
+	Build kub.Build
+
 	Pool *sx.Pool
 }
 
-func (c *Common) Init(pool *sx.Pool, archPointerSize uint32) {
+func (c *Common) Init(build kub.Build, pool *sx.Pool) {
 	c.Pool = pool
-	c.Types.init(archPointerSize)
+	c.Build = build
+	c.Types.init(build.Target.Arch.Size())
 	c.Global.InitGlobal()
 	c.bindBuiltinSymbols()
 }

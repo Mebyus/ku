@@ -9,12 +9,15 @@ import (
 
 	"github.com/mebyus/ku/goku/compiler/cc"
 	"github.com/mebyus/ku/goku/compiler/enums/bk"
+	"github.com/mebyus/ku/internal/ku/builder/kub"
 	"github.com/mebyus/ku/internal/ku/genc"
 	"github.com/mebyus/ku/internal/ku/stg"
 	"github.com/mebyus/ku/internal/ku/sx"
 )
 
 type Config struct {
+	Build kub.Build
+
 	// System path of language root directory.
 	// Used for resolving units from standard library.
 	//
@@ -31,6 +34,16 @@ type Config struct {
 	//
 	// Required for any build.
 	Unit string
+
+	// System path of starting file.
+	//
+	// Alternative for Unit field.
+	//
+	// If not empty build starts not from a unit directory,
+	// but from a single file which is treated as separate unit.
+	//
+	// Used for integration tests.
+	File string
 
 	// Unit path of build entry (which unit build starts from).
 	//
@@ -78,7 +91,10 @@ func Build(config *Config) *Result {
 		std: filepath.Join(config.LangDir, "src", "std"),
 		loc: filepath.Join(config.RootDir, "src"),
 	}
-	w.init(witem{path: config.unit})
+	w.init(witem{
+		path: config.unit,
+		file: config.File,
+	})
 	w.walk()
 
 	n := 0 // total number of errors
@@ -97,6 +113,11 @@ func Build(config *Config) *Result {
 		}
 	}
 
+	if n != 0 && len(w.units) == 0 {
+		// failed to load units due to previous errors
+		os.Exit(1)
+	}
+
 	tower, cycle := rankUnits(w.units, w.roots)
 	if len(cycle) != 0 {
 		// this error breaks program no import cycle assumption
@@ -109,10 +130,8 @@ func Build(config *Config) *Result {
 		os.Exit(1)
 	}
 
-	// TODO: output parsing errors based on rank order
-
 	var prog stg.Program
-	pool := stg.NewPool(w.pool)
+	pool := stg.NewPool(config.Build, w.pool)
 	for _, cohort := range tower.Cohorts {
 		for _, id := range cohort.Symbols {
 			u := w.units[id]
@@ -183,18 +202,20 @@ func Build(config *Config) *Result {
 }
 
 func (c *Config) setDefaults() error {
-	if c.Unit == "" {
-		panic("empty unit path")
+	if c.Unit == "" && c.File == "" {
+		panic("empty build start")
 	}
 
-	if strings.HasPrefix(c.Unit, "./src/") {
-		p := filepath.Clean(strings.TrimPrefix(c.Unit, "./src/"))
-		if p == "" || strings.HasPrefix(p, ".") || strings.HasPrefix(p, "/") {
-			return fmt.Errorf("invalid unit path \"%s\"", c.Unit)
+	if c.Unit != "" {
+		if strings.HasPrefix(c.Unit, "./src/") {
+			p := filepath.Clean(strings.TrimPrefix(c.Unit, "./src/"))
+			if p == "" || strings.HasPrefix(p, ".") || strings.HasPrefix(p, "/") {
+				return fmt.Errorf("invalid unit path \"%s\"", c.Unit)
+			}
+			c.unit = sx.MakePath(sx.Loc, p)
+		} else {
+			c.unit = sx.MakePath(sx.Loc, c.Unit)
 		}
-		c.unit = sx.MakePath(sx.Loc, p)
-	} else {
-		c.unit = sx.MakePath(sx.Loc, c.Unit)
 	}
 	// TODO: validate resulting unit path
 
@@ -219,7 +240,13 @@ func (c *Config) setDefaults() error {
 	}
 
 	if c.Name == "" {
-		name := filepath.Base(c.Unit)
+		var name string
+		switch {
+		case c.File != "":
+			name = strings.TrimSuffix(filepath.Base(c.File), ".ku")
+		case c.Unit != "":
+			name = filepath.Base(c.Unit)
+		}
 		if name == "" {
 			panic("empty unit name")
 		}

@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/mebyus/ku/internal/ku/ast"
+	"github.com/mebyus/ku/internal/ku/builder/kub"
 	"github.com/mebyus/ku/internal/ku/genb"
 	"github.com/mebyus/ku/internal/ku/parser"
 	"github.com/mebyus/ku/internal/ku/stg"
@@ -31,7 +32,12 @@ func CompileForVM32B(path string) (*vm32b.Prog, error) {
 	}
 
 	var prog stg.Program
-	typers := stg.NewPool(pool)
+	typers := stg.NewPool(kub.Build{
+		Target: kub.Target{
+			Arch: kub.ArchVM32B,
+			OS:   kub.Bare,
+		},
+	}, pool)
 	typer := typers.Get()
 	unit := stg.Unit{Name: "ku"}
 	typer.Do(&unit, []*ast.Text{text})

@@ -94,7 +94,7 @@ func (w *walker) walk() {
 		}
 
 		var u unit
-		ok := w.load(item, &u)
+		ok := w.load(&item, &u)
 		if !ok {
 			// failed to load due to error, which
 			// is already reported
@@ -154,26 +154,54 @@ func (w *walker) getlist(imports []isite) []uid {
 	return list
 }
 
-// returns true if unit was loaded successfully (there may still be some errors)
-func (w *walker) load(item witem, u *unit) bool {
+// returns nil if there was an error loading unit files
+// specified in walk item
+func (w *walker) loadfiles(item *witem, u *unit) []*sx.Text {
+	if item.file != "" {
+		// TODO: better algorithm for generating unit name
+		// from single file name
+		name := "_file_" + strings.TrimSuffix(filepath.Base(item.file), ".ku")
+		u.name = name
+
+		file, err := w.pool.Load(item.file)
+		if err != nil {
+			w.report(&sx.Error{
+				Pin:   item.pin,
+				Short: fmt.Sprintf("load unit \"%s\" source file: %v", name, err),
+			})
+			return nil
+		}
+		return []*sx.Text{file}
+	}
+
 	dir := w.resolve(item.path)
 	if dir == "" {
-		return false
+		return nil
 	}
 
 	u.path = item.path
 	u.name = item.path.Name()
 	u.dir = dir
 
-	files, loadErr := w.pool.LoadDir(&sx.LoadParams{
+	files, err := w.pool.LoadDir(&sx.LoadParams{
 		Dir:              dir,
 		IncludeTestFiles: item.includeTestFiles,
 	})
-	if loadErr != nil {
+	if err != nil {
 		w.report(&sx.Error{
 			Pin:   item.pin,
-			Short: fmt.Sprintf("load unit \"%s\" source files: %v", item.path, loadErr),
+			Short: fmt.Sprintf("load unit \"%s\" source files: %v", item.path, err),
 		})
+		return nil
+	}
+
+	return files
+}
+
+// returns true if unit was loaded successfully (there may still be some errors)
+func (w *walker) load(item *witem, u *unit) bool {
+	files := w.loadfiles(item, u)
+	if len(files) == 0 {
 		return false
 	}
 
@@ -319,6 +347,15 @@ type witem struct {
 	// unit path we want to load
 	path sx.Path
 
+	// system path to a single source file
+	//
+	// if not empty use this instead of unit path to load
+	// unit from a single file instead of whole directory
+	//
+	// TODO: maybe we should just merge unit path and raw
+	// file path into one entity with distinct origins
+	file string
+
 	// Place where unit with this path is imported.
 	//
 	// There may be more than one import place for a specific unit inside the
@@ -347,13 +384,20 @@ func (q *queue) init() {
 // Add tries to add item to backlog. If a given path was
 // already visited then this call will be no-op.
 func (q *queue) add(item witem) {
-	_, ok := q.visited[item.path]
-	if ok {
-		// given path is already known to walker
-		return
+	switch {
+	case item.file != "":
+		// continue execution
+	case item.path != "":
+		_, ok := q.visited[item.path]
+		if ok {
+			// given path is already known to walker
+			return
+		}
+		q.visited[item.path] = struct{}{}
+	default:
+		panic("empty walk item")
 	}
 
-	q.visited[item.path] = struct{}{}
 	q.backlog = append(q.backlog, item)
 }
 
