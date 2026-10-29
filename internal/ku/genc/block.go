@@ -31,8 +31,8 @@ func (g *Buffer) node(s stg.Statement) {
 		g.ret(s)
 	case *stg.Branch:
 		g.branch(s)
-	case *stg.LineIf:
-		g.lineif(s)
+	case *stg.IfRet:
+		g.ifret(s)
 	case *stg.While:
 		g.while(s)
 	case *stg.Block:
@@ -42,11 +42,15 @@ func (g *Buffer) node(s stg.Statement) {
 	}
 }
 
-func (g *Buffer) lineif(f *stg.LineIf) {
+func (g *Buffer) ifret(f *stg.IfRet) {
 	g.puts("if (")
 	g.exp(f.Exp)
-	g.puts(") ")
-	g.node(f.Then)
+	g.puts(") return ")
+
+	if f.Ret != nil {
+		g.exp(f.Ret)
+	}
+	g.semi()
 }
 
 func (g *Buffer) branch(f *stg.Branch) {

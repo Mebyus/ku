@@ -107,7 +107,18 @@ func (c *compiler) stm(s ir.Stm) {
 		c.block(s.Body)
 
 		// backpatch jump address
-		c.prog.text[i].arg = uint32(len(c.prog.text))
+		c.patch(i, c.next())
+	case *ir.IfRet:
+		c.exp(s.Exp)
+		i := c.emit(opJZ, 0)
+
+		if s.Ret != nil {
+			c.exp(s.Ret)
+		}
+		c.emit(opRET, 0)
+
+		// backpatch jump address
+		c.patch(i, c.next())
 	case *ir.While:
 		i := c.emit(opJUMP, 0) // jump to loop epilogue
 		c.block(s.Body)
@@ -251,6 +262,16 @@ func (c *compiler) emit(op op, arg uint32) ia {
 		arg: arg,
 	})
 	return i
+}
+
+// returns address of next instruction to be emitted
+func (c *compiler) next() ia {
+	return ia(len(c.prog.text))
+}
+
+// do a backpatch for jump address in instruction at address i
+func (c *compiler) patch(i ia, addr ia) {
+	c.prog.text[i].arg = uint32(addr)
 }
 
 // checks that local variable with the given name is defined

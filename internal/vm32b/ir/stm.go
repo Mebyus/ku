@@ -61,6 +61,18 @@ type IfBlock struct {
 
 var _ Stm = &IfBlock{}
 
+// short if-return
+type IfRet struct {
+	stm
+
+	Exp Exp
+
+	// can be nil if it returns nothing
+	Ret Exp
+}
+
+var _ Stm = &IfRet{}
+
 type While struct {
 	stm
 

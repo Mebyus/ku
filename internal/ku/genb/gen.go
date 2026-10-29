@@ -180,6 +180,15 @@ func (g *builder) stm(s stg.Statement) ir.Stm {
 			Exp:  g.exp(s.Exp),
 			Body: g.block(&s.Body),
 		}
+	case *stg.IfRet:
+		var ret ir.Exp
+		if s.Ret != nil {
+			ret = g.exp(s.Ret)
+		}
+		return &ir.IfRet{
+			Exp: g.exp(s.Exp),
+			Ret: ret,
+		}
 	case *stg.While:
 		return &ir.While{
 			Exp:  g.exp(s.Exp),

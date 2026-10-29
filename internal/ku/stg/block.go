@@ -91,24 +91,6 @@ func (r *Return) Pin() sx.Pin {
 	return r.pin
 }
 
-type LineIf struct {
-	stm
-
-	// condition, must have boolean type
-	Exp Exp
-
-	// true branch
-	Then Statement
-
-	pin sx.Pin
-}
-
-var _ Statement = &LineIf{}
-
-func (f *LineIf) Pin() sx.Pin {
-	return f.pin
-}
-
 type IfBlock struct {
 	stm
 

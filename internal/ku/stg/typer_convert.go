@@ -146,7 +146,7 @@ func (t *Typer) convertNode(c *Scope, s ast.Statement) (Statement, nodestat) {
 	case *ast.Branch:
 		return t.convertBranch(c, s)
 	case *ast.IfFlow:
-		return t.convertLineIf(c, s)
+		return t.convertIfFlow(c, s)
 	// case ast.Match:
 	// 	return t.translateMatch(s)
 	case *ast.AssignSymbol:
@@ -365,18 +365,28 @@ func (t *Typer) convertWhile(s *Scope, while *ast.While) (Statement, nodestat) {
 	return &w, nodestat{exits: exits, etyp: etyp}
 }
 
-func (t *Typer) convertLineIf(s *Scope, f *ast.IfFlow) (Statement, nodestat) {
+func (t *Typer) convertIfFlow(s *Scope, f *ast.IfFlow) (Statement, nodestat) {
 	exp := t.convertExp(&context{scope: s}, f.Exp)
 	typ := exp.Type()
-	if typ.Kind != typk.Invalid && typ.Kind != typk.Boolean {
+	if !typ.IsInvalid() && typ.Kind != typk.Boolean {
 		// invalid expression was already reported earlier during expression conversion
 		// no sense reporting it twice
 		t.report(exp.Pin(), fmt.Sprintf("value of %s type used in branch condition (must be boolean type instead)", typ))
 	}
 
-	m := LineIf{Exp: exp, pin: f.Pin}
-	m.Then, _ = t.convertNode(s, f.Then)
-	return &m, nodestat{exits: 1, etyp: ExitBranch}
+	node, _ := t.convertNode(s, f.Then)
+
+	switch n := node.(type) {
+	case *Return:
+		return &IfRet{
+			Exp: exp,
+			Ret: n.Exp,
+			pin: f.Pin,
+		}, nodestat{exits: 1, etyp: ExitBranch}
+	default:
+		t.report(n.Pin(), "short if (without block) can only be used for jump-like statements")
+		return nil, nodestat{}
+	}
 }
 
 func (t *Typer) convertIfBlock(s *Scope, f *ast.IfBlock) (Statement, nodestat) {
