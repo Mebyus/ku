@@ -101,14 +101,14 @@ func Build(config *Config) *Result {
 
 	n += len(w.errors)
 	for _, e := range w.errors {
-		sx.FormatError(w.pool, os.Stderr, e)
+		w.pool.FormatError(os.Stderr, e)
 	}
 
 	for _, u := range w.units {
 		n += len(u.errors)
 		for _, e := range u.errors {
 			// TODO: refactor into sx.Error
-			pos := w.pool.DecodePin(e.Pin)
+			pos := w.pool.FormatPin(e.Pin)
 			fmt.Fprintf(os.Stderr, "%s: %s\n", pos, e.Short)
 		}
 	}

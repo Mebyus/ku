@@ -41,15 +41,15 @@ func (p Pin) Pos() Pos {
 
 // FilePos refers to position inside text file as path + (line, column).
 type FilePos struct {
-	Path string
-	Pos  TextPos
+	Label string
+	Pos   TextPos
 }
 
 func (p FilePos) String() string {
-	if p.Path == "" {
+	if p.Label == "" {
 		return "???:" + p.Pos.String()
 	}
-	return p.Path + ":" + p.Pos.String()
+	return p.Label + ":" + p.Pos.String()
 }
 
 // TextPos refers to position inside a text as (line, column) pair.

@@ -34,7 +34,7 @@ func (t *Typer) checkReturnType(rt *Type, exp Exp) {
 	}
 
 	if et == nil {
-		t.report(exp.Pin(), fmt.Sprintf("expression yield empty value where %s must be in return statement", rt))
+		t.report(exp.Pin(), 0, fmt.Sprintf("expression yield empty value where %s must be in return statement", rt))
 		return
 	}
 
@@ -60,7 +60,7 @@ func (t *Typer) checkReturnType(rt *Type, exp Exp) {
 		return
 	}
 
-	t.report(exp.Pin(), fmt.Sprintf("cannot use expression of %s value as %s in return statement", et, rt))
+	t.report(exp.Pin(), 0, fmt.Sprintf("cannot use expression of %s value as %s in return statement", et, rt))
 }
 
 // checks that assignment has compatible types between target and assigned expression
@@ -80,7 +80,7 @@ func (t *Typer) checkAssignType(at *Type, exp Exp) {
 		}
 	}
 
-	t.report(exp.Pin(), fmt.Sprintf("cannot use expression of %s value as %s in assignment", typ, at))
+	t.report(exp.Pin(), 0, fmt.Sprintf("cannot use expression of %s value as %s in assignment", typ, at))
 }
 
 // check call argument type against parameter type
@@ -100,7 +100,7 @@ func (t *Typer) checkArgType(pt *Type, exp Exp) {
 		}
 	}
 
-	t.report(exp.Pin(), fmt.Sprintf("cannot use expression of %s value as %s call argument", typ, pt))
+	t.report(exp.Pin(), 0, fmt.Sprintf("cannot use expression of %s value as %s call argument", typ, pt))
 }
 
 // does typechecking of binary expression and sets its resulting type
@@ -133,7 +133,7 @@ func (t *Typer) checkBinExpType(exp *BinExp) {
 		return
 	}
 
-	t.report(exp.Pin(), fmt.Sprintf("incompatible types %s and %s in binary expression", at, bt))
+	t.report(exp.Pin(), 0, fmt.Sprintf("incompatible types %s and %s in binary expression", at, bt))
 	exp.typ = t.common.Types.Invalid
 }
 
@@ -144,7 +144,7 @@ func (t *Typer) checkComparisonIntegerType(exp *BinExp, at, bt *Type) {
 		return
 	}
 
-	t.report(exp.Pin(), fmt.Sprintf("incompatible integer types %s and %s in order comparison", at, bt))
+	t.report(exp.Pin(), 0, fmt.Sprintf("incompatible integer types %s and %s in order comparison", at, bt))
 }
 
 func (t *Typer) checkEqualityIntegerType(exp *BinExp, at, bt *Type) {
@@ -154,7 +154,7 @@ func (t *Typer) checkEqualityIntegerType(exp *BinExp, at, bt *Type) {
 		return
 	}
 
-	t.report(exp.Pin(), fmt.Sprintf("incompatible integer types %s and %s in equality comparison", at, bt))
+	t.report(exp.Pin(), 0, fmt.Sprintf("incompatible integer types %s and %s in equality comparison", at, bt))
 }
 
 func (t *Typer) checkAddIntegerType(exp *BinExp, at, bt *Type) {
@@ -172,12 +172,12 @@ func (t *Typer) checkAddIntegerType(exp *BinExp, at, bt *Type) {
 	}
 
 	if at.IsSigned() != bt.IsSigned() {
-		t.report(exp.Op.Pin, fmt.Sprintf("cannot add integers with different signedness (%s and %s)", at, bt))
+		t.report(exp.Op.Pin, 0, fmt.Sprintf("cannot add integers with different signedness (%s and %s)", at, bt))
 		return
 	}
 
 	if at.Size != bt.Size {
-		t.report(exp.Op.Pin, fmt.Sprintf("cannot add integers of different size (%s and %s)", at, bt))
+		t.report(exp.Op.Pin, 0, fmt.Sprintf("cannot add integers of different size (%s and %s)", at, bt))
 		return
 	}
 }

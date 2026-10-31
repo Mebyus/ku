@@ -10,11 +10,18 @@ import (
 
 // Pool loads and stores source files. Stored files can be accessed as Text.
 // Can decode Pin to FilePos if it comes from one of stored files.
+//
+// It also can store errors reported during build and compilation.
 type Pool struct {
 	// List of all stored texts in order they were loaded.
 	list []*Text
 
+	ers []Error
+
 	m map[ /* path */ string]*Text
+
+	// highest violation level among all collected errors
+	vmax Viol
 }
 
 func New() *Pool {
@@ -28,11 +35,11 @@ func (p *Pool) DecodePin(pin Pin) FilePos {
 		return FilePos{}
 	}
 	if pos.Offset > uint32(len(text.Data)) {
-		return FilePos{}
+		return FilePos{Label: text.Label()}
 	}
 	return FilePos{
-		Path: text.Path,
-		Pos:  FindTextPos(text.Data, pos.Offset),
+		Label: text.Label(),
+		Pos:   FindTextPos(text.Data, pos.Offset),
 	}
 }
 
@@ -41,6 +48,28 @@ func (p *Pool) FormatPin(pin Pin) string {
 		return ""
 	}
 	return p.DecodePin(pin).String()
+}
+
+// FromString creates new Text inside the pool from provided data string.
+func (p *Pool) FromString(label string, text string) *Text {
+	t := &Text{
+		label: label,
+		Data:  text,
+		Ext:   filepath.Ext(label),
+		Hash:  hashText(text),
+	}
+	p.bind(t)
+	return t
+}
+
+func (p *Pool) FromReader(label string, r io.Reader) (*Text, error) {
+	var g strings.Builder
+	_, err := io.Copy(&g, r)
+	if err != nil {
+		return nil, err
+	}
+
+	return p.FromString(label, g.String()), nil
 }
 
 // Load loads a file by given path and stores it into internal cache.
@@ -67,11 +96,15 @@ func (p *Pool) Load(path string) (*Text, error) {
 }
 
 func (p *Pool) add(path string, text *Text) {
+	p.bind(text)
+	p.m[path] = text
+}
+
+// assigns id to a text and stores it inside the pool
+func (p *Pool) bind(text *Text) {
 	id := uint32(len(p.list)) + 1
 	text.ID = id
-
 	p.list = append(p.list, text)
-	p.m[path] = text
 }
 
 // get returns stored Text by its id.

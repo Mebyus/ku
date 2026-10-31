@@ -44,13 +44,8 @@ func CompileForVM32B(path string) (*vm32b.Prog, error) {
 	typers.Put(typer)
 	prog.Units = append(prog.Units, &unit)
 
-	n += len(unit.Errors)
-	for _, e := range unit.Errors {
-		pos := pool.DecodePin(e.Pin)
-		fmt.Fprintf(os.Stderr, "%s: %s\n", pos, e.Short)
-	}
-
-	if n != 0 {
+	if pool.HasErrors() {
+		pool.DumpErrors(os.Stderr)
 		os.Exit(1)
 	}
 

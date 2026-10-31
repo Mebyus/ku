@@ -39,6 +39,8 @@ const (
 	Loc
 
 	// Bad (invalid) origin.
+	//
+	// TODO: maybe just make it zero?
 	Bad
 )
 

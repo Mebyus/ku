@@ -145,11 +145,11 @@ func (t *Typer) lookupTypeName(s *Scope, p *ast.TypeName) *Type {
 
 	symbol := s.Lookup(name)
 	if symbol == nil {
-		t.report(pin, fmt.Sprintf("unknown type \"%s\"", name))
+		t.report(pin, 0, fmt.Sprintf("unknown type \"%s\"", name))
 		return t.common.Types.Invalid
 	}
 	if symbol.Kind != symk.Type {
-		t.report(pin, fmt.Sprintf("expected type here, but name \"%s\" refers to %s symbol", name, symbol.Kind))
+		t.report(pin, 0, fmt.Sprintf("expected type here, but name \"%s\" refers to %s symbol", name, symbol.Kind))
 		return t.common.Types.Invalid
 	}
 
@@ -187,7 +187,7 @@ func (t *Typer) lookupArray(s *Scope, a *ast.Array) *Type {
 
 	num, errtext := asArrayNum(exp)
 	if errtext != "" {
-		t.report(exp.Pin(), errtext)
+		t.report(exp.Pin(), 0, errtext)
 		return t.common.Types.Invalid
 	}
 	if num == 0 {

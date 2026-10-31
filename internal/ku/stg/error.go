@@ -2,11 +2,12 @@ package stg
 
 import "github.com/mebyus/ku/internal/ku/sx"
 
-func (t *Typer) report(pin sx.Pin, msg string) {
-	t.unit.Errors = append(t.unit.Errors, &Error{
-		Pin:   pin,
-		Short: msg,
-	})
+func (t *Typer) report(pin sx.Pin, typ sx.ErrorType, short string, notes ...string) {
+	t.common.Pool.Report(pin, typ, short, notes...)
+	// t.unit.Errors = append(t.unit.Errors, &Error{
+	// 	Pin:   pin,
+	// 	Short: msg,
+	// })
 }
 
 // InvExp represents invalid expression. It can be syntactically malformed or

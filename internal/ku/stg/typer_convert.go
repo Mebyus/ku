@@ -31,7 +31,7 @@ func (t *Typer) convertFun(def *FunDef, f *ast.Fun) {
 		} else {
 			pin = def.Body.Nodes[len(def.Body.Nodes)-1].Pin()
 		}
-		t.report(pin, "not all paths result in return from this function body")
+		t.report(pin, 0, "not all paths result in return from this function body")
 	}
 }
 
@@ -84,7 +84,7 @@ func (t *Typer) convertBlock(block *Block, b *ast.Block) {
 		if stat.etyp == ExitAlways && i != len(b.Nodes)-1 {
 			// TODO: make this a warning
 			// TODO: extract pin from statement here
-			t.report(0, "dead code after statement that terminates further execution")
+			t.report(0, 0, "dead code after statement that terminates further execution")
 		}
 
 		if stat.etyp > etyp {
@@ -115,11 +115,11 @@ func (t *Typer) checkSymbolUsage(block *Block) {
 		}
 
 		if s.rnum+s.wnum == 0 {
-			t.report(s.Pin, fmt.Sprintf("symbol \"%s\" was declared but never used", s.Name))
+			t.report(s.Pin, 0, fmt.Sprintf("symbol \"%s\" was declared but never used", s.Name))
 			continue
 		}
 		if s.rnum == 0 {
-			t.report(s.Pin, fmt.Sprintf("no reads from symbol \"%s\"", s.Name))
+			t.report(s.Pin, 0, fmt.Sprintf("no reads from symbol \"%s\"", s.Name))
 		}
 	}
 }
@@ -202,7 +202,7 @@ func (t *Typer) convertVar(s *Scope, c *ast.Var) Statement {
 
 	symbol := s.Get(name)
 	if symbol != nil {
-		t.report(pin, fmt.Sprintf("symbol named \"%s\" was already declared in this block", name))
+		t.report(pin, 0, fmt.Sprintf("symbol named \"%s\" was already declared in this block", name))
 		return nil
 	}
 
@@ -243,7 +243,7 @@ func (t *Typer) convertCreate(s *Scope, c *ast.Create) Statement {
 
 	symbol := s.Get(name)
 	if symbol != nil {
-		t.report(pin, fmt.Sprintf("symbol named \"%s\" was already declared in this block", name))
+		t.report(pin, 0, fmt.Sprintf("symbol named \"%s\" was already declared in this block", name))
 		return nil
 	}
 
@@ -268,7 +268,7 @@ func (t *Typer) convertConst(s *Scope, c *ast.Const) Statement {
 
 	symbol := s.Get(name)
 	if symbol != nil {
-		t.report(pin, fmt.Sprintf("symbol named \"%s\" was already declared in this block", name))
+		t.report(pin, 0, fmt.Sprintf("symbol named \"%s\" was already declared in this block", name))
 		return nil
 	}
 
@@ -296,7 +296,7 @@ func (t *Typer) convertConst(s *Scope, c *ast.Const) Statement {
 func (t *Typer) convertAssign(s *Scope, c *ast.Assign) (Statement, nodestat) {
 	target := t.convertExp(&context{scope: s, wuse: true}, c.Target)
 	if !target.Target() {
-		t.report(target.Pin(), "cannot assign to expression of this form")
+		t.report(target.Pin(), 0, "cannot assign to expression of this form")
 	}
 	exp := t.convertExp(&context{scope: s}, c.Exp)
 	t.checkAssignType(target.Type(), exp)
@@ -313,11 +313,11 @@ func (t *Typer) convertAssignSymbol(s *Scope, c *ast.AssignSymbol) (Statement, n
 
 	symbol := s.Lookup(name)
 	if symbol == nil {
-		t.report(pin, fmt.Sprintf("unknown symbol \"%s\" used as assignment target", name))
+		t.report(pin, 0, fmt.Sprintf("unknown symbol \"%s\" used as assignment target", name))
 		return nil, nodestat{}
 	}
 	if symbol.Kind != symk.Var {
-		t.report(pin, fmt.Sprintf("symbol \"%s\" is not a variable and thus cannot be target for assignment", name))
+		t.report(pin, 0, fmt.Sprintf("symbol \"%s\" is not a variable and thus cannot be target for assignment", name))
 		return nil, nodestat{}
 	}
 
@@ -333,7 +333,7 @@ func (t *Typer) convertAssignSymbol(s *Scope, c *ast.AssignSymbol) (Statement, n
 func (t *Typer) convertAssignDiscard(s *Scope, c *ast.AssignDiscard) (Statement, nodestat) {
 	exp := t.convertExp(&context{scope: s}, c.Exp)
 	if exp.Type() == nil {
-		t.report(exp.Pin(), "cannot discard expression which yields nothing")
+		t.report(exp.Pin(), 0, "cannot discard expression which yields nothing")
 	}
 
 	return &DiscardExp{
@@ -348,7 +348,7 @@ func (t *Typer) convertWhile(s *Scope, while *ast.While) (Statement, nodestat) {
 	if typ.Kind != typk.Invalid && typ.Kind != typk.Boolean {
 		// invalid expression was already reported earlier during expression conversion
 		// no sense reporting it twice
-		t.report(exp.Pin(), fmt.Sprintf("value of %s type used in branch condition (must be boolean type instead)", typ))
+		t.report(exp.Pin(), 0, fmt.Sprintf("value of %s type used in branch condition (must be boolean type instead)", typ))
 	}
 
 	w := While{Exp: exp, pin: while.Pin}
@@ -371,7 +371,7 @@ func (t *Typer) convertIfFlow(s *Scope, f *ast.IfFlow) (Statement, nodestat) {
 	if !typ.IsInvalid() && typ.Kind != typk.Boolean {
 		// invalid expression was already reported earlier during expression conversion
 		// no sense reporting it twice
-		t.report(exp.Pin(), fmt.Sprintf("value of %s type used in branch condition (must be boolean type instead)", typ))
+		t.report(exp.Pin(), 0, fmt.Sprintf("value of %s type used in branch condition (must be boolean type instead)", typ))
 	}
 
 	node, _ := t.convertNode(s, f.Then)
@@ -384,7 +384,7 @@ func (t *Typer) convertIfFlow(s *Scope, f *ast.IfFlow) (Statement, nodestat) {
 			pin: f.Pin,
 		}, nodestat{exits: 1, etyp: ExitBranch}
 	default:
-		t.report(n.Pin(), "short if (without block) can only be used for jump-like statements")
+		t.report(n.Pin(), 0, "short if (without block) can only be used for jump-like statements")
 		return nil, nodestat{}
 	}
 }
@@ -395,7 +395,7 @@ func (t *Typer) convertIfBlock(s *Scope, f *ast.IfBlock) (Statement, nodestat) {
 	if typ.Kind != typk.Invalid && typ.Kind != typk.Boolean {
 		// invalid expression was already reported earlier during expression conversion
 		// no sense reporting it twice
-		t.report(exp.Pin(), fmt.Sprintf("value of %s type used in branch condition (must be boolean type instead)", typ))
+		t.report(exp.Pin(), 0, fmt.Sprintf("value of %s type used in branch condition (must be boolean type instead)", typ))
 	}
 
 	m := IfBlock{Exp: exp, pin: f.Pin}
@@ -417,7 +417,7 @@ func (t *Typer) convertBranch(s *Scope, f *ast.Branch) (Statement, nodestat) {
 	if typ.Kind != typk.Invalid && typ.Kind != typk.Boolean {
 		// invalid expression was already reported earlier during expression conversion
 		// no sense reporting it twice
-		t.report(exp.Pin(), fmt.Sprintf("value of %s type used in branch condition (must be boolean type instead)", typ))
+		t.report(exp.Pin(), 0, fmt.Sprintf("value of %s type used in branch condition (must be boolean type instead)", typ))
 	}
 
 	m := Branch{Exp: exp, pin: f.Pin}
@@ -458,15 +458,15 @@ func (t *Typer) convertReturn(s *Scope, r *ast.Return) Statement {
 	pin := r.Pin
 
 	if t.sig.Never {
-		t.report(pin, "return in function which never returns according to declaration")
+		t.report(pin, 0, "return in function which never returns according to declaration")
 	} else {
 		if t.sig.Result == nil {
 			if r.Exp != nil {
-				t.report(pin, "non-empty return expression in function with declared void result")
+				t.report(pin, 0, "non-empty return expression in function with declared void result")
 			}
 		} else {
 			if r.Exp == nil {
-				t.report(pin, "return with no expression in function that must return something")
+				t.report(pin, 0, "return with no expression in function that must return something")
 			}
 		}
 	}
@@ -527,14 +527,14 @@ func (t *Typer) convertSymAddr(c *context, exp *ast.SymAddr) Exp {
 
 	symbol := c.scope.Lookup(name)
 	if symbol == nil {
-		t.report(pin, fmt.Sprintf("call to unknown symbol \"%s\"", name))
+		t.report(pin, 0, fmt.Sprintf("call to unknown symbol \"%s\"", name))
 		return t.makeInvExp(pin)
 	}
 	switch symbol.Kind {
 	case symk.Var, symk.Car, symk.Param:
 		// continue execution
 	default:
-		t.report(pin, fmt.Sprintf("cannot take address of \"%s\" which is a %s", name, symbol.Kind))
+		t.report(pin, 0, fmt.Sprintf("cannot take address of \"%s\" which is a %s", name, symbol.Kind))
 		return t.makeInvExp(pin)
 	}
 
@@ -552,13 +552,13 @@ func (t *Typer) convertSymDeref(c *context, exp *ast.SymDeref) Exp {
 
 	symbol := c.scope.Lookup(name)
 	if symbol == nil {
-		t.report(pin, fmt.Sprintf("call to unknown symbol \"%s\"", name))
+		t.report(pin, 0, fmt.Sprintf("call to unknown symbol \"%s\"", name))
 		return t.makeInvExp(pin)
 	}
 
 	var typ *Type
 	if symbol.Type.Kind != typk.Ref {
-		t.report(pin, fmt.Sprintf("symbol \"%s\" is not a reference type and thus cannot be dereferenced", name))
+		t.report(pin, 0, fmt.Sprintf("symbol \"%s\" is not a reference type and thus cannot be dereferenced", name))
 		typ = t.common.Types.Invalid
 	} else {
 		typ = symbol.Type.Def.(*Ref).Type
@@ -582,17 +582,17 @@ func (t *Typer) convertInvokeSymbol(c *Scope, s *ast.InvokeSymbol) (Statement, n
 
 	symbol := c.Lookup(name)
 	if symbol == nil {
-		t.report(pin, fmt.Sprintf("call to unknown symbol \"%s\"", name))
+		t.report(pin, 0, fmt.Sprintf("call to unknown symbol \"%s\"", name))
 		return nil, nodestat{}
 	}
 	if symbol.Kind != symk.Fun {
-		t.report(pin, fmt.Sprintf("cannot call \"%s\" which is not a function", name))
+		t.report(pin, 0, fmt.Sprintf("cannot call \"%s\" which is not a function", name))
 		return nil, nodestat{}
 	}
 
 	def := symbol.Def.(*FunDef)
 	if def.Result != nil {
-		t.report(pin, fmt.Sprintf("implicit discard of function \"%s\" call result", name))
+		t.report(pin, 0, fmt.Sprintf("implicit discard of function \"%s\" call result", name))
 	}
 
 	args := t.convertCallArgs(&context{scope: c, pin: pin}, name, def.Inputs, s.Args)
@@ -612,11 +612,11 @@ func (t *Typer) convertCallArgs(c *context, name string, inputs []*Type, list []
 	}
 
 	if len(list) < len(inputs) {
-		t.report(c.pin, fmt.Sprintf("not enough arguments to call \"%s\" (got %d, want %d)", name, len(list), len(list)))
+		t.report(c.pin, 0, fmt.Sprintf("not enough arguments to call \"%s\" (got %d, want %d)", name, len(list), len(list)))
 		return nil
 	}
 	if len(list) > len(inputs) {
-		t.report(c.pin, fmt.Sprintf("too many arguments in call to \"%s\" (got %d, want %d)", name, len(list), len(list)))
+		t.report(c.pin, 0, fmt.Sprintf("too many arguments in call to \"%s\" (got %d, want %d)", name, len(list), len(list)))
 		return nil
 	}
 
@@ -635,11 +635,11 @@ func (t *Typer) convertSymCall(c *context, exp *ast.SymCall) Exp {
 
 	symbol := c.scope.Lookup(name)
 	if symbol == nil {
-		t.report(pin, fmt.Sprintf("call to unknown symbol \"%s\"", name))
+		t.report(pin, 0, fmt.Sprintf("call to unknown symbol \"%s\"", name))
 		return t.makeInvExp(pin)
 	}
 	if symbol.Kind != symk.Fun {
-		t.report(pin, fmt.Sprintf("cannot call \"%s\" which is not a function", name))
+		t.report(pin, 0, fmt.Sprintf("cannot call \"%s\" which is not a function", name))
 		return t.makeInvExp(pin)
 	}
 
@@ -647,9 +647,9 @@ func (t *Typer) convertSymCall(c *context, exp *ast.SymCall) Exp {
 	def := symbol.Def.(*FunDef)
 	if def.Result == nil {
 		if def.Never {
-			t.report(pin, fmt.Sprintf("call to \"%s\" never returns and thus cannot be used as expression", name))
+			t.report(pin, 0, fmt.Sprintf("call to \"%s\" never returns and thus cannot be used as expression", name))
 		} else {
-			t.report(pin, fmt.Sprintf("call to \"%s\" returns nothing and thus cannot be used as expression", name))
+			t.report(pin, 0, fmt.Sprintf("call to \"%s\" returns nothing and thus cannot be used as expression", name))
 		}
 		inv = true
 	}
@@ -673,7 +673,7 @@ func (t *Typer) convertSymZeroExp(c *context, exp *ast.SymZeroExp) Exp {
 
 	symbol := c.scope.Lookup(name)
 	if symbol == nil {
-		t.report(pin, fmt.Sprintf("unknown symbol \"%s\" used as expression", name))
+		t.report(pin, 0, fmt.Sprintf("unknown symbol \"%s\" used as expression", name))
 		return t.makeInvExp(pin)
 	}
 
@@ -692,7 +692,7 @@ func (t *Typer) convertSymExp(c *context, exp *ast.SymExp) Exp {
 
 	symbol := c.scope.Lookup(name)
 	if symbol == nil {
-		t.report(pin, fmt.Sprintf("unknown symbol \"%s\" used as expression", name))
+		t.report(pin, 0, fmt.Sprintf("unknown symbol \"%s\" used as expression", name))
 		return t.makeInvExp(pin)
 	}
 
@@ -712,7 +712,7 @@ func (t *Typer) convertSymExp(c *context, exp *ast.SymExp) Exp {
 		symk.Param:
 
 		if c.static {
-			t.report(pin, fmt.Sprintf("runtime value symbol \"%s\" used in compile-time expression", name))
+			t.report(pin, 0, fmt.Sprintf("runtime value symbol \"%s\" used in compile-time expression", name))
 			return t.makeInvExp(pin)
 		}
 
@@ -722,7 +722,7 @@ func (t *Typer) convertSymExp(c *context, exp *ast.SymExp) Exp {
 			Symbol: symbol,
 		}
 	default:
-		t.report(pin, fmt.Sprintf("symbol \"%s\" cannot be used as operand or expression", name))
+		t.report(pin, 0, fmt.Sprintf("symbol \"%s\" cannot be used as operand or expression", name))
 		return t.makeInvExp(pin)
 	}
 }
@@ -754,7 +754,7 @@ func (t *Typer) convertSliceAll(c *context, s *ast.SliceAll) Exp {
 		// slice all applied to string just gives the same string
 		return exp
 	default:
-		t.report(pin, fmt.Sprintf("cannot slice %s expression", typ))
+		t.report(pin, 0, fmt.Sprintf("cannot slice %s expression", typ))
 		return t.makeInvExp(pin)
 	}
 }
@@ -765,7 +765,7 @@ func (t *Typer) convertChain(c *context, chain *ast.Chain) Exp {
 
 	symbol := c.scope.Lookup(name)
 	if symbol == nil {
-		t.report(pin, fmt.Sprintf("unknown symbol \"%s\" used as expression", name))
+		t.report(pin, sx.UnknownSymbol, fmt.Sprintf("unknown symbol \"%s\" used as expression", name))
 		return t.makeInvExp(pin)
 	}
 
@@ -805,14 +805,14 @@ func (t *Typer) applyIndex(c *context, exp Exp, x *ast.Index) Exp {
 	if xtyp.IsInvalid() {
 		index = t.makeInvExp(index.Pin())
 	} else if xtyp.Kind != typk.Integer {
-		t.report(index.Pin(), fmt.Sprintf("cannot use %s expression as index", xtyp))
+		t.report(index.Pin(), 0, fmt.Sprintf("cannot use %s expression as index", xtyp))
 		index = t.makeInvExp(index.Pin())
 	}
 
 	if xtyp.IsStaticInteger() {
 		n := exp.(*Integer)
 		if n.Neg && n.Val != 0 {
-			t.report(index.Pin(), fmt.Sprintf("negative number (-%d) used as index", n.Val))
+			t.report(index.Pin(), 0, fmt.Sprintf("negative number (-%d) used as index", n.Val))
 			index = t.makeInvExp(index.Pin())
 		}
 	}
@@ -836,7 +836,7 @@ func (t *Typer) applyIndex(c *context, exp Exp, x *ast.Index) Exp {
 	case typk.Invalid:
 		return exp
 	default:
-		t.report(x.Pin, fmt.Sprintf("cannot index into %s expression", typ))
+		t.report(x.Pin, 0, fmt.Sprintf("cannot index into %s expression", typ))
 		return t.makeInvExp(x.Pin)
 	}
 }
@@ -855,7 +855,7 @@ func (t *Typer) applySelect(c *context, exp Exp, s *ast.Select) Exp {
 		case "ptr":
 			panic("stub")
 		default:
-			t.report(s.Pin, fmt.Sprintf("span type %s does not have \"%s\" field", typ, s.Name))
+			t.report(s.Pin, 0, fmt.Sprintf("span type %s does not have \"%s\" field", typ, s.Name))
 			return &InvExp{
 				pin: s.Pin,
 				typ: t.common.Types.Invalid,
@@ -864,7 +864,7 @@ func (t *Typer) applySelect(c *context, exp Exp, s *ast.Select) Exp {
 	case typk.Invalid:
 		return exp
 	default:
-		t.report(s.Pin, fmt.Sprintf("cannot use select operation on %s type", typ))
+		t.report(s.Pin, 0, fmt.Sprintf("cannot use select operation on %s type", typ))
 		return t.makeInvExp(s.Pin)
 	}
 }

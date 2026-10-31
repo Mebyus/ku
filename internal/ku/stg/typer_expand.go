@@ -84,7 +84,7 @@ func (t *Typer) hoistEvalConsts() {
 		if len(cycle) != 0 {
 			s := getSymbol(cycle[0])
 			cycleText := strings.Join(getSymbolNames(cycle), " -> ")
-			t.report(s.Pin, fmt.Sprintf("cycle dependency in constant definitions (%s)", cycleText))
+			t.report(s.Pin, 0, fmt.Sprintf("cycle dependency in constant definitions (%s)", cycleText))
 			continue
 		}
 
@@ -146,11 +146,11 @@ func (t *Typer) scanConstSymExpDeps(exp *ast.SymExp) {
 
 	s := t.unit.Scope.Lookup(name)
 	if s == nil {
-		t.report(pin, fmt.Sprintf("unresolved symbol \"%s\" used as expression", name))
+		t.report(pin, 0, fmt.Sprintf("unresolved symbol \"%s\" used as expression", name))
 		return
 	}
 	if s.Kind != symk.Const {
-		t.report(pin, fmt.Sprintf("symbol \"%s\" is not a constant, but used in constant expression", name))
+		t.report(pin, 0, fmt.Sprintf("symbol \"%s\" is not a constant, but used in constant expression", name))
 		return
 	}
 
@@ -162,6 +162,6 @@ func (t *Typer) scanConstSymExpDeps(exp *ast.SymExp) {
 
 	loop := t.deps.Add(s.RawSym())
 	if loop {
-		t.report(pin, fmt.Sprintf("definition for constant \"%s\" references itself", name))
+		t.report(pin, 0, fmt.Sprintf("definition for constant \"%s\" references itself", name))
 	}
 }

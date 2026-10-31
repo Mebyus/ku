@@ -59,7 +59,7 @@ func Walk(path string) []sx.Path {
 	w.walk()
 
 	for _, e := range w.errors {
-		sx.FormatError(w.pool, os.Stderr, e)
+		w.pool.FormatError(os.Stderr, e)
 	}
 
 	if len(w.units) == 0 {
