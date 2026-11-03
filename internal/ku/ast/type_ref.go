@@ -1,8 +1,11 @@
 package ast
 
-import "github.com/mebyus/ku/internal/ku/sx"
+import (
+	"github.com/mebyus/ku/internal/fbuf"
+	"github.com/mebyus/ku/internal/ku/sx"
+)
 
-// Pointer represents reference type specifier.
+// Ref represents reference type specifier.
 //
 // Formal definition:
 //
@@ -17,3 +20,8 @@ type Ref struct {
 }
 
 var _ TypeSpec = &Ref{}
+
+func (r *Ref) Format(buf *fbuf.Buffer) {
+	buf.Putb('&')
+	r.Type.Format(buf)
+}

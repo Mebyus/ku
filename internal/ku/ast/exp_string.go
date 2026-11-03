@@ -1,6 +1,9 @@
 package ast
 
-import "github.com/mebyus/ku/internal/ku/sx"
+import (
+	"github.com/mebyus/ku/internal/fbuf"
+	"github.com/mebyus/ku/internal/ku/sx"
+)
 
 // String represents a single string token usage inside the tree.
 type String struct {
@@ -18,3 +21,9 @@ type String struct {
 
 // Explicit interface implementation check.
 var _ Operand = &String{}
+
+func (s *String) Format(buf *fbuf.Buffer) {
+	buf.Putb('"')
+	buf.Puts(s.Val)
+	buf.Putb('"')
+}

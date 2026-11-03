@@ -1,26 +1,23 @@
 package ast
 
 // Status describes result of parsing source text.
+//
+// Zero value means that whole text was parsed successfully.
 type Status uint32
 
 const (
-	// Ok is the only error-free result of parsing.
-	//
-	// Means that whole text was parsed successfully.
-	Ok Status = iota
-
 	// Flawed means that text was parsed to the end, but
 	// contains parsing errors.
-	Flawed
+	Flawed Status = iota
 
 	// Parsing stopped because too many errors occured.
-	ErrorLimitReached
+	LimitReached
 
 	// Parsing stopped because sync after error failed.
-	ErrorSyncFailed
+	SyncFailed
 
 	// Parsing stopped because text contains too many illegal tokens.
-	ErrorIllegalTokens
+	IllegalTokens
 )
 
 // Text represents result of parsing a single source text.
@@ -37,14 +34,11 @@ type Text struct {
 
 	Consts []Const
 
-	// List of all (not only top-level) errors occured during parsing.
-	Errors []*Error
-
 	Status Status
 }
 
-func (t *Text) IsOk() bool {
-	return t.Status == Ok
+func (t *Text) HasErrors() bool {
+	return t.Status != 0
 }
 
 func (t *Text) AddImport(i Import) {

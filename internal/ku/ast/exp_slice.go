@@ -1,6 +1,9 @@
 package ast
 
-import "github.com/mebyus/ku/internal/ku/sx"
+import (
+	"github.com/mebyus/ku/internal/fbuf"
+	"github.com/mebyus/ku/internal/ku/sx"
+)
 
 // SliceAll
 //
@@ -15,3 +18,8 @@ type SliceAll struct {
 }
 
 var _ Operand = &SliceAll{}
+
+func (s *SliceAll) Format(buf *fbuf.Buffer) {
+	s.Chain.Format(buf)
+	buf.Puts("[:]")
+}

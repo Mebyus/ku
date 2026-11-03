@@ -1,10 +1,24 @@
 package ast
 
-import "github.com/mebyus/ku/internal/ku/sx"
+import (
+	"github.com/mebyus/ku/internal/fbuf"
+	"github.com/mebyus/ku/internal/ku/sx"
+)
 
 // TypeSpec node that represents type specifier of any kind.
 type TypeSpec interface {
+	// Discriminator method for interface implementations.
+	// Only serves as a trick to enhance Go typechecking in
+	// type assertions.
+	//
+	// Does nothing when called.
 	_spec()
+
+	// Format type specifier as text that should be very close
+	// or identical to what it was parsed from.
+	//
+	// Used mainly for tests and debugging.
+	Format(*fbuf.Buffer)
 }
 
 // Embed this to quickly implement _spec() discriminator from TypeSpec interface.
@@ -12,9 +26,6 @@ type TypeSpec interface {
 type spec struct{}
 
 func (spec) _spec() {}
-
-// Explicit interface implementation check.
-var _ TypeSpec = spec{}
 
 // Type represents top level custom type definition construct.
 //

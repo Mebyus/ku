@@ -1,6 +1,9 @@
 package ast
 
-import "github.com/mebyus/ku/internal/ku/sx"
+import (
+	"github.com/mebyus/ku/internal/fbuf"
+	"github.com/mebyus/ku/internal/ku/sx"
+)
 
 // Struct represents struct type specifier.
 //
@@ -17,6 +20,26 @@ type Struct struct {
 }
 
 var _ TypeSpec = &Struct{}
+
+func (s *Struct) Format(buf *fbuf.Buffer) {
+	if len(s.Fields) == 0 {
+		buf.Puts("struct {}")
+		return
+	}
+
+	buf.Puts("struct {\n")
+	buf.Inc()
+	for _, f := range s.Fields {
+		buf.Indent()
+		buf.Puts(f.Name)
+		buf.Puts(": ")
+		f.Type.Format(buf)
+		buf.Line()
+	}
+	buf.Dec()
+	buf.Indent()
+	buf.Putb('}')
+}
 
 // Field represents a single field in struct or union, or form type specifier.
 //

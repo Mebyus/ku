@@ -1,6 +1,9 @@
 package ast
 
-import "github.com/mebyus/ku/internal/ku/sx"
+import (
+	"github.com/mebyus/ku/internal/fbuf"
+	"github.com/mebyus/ku/internal/ku/sx"
+)
 
 // While represents a loop with condition.
 //
@@ -19,3 +22,10 @@ type While struct {
 }
 
 var _ Statement = &While{}
+
+func (w *While) Format(buf *fbuf.Buffer) {
+	buf.Puts("for ")
+	w.Exp.Format(buf)
+	buf.Space()
+	w.Body.Format(buf)
+}

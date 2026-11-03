@@ -1,6 +1,9 @@
 package ast
 
-import "github.com/mebyus/ku/internal/ku/sx"
+import (
+	"github.com/mebyus/ku/internal/fbuf"
+	"github.com/mebyus/ku/internal/ku/sx"
+)
 
 // Integer represents a single integer token usage inside the tree.
 type Integer struct {
@@ -17,3 +20,7 @@ type Integer struct {
 
 // Explicit interface implementation check.
 var _ Operand = &Integer{}
+
+func (n *Integer) Format(buf *fbuf.Buffer) {
+	buf.Putn(n.Val)
+}

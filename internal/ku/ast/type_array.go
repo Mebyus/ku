@@ -1,6 +1,9 @@
 package ast
 
-import "github.com/mebyus/ku/internal/ku/sx"
+import (
+	"github.com/mebyus/ku/internal/fbuf"
+	"github.com/mebyus/ku/internal/ku/sx"
+)
 
 // Array represents fixed size array type specifier.
 //
@@ -22,3 +25,10 @@ type Array struct {
 
 // Explicit interface implementation check.
 var _ TypeSpec = &Array{}
+
+func (a *Array) Format(buf *fbuf.Buffer) {
+	buf.Putb('[')
+	a.Exp.Format(buf)
+	buf.Putn(']')
+	a.Type.Format(buf)
+}

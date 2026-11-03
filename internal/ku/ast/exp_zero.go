@@ -1,13 +1,17 @@
 package ast
 
-import "github.com/mebyus/ku/internal/ku/sx"
+import (
+	"github.com/mebyus/ku/internal/fbuf"
+	"github.com/mebyus/ku/internal/ku/sx"
+)
 
-// SymExp represents expression operand formed by usage of symbol name and alter zero.
+// SymZero represents expression operand formed by usage of symbol
+// name and alter zero.
 //
 // Formal definition:
 //
-//	SymZeroExp -> word ".{}"
-type SymZeroExp struct {
+//	SymZero -> word ".{}"
+type SymZero struct {
 	operand
 
 	Name string
@@ -16,4 +20,9 @@ type SymZeroExp struct {
 }
 
 // Explicit interface implementation check.
-var _ Operand = &SymZeroExp{}
+var _ Operand = &SymZero{}
+
+func (z *SymZero) Format(buf *fbuf.Buffer) {
+	buf.Puts(z.Name)
+	buf.Puts(".{}")
+}

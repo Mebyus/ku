@@ -1,6 +1,9 @@
 package ast
 
-import "github.com/mebyus/ku/internal/ku/sx"
+import (
+	"github.com/mebyus/ku/internal/fbuf"
+	"github.com/mebyus/ku/internal/ku/sx"
+)
 
 // Block represents a sequence of statements inside a block.
 // Block can be a statement, function body, branch body, etc.
@@ -24,6 +27,25 @@ type Block struct {
 // Explicit interface implementation check.
 var _ Statement = &Block{}
 
+func (b *Block) Format(buf *fbuf.Buffer) {
+	if len(b.Nodes) == 0 {
+		buf.Puts("{}")
+		return
+	}
+
+	buf.Putb('{')
+	buf.Line()
+	buf.Inc()
+	for _, s := range b.Nodes {
+		buf.Indent()
+		s.Format(buf)
+		buf.Line()
+	}
+	buf.Dec()
+	buf.Indent()
+	buf.Putb('}')
+}
+
 // Statement node that represents statement of any kind.
 type Statement interface {
 	// Discriminator method for interface implementations.
@@ -32,13 +54,16 @@ type Statement interface {
 	//
 	// Does nothing when called.
 	_stm()
+
+	// Format statement as text that should be very close
+	// or identical to what it was parsed from.
+	//
+	// Used mainly for tests and debugging.
+	Format(*fbuf.Buffer)
 }
 
 // Embed this to quickly implement _stm() discriminator from Statement interface.
 // Do not use it for anything else.
 type stm struct{}
-
-// Explicit interface implementation check.
-var _ Statement = stm{}
 
 func (stm) _stm() {}

@@ -1,6 +1,9 @@
 package ast
 
-import "github.com/mebyus/ku/internal/ku/sx"
+import (
+	"github.com/mebyus/ku/internal/fbuf"
+	"github.com/mebyus/ku/internal/ku/sx"
+)
 
 // Var represents a statement that introduces a new variable
 // inside current scope.
@@ -26,6 +29,30 @@ type Var struct {
 
 var _ Statement = &Var{}
 
+func (v *Var) Format(buf *fbuf.Buffer) {
+	buf.Puts("var ")
+	buf.Puts(v.Name)
+
+	if v.Type == nil {
+		buf.Puts(" := ")
+		v.Exp.Format(buf)
+		buf.Semi()
+		return
+	}
+
+	buf.Puts(": ")
+	v.Type.Format(buf)
+
+	if v.Exp == nil {
+		buf.Semi()
+		return
+	}
+
+	buf.Puts(" = ")
+	v.Exp.Format(buf)
+	buf.Semi()
+}
+
 // Create represents a statement that define new (or reassigns old) fixed variable.
 //
 // Formal definition:
@@ -47,3 +74,10 @@ type Create struct {
 }
 
 var _ Statement = &Create{}
+
+func (c *Create) Format(buf *fbuf.Buffer) {
+	buf.Puts(c.Name)
+	buf.Puts(" := ")
+	c.Exp.Format(buf)
+	buf.Semi()
+}

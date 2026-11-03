@@ -1,8 +1,7 @@
 package ast
 
 import (
-	"github.com/mebyus/ku/internal/ku/enums/bop"
-	"github.com/mebyus/ku/internal/ku/enums/uop"
+	"github.com/mebyus/ku/internal/fbuf"
 	"github.com/mebyus/ku/internal/ku/sx"
 )
 
@@ -14,14 +13,17 @@ type Exp interface {
 	//
 	// Does nothing when called.
 	_exp()
+
+	// Format expression as text that should be very close
+	// or identical to what it was parsed from.
+	//
+	// Used mainly for tests and debugging.
+	Format(*fbuf.Buffer)
 }
 
 // Embed this to quickly implement _exp() discriminator from Exp interface.
 // Do not use it for anything else.
 type exp struct{}
-
-// Explicit interface implementation check.
-var _ Exp = exp{}
 
 func (exp) _exp() {}
 
@@ -45,123 +47,8 @@ type Operand interface {
 // Do not use it for anything else.
 type operand struct{}
 
-// Explicit interface implementation check.
-var _ Operand = operand{}
-
 func (operand) _exp()     {}
 func (operand) _operand() {}
-
-// Unary represents unary expression.
-//
-// Formal definition:
-//
-//	Unary -> UnaryOp ( Operand | Unary )
-type UnExp struct {
-	operand
-
-	// Expression to which operator applies.
-	//
-	// Can be either:
-	//	- operand (majority of cases in practice)
-	//	- another unary expression
-	A Exp
-
-	// Operator in unary expression.
-	Op uop.Op
-}
-
-// Explicit interface implementation check.
-var _ Operand = &UnExp{}
-
-// BinExp represents binary expression.
-type BinExp struct {
-	exp
-
-	// Left side of binary expression.
-	A Exp
-
-	// Right side of binary expression.
-	B Exp
-
-	Op bop.Op
-}
-
-// Explicit interface implementation check.
-var _ Exp = &BinExp{}
-
-type True struct {
-	operand
-
-	Pin sx.Pin
-}
-
-type False struct {
-	operand
-
-	Pin sx.Pin
-}
-
-// Explicit interface implementation check.
-var _ Operand = &True{}
-var _ Operand = &False{}
-
-// SymExp represents expression operand formed by usage of symbol name.
-type SymExp struct {
-	operand
-
-	Name string
-
-	Pin sx.Pin
-}
-
-// Explicit interface implementation check.
-var _ Operand = &SymExp{}
-
-// SymCall represents expression operand formed by function-like
-// call to a symbol.
-type SymCall struct {
-	operand
-
-	// can be nil if call does not have arguments
-	Args []Exp
-
-	// name of the called symbol
-	Name string
-
-	// name pin
-	Pin sx.Pin
-}
-
-// Explicit interface implementation check.
-var _ Operand = &SymCall{}
-
-// SymAddr represents expression formed by taking a symbol's address.
-type SymAddr struct {
-	operand
-
-	// symbol name which is being addressed
-	Name string
-
-	// name pin
-	Pin sx.Pin
-}
-
-// Explicit interface implementation check.
-var _ Operand = &SymAddr{}
-
-// SymDeref represents expression formed by dereferencing a symbol.
-type SymDeref struct {
-	operand
-
-	// symbol which is being dereferenced
-	Name string
-
-	// name pin
-	Pin sx.Pin
-}
-
-// Explicit interface implementation check.
-var _ Operand = &SymDeref{}
 
 // ParenExp represents an expression which consists of another expression and
 // parenthesis surrounding it.
@@ -181,3 +68,9 @@ type ParenExp struct {
 
 // Explicit interface implementation check.
 var _ Operand = &ParenExp{}
+
+func (p *ParenExp) Format(buf *fbuf.Buffer) {
+	buf.Putb('(')
+	p.Exp.Format(buf)
+	buf.Putb(')')
+}

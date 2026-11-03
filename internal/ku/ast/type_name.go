@@ -1,6 +1,9 @@
 package ast
 
-import "github.com/mebyus/ku/internal/ku/sx"
+import (
+	"github.com/mebyus/ku/internal/fbuf"
+	"github.com/mebyus/ku/internal/ku/sx"
+)
 
 // TypeName represents type specifier in form of type name usage via
 // single identifier.
@@ -17,3 +20,7 @@ type TypeName struct {
 
 // Explicit interface implementation check.
 var _ TypeSpec = &TypeName{}
+
+func (t *TypeName) Format(buf *fbuf.Buffer) {
+	buf.Puts(t.Name)
+}
