@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/mebyus/ku/internal/fbuf"
+	"github.com/mebyus/ku/internal/ku/ast"
 	"github.com/mebyus/ku/internal/ku/parser"
 	"github.com/mebyus/ku/internal/ku/sx"
 )
@@ -105,33 +107,28 @@ func parse(paths []string) error {
 		return err
 	}
 
-	var funs []string
-	var stubs []string
-
-	n := 0 // total number of errors
+	list := make([]*ast.Text, 0, len(texts))
+	timer := pool.Start(sx.SectionParse)
 	for _, x := range texts {
-		t := parser.ParseText(x)
-		for _, e := range t.Errors {
-			pos := pool.DecodePin(e.Pin)
-			fmt.Fprintf(os.Stderr, "%s: %s\n", pos, e.Short)
-			n += 1
-		}
-
-		for _, f := range t.Funs {
-			funs = append(funs, f.Name)
-		}
-
-		for _, s := range t.Stubs {
-			stubs = append(stubs, s.Name)
-		}
+		text := parser.ParseText(pool, x)
+		list = append(list, text)
 	}
+	pool.Stop(timer)
 
-	if n != 0 {
+	var buf fbuf.Buffer
+	for _, text := range list {
+		text.Format(&buf)
+		buf.Line()
+		buf.Puts("=====")
+		buf.Line()
+	}
+	buf.WriteTo(os.Stdout)
+	pool.DumpTimers(os.Stdout)
+
+	if pool.HasErrors() {
+		pool.DumpErrors(os.Stderr)
 		os.Exit(1)
 	}
-
-	fmt.Printf("funs:  %v\n", funs)
-	fmt.Printf("stubs: %v\n", stubs)
 
 	return nil
 }

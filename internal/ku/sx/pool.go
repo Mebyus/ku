@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // Pool loads and stores source files. Stored files can be accessed as Text.
@@ -20,12 +21,17 @@ type Pool struct {
 
 	m map[ /* path */ string]*Text
 
+	timers map[Section]time.Duration
+
 	// highest violation level among all collected errors
 	vmax Viol
 }
 
 func New() *Pool {
-	return &Pool{m: make(map[string]*Text)}
+	return &Pool{
+		m:      make(map[string]*Text),
+		timers: make(map[Section]time.Duration),
+	}
 }
 
 func (p *Pool) DecodePin(pin Pin) FilePos {

@@ -1,5 +1,7 @@
 package ast
 
+import "github.com/mebyus/ku/internal/fbuf"
+
 // Status describes result of parsing source text.
 //
 // Zero value means that whole text was parsed successfully.
@@ -8,7 +10,7 @@ type Status uint32
 const (
 	// Flawed means that text was parsed to the end, but
 	// contains parsing errors.
-	Flawed Status = iota
+	Flawed Status = 1 + iota
 
 	// Parsing stopped because too many errors occured.
 	LimitReached
@@ -59,4 +61,8 @@ func (t *Text) AddType(typ Type) {
 
 func (t *Text) AddConst(c Const) {
 	t.Consts = append(t.Consts, c)
+}
+
+func (t *Text) Format(buf *fbuf.Buffer) {
+
 }

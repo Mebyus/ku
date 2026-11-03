@@ -20,8 +20,6 @@ type Unit struct {
 
 	Consts []*Symbol
 
-	Errors []*Error
-
 	// Unit path.
 	Path sx.Path
 

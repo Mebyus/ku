@@ -41,7 +41,7 @@ const (
 	RightShift // >>
 
 	// total number of different operators
-	num
+	_num
 )
 
 var text = [...]string{

@@ -208,10 +208,9 @@ func (w *walker) load(item *witem, u *unit) bool {
 	n := 0 // total number of imports in all texts
 	var texts []*ast.Text
 	for _, f := range files {
-		t := parser.ParseText(f)
+		t := parser.ParseText(w.pool, f)
 		texts = append(texts, t)
 		n += len(t.Imports)
-		u.errors = append(u.errors, t.Errors...)
 	}
 	u.texts = texts
 
@@ -323,8 +322,6 @@ type unit struct {
 	des []uid
 
 	texts []*ast.Text
-
-	errors []*ast.Error
 
 	// identifies this unit within a program
 	path sx.Path

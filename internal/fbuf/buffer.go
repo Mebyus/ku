@@ -11,6 +11,8 @@ import (
 
 // Buffer implements many primitive convenience methods for
 // formatting source text from tree-like structures.
+//
+// Zero value is ready-to-use, empty buffer.
 type Buffer struct {
 	// output buffer with raw bytes
 	out []byte

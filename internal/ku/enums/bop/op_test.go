@@ -7,7 +7,7 @@ import (
 func TestKind(t *testing.T) {
 	// Test checks that precedence and power of all valid operators are >= 1.
 
-	for i := range num {
+	for i := range _num {
 		k := Kind(i)
 		pre := k.Precedence()
 		p := k.Power()

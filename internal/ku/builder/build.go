@@ -97,23 +97,7 @@ func Build(config *Config) *Result {
 	})
 	w.walk()
 
-	n := 0 // total number of errors
-
-	n += len(w.errors)
-	for _, e := range w.errors {
-		w.pool.FormatError(os.Stderr, e)
-	}
-
-	for _, u := range w.units {
-		n += len(u.errors)
-		for _, e := range u.errors {
-			// TODO: refactor into sx.Error
-			pos := w.pool.FormatPin(e.Pin)
-			fmt.Fprintf(os.Stderr, "%s: %s\n", pos, e.Short)
-		}
-	}
-
-	if n != 0 && len(w.units) == 0 {
+	if w.pool.HasErrors() && len(w.units) == 0 {
 		// failed to load units due to previous errors
 		os.Exit(1)
 	}
@@ -145,12 +129,6 @@ func Build(config *Config) *Result {
 			typer.Do(unit, u.texts)
 			pool.Put(typer)
 
-			n += len(unit.Errors)
-			for _, e := range unit.Errors {
-				pos := w.pool.DecodePin(e.Pin)
-				fmt.Fprintf(os.Stderr, "%s: %s\n", pos, e.Short)
-			}
-
 			prog.Units = append(prog.Units, unit)
 		}
 	}
@@ -160,7 +138,8 @@ func Build(config *Config) *Result {
 		fmt.Printf("uwalk: %s\n", time.Since(start))
 	}
 
-	if n != 0 {
+	if w.pool.HasErrors() {
+		w.pool.DumpErrors(os.Stderr)
 		os.Exit(1)
 	}
 

@@ -498,7 +498,7 @@ func (t *Typer) convertExp(c *context, exp ast.Exp) Exp {
 		return t.makeBoolean(e.Pin, false)
 	case *ast.SymExp:
 		return t.convertSymExp(c, e)
-	case *ast.SymZeroExp:
+	case *ast.SymZero:
 		return t.convertSymZeroExp(c, e)
 	case *ast.Chain:
 		return t.convertChain(c, e)
@@ -667,7 +667,7 @@ func (t *Typer) convertSymCall(c *context, exp *ast.SymCall) Exp {
 	}
 }
 
-func (t *Typer) convertSymZeroExp(c *context, exp *ast.SymZeroExp) Exp {
+func (t *Typer) convertSymZeroExp(c *context, exp *ast.SymZero) Exp {
 	name := exp.Name
 	pin := exp.Pin
 

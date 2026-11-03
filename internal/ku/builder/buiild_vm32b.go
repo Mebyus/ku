@@ -1,7 +1,6 @@
 package builder
 
 import (
-	"fmt"
 	"io"
 	"os"
 
@@ -21,15 +20,7 @@ func CompileForVM32B(path string) (*vm32b.Prog, error) {
 		return nil, err
 	}
 
-	text := parser.ParseText(tf)
-
-	n := 0 // total number of errors
-	n += len(text.Errors)
-
-	for _, e := range text.Errors {
-		pos := pool.DecodePin(e.Pin)
-		fmt.Fprintf(os.Stderr, "%s: %s\n", pos, e.Short)
-	}
+	text := parser.ParseText(pool, tf)
 
 	var prog stg.Program
 	typers := stg.NewPool(kub.Build{
