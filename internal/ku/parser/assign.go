@@ -24,7 +24,7 @@ func (p *Parser) assignSymbol() (ast.Statement, ss) {
 	}
 
 	if p.peek.Kind != token.Semicolon {
-		p.report(p.peek.Pin, "missing \";\" after assign statement")
+		p.report(p.peek.Pin, 0, "missing \";\" after assign statement")
 	} else {
 		p.advance() // skip ";"
 	}
@@ -54,7 +54,7 @@ func (p *Parser) symbolDerefStart() (ast.Statement, ss) {
 	}
 
 	if p.peek.Kind != token.Semicolon {
-		p.report(p.peek.Pin, "missing \";\" after assign statement")
+		p.report(p.peek.Pin, 0, "missing \";\" after assign statement")
 	} else {
 		p.advance() // skip ";"
 	}

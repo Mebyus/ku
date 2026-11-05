@@ -58,7 +58,7 @@ func (p *Parser) Var() (ast.Statement, ss) {
 	p.advance() // skip "var"
 
 	if p.peek.Kind != token.Word {
-		p.report(p.peek.Pin, fmt.Sprintf("expected variable name, found %s token instead", &p.peek))
+		p.report(p.peek.Pin, 0, fmt.Sprintf("expected variable name, found %s token instead", &p.peek))
 		// TODO: sync
 		return nil, ssNode
 	}
@@ -99,14 +99,14 @@ func (p *Parser) Var() (ast.Statement, ss) {
 			case token.Assign:
 				p.advance() // skip "="
 			default:
-				p.report(p.peek.Pin, "missing \"=\" before variable initial value expression")
+				p.report(p.peek.Pin, 0, "missing \"=\" before variable initial value expression")
 			}
 		}
 	case token.Assign:
-		p.report(p.peek.Pin, "assign \"=\" operator used instead of \":=\" for variable definition")
+		p.report(p.peek.Pin, 0, "assign \"=\" operator used instead of \":=\" for variable definition")
 		p.advance() // skip "="
 	default:
-		p.report(p.peek.Pin, fmt.Sprintf("expected \":\" or \":=\" after variable name, found %s token instead", &p.peek))
+		p.report(p.peek.Pin, 0, fmt.Sprintf("expected \":\" or \":=\" after variable name, found %s token instead", &p.peek))
 		// TODO: sync?
 		p.advance()
 	}
@@ -121,7 +121,7 @@ func (p *Parser) Var() (ast.Statement, ss) {
 			Type: typ,
 		}, 0
 	case token.RightCurly:
-		p.report(p.peek.Pin, "missing \";\" after variable definition")
+		p.report(p.peek.Pin, 0, "missing \";\" after variable definition")
 		return &ast.Var{
 			Pin:  pin,
 			Name: name,
@@ -141,7 +141,7 @@ func (p *Parser) Var() (ast.Statement, ss) {
 	}
 
 	if p.peek.Kind != token.Semicolon {
-		p.report(p.peek.Pin, "missing \";\" after variable definition")
+		p.report(p.peek.Pin, 0, "missing \";\" after variable definition")
 	} else {
 		p.advance() // skip ";"
 	}
@@ -171,7 +171,7 @@ func (p *Parser) create() (ast.Statement, ss) {
 	}
 
 	if p.peek.Kind != token.Semicolon {
-		p.report(p.peek.Pin, "missing \";\" after fixed definition")
+		p.report(p.peek.Pin, 0, "missing \";\" after fixed definition")
 	} else {
 		p.advance() // skip ";"
 	}
@@ -201,7 +201,7 @@ func (p *Parser) Discard() (ast.Statement, ss) {
 	exp, s := p.Exp()
 
 	if p.peek.Kind != token.Semicolon {
-		p.report(p.peek.Pin, "missing \";\" after fixed definition")
+		p.report(p.peek.Pin, 0, "missing \";\" after fixed definition")
 	} else {
 		p.advance() // skip ";"
 	}
@@ -228,7 +228,7 @@ func (p *Parser) AssignOrInvoke() (ast.Statement, ss) {
 	// 	return
 	// }
 
-	p.report(p.peek.Pin, "stub")
+	p.report(p.peek.Pin, 0, "stub")
 	p.advance()
 	return nil, ssNode
 	// panic("stub")
@@ -264,7 +264,7 @@ func (p *Parser) For() (ast.Statement, ss) {
 	f := ast.While{Exp: exp, Pin: pin}
 
 	if p.peek.Kind != token.LeftCurly {
-		p.report(p.peek.Pin, fmt.Sprintf("expected \"{\" to start loop body in \"for\" statement, found %s token", &p.peek))
+		p.report(p.peek.Pin, 0, fmt.Sprintf("expected \"{\" to start loop body in \"for\" statement, found %s token", &p.peek))
 		return &f, ssNode
 	}
 	s = p.block(&f.Body)
@@ -297,11 +297,11 @@ func (p *Parser) If() (ast.Statement, ss) {
 	case token.LeftCurly:
 		// continue execution
 	case token.Semicolon:
-		p.report(p.peek.Pin, "missing branch body after condition")
+		p.report(p.peek.Pin, 0, "missing branch body after condition")
 		p.advance() // skip ";"
 		return &f, ssNode
 	default:
-		p.report(p.peek.Pin, fmt.Sprintf("expected statement or \"{\" to start true branch block in \"if\" statement, found %s token", &p.peek))
+		p.report(p.peek.Pin, 0, fmt.Sprintf("expected statement or \"{\" to start true branch block in \"if\" statement, found %s token", &p.peek))
 		return &f, ssNode
 	}
 
@@ -328,7 +328,7 @@ func (p *Parser) Const() (ast.Statement, ss) {
 	p.advance() // skip "const"
 
 	if p.peek.Kind != token.Word {
-		p.report(p.peek.Pin, fmt.Sprintf("expected constant name, found %s token instead", &p.peek))
+		p.report(p.peek.Pin, 0, fmt.Sprintf("expected constant name, found %s token instead", &p.peek))
 		// TODO: sync
 		return nil, ssNode
 	}
@@ -359,16 +359,16 @@ func (p *Parser) Const() (ast.Statement, ss) {
 			typ = t
 
 			if p.peek.Kind != token.Assign {
-				p.report(p.peek.Pin, "missing \"=\" before constant value expression")
+				p.report(p.peek.Pin, 0, "missing \"=\" before constant value expression")
 			} else {
 				p.advance() // skip "="
 			}
 		}
 	case token.Assign:
-		p.report(p.peek.Pin, "assign \"=\" operator used instead of \":=\" for constant definition")
+		p.report(p.peek.Pin, 0, "assign \"=\" operator used instead of \":=\" for constant definition")
 		p.advance() // skip "="
 	default:
-		p.report(p.peek.Pin, fmt.Sprintf("expected \":\" or \":=\" after constant name, found %s token instead", &p.peek))
+		p.report(p.peek.Pin, 0, fmt.Sprintf("expected \":\" or \":=\" after constant name, found %s token instead", &p.peek))
 		// TODO: sync?
 		p.advance()
 	}
@@ -376,7 +376,7 @@ func (p *Parser) Const() (ast.Statement, ss) {
 	var exp ast.Exp
 	switch p.peek.Kind {
 	case token.Semicolon, token.RightCurly:
-		p.report(p.peek.Pin, "missing constant value expression")
+		p.report(p.peek.Pin, 0, "missing constant value expression")
 	default:
 		e, s := p.Exp()
 		if s != 0 {
@@ -391,7 +391,7 @@ func (p *Parser) Const() (ast.Statement, ss) {
 	}
 
 	if p.peek.Kind != token.Semicolon {
-		p.report(p.peek.Pin, "missing \";\" after constant definition")
+		p.report(p.peek.Pin, 0, "missing \";\" after constant definition")
 	} else {
 		p.advance() // skip ";"
 	}
@@ -413,7 +413,7 @@ func (p *Parser) Return() (ast.Statement, ss) {
 		p.advance() // skip ";"
 		return &ast.Return{Pin: pin}, 0
 	case token.RightCurly:
-		p.report(pin, "missing \";\" after return statement")
+		p.report(pin, 0, "missing \";\" after return statement")
 		return &ast.Return{Pin: pin}, 0
 	}
 
@@ -426,7 +426,7 @@ func (p *Parser) Return() (ast.Statement, ss) {
 	}
 
 	if p.peek.Kind != token.Semicolon {
-		p.report(p.peek.Pin, "missing \";\" after return statement")
+		p.report(p.peek.Pin, 0, "missing \";\" after return statement")
 		// continue parsing, not a serious error
 	} else {
 		p.advance() // skip ";"

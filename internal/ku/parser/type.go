@@ -71,7 +71,7 @@ func (p *Parser) typeSpan() (ast.TypeSpec, ss) {
 
 	typ, s := p.TypeSpec()
 	if s != 0 {
-		return &ast.InvType{Error: ast.Error{Pin: pin}}, s
+		return &ast.InvType{Pin: pin}, s
 	}
 
 	return &ast.Span{
@@ -86,17 +86,17 @@ func (p *Parser) array() (ast.TypeSpec, ss) {
 
 	exp, s := p.Exp()
 	if s != 0 {
-		return &ast.InvType{Error: ast.Error{Pin: pin}}, s
+		return &ast.InvType{Pin: pin}, s
 	}
 
 	if p.peek.Kind != token.RightSquare {
-		return &ast.InvType{Error: ast.Error{Pin: pin}}, ssNode
+		return &ast.InvType{Pin: pin}, ssNode
 	}
 	p.advance() // skip "]"
 
 	typ, s := p.TypeSpec()
 	if s != 0 {
-		return &ast.InvType{Error: ast.Error{Pin: pin}}, s
+		return &ast.InvType{Pin: pin}, s
 	}
 
 	return &ast.Array{
@@ -110,9 +110,9 @@ func (p *Parser) Struct() (ast.TypeSpec, ss) {
 	p.advance() // skip "struct"
 
 	if p.peek.Kind != token.LeftCurly {
-		p.report(p.peek.Pin, fmt.Sprintf("expected \"{\" before struct fields, found %s token instead", &p.peek))
+		p.report(p.peek.Pin, 0, fmt.Sprintf("expected \"{\" before struct fields, found %s token instead", &p.peek))
 		// TODO: sync here
-		return &ast.InvType{}, ssNode
+		return &ast.InvType{Pin: p.peek.Pin}, ssNode
 	}
 
 	pin := p.peek.Pin
@@ -147,7 +147,7 @@ func (p *Parser) Struct() (ast.TypeSpec, ss) {
 
 func (p *Parser) field() (ast.Field, ss) {
 	if p.peek.Kind != token.Word {
-		p.report(p.peek.Pin, fmt.Sprintf("expected field name, found %s token instead", &p.peek))
+		p.report(p.peek.Pin, 0, fmt.Sprintf("expected field name, found %s token instead", &p.peek))
 		return ast.Field{}, ssTop
 	}
 	name := p.peek.Data
@@ -155,7 +155,7 @@ func (p *Parser) field() (ast.Field, ss) {
 	p.advance() // skip field name
 
 	if p.peek.Kind != token.Colon {
-		p.report(p.peek.Pin, "missing \":\" before field type specifier")
+		p.report(p.peek.Pin, 0, "missing \":\" before field type specifier")
 		// continue parsing, not a serious error
 	} else {
 		p.advance() // consume ":"

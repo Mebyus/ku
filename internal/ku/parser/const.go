@@ -64,7 +64,7 @@ func (p *Parser) topConst() {
 	c.Exp = exp
 
 	if p.peek.Kind != token.Semicolon {
-		p.report(p.peek.Pin, "missing \";\" after constant init expression")
+		p.report(p.peek.Pin, 0, "missing \";\" after constant init expression")
 	} else {
 		p.advance() // skip ";"
 	}

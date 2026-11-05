@@ -19,11 +19,11 @@ func (p *Parser) invokeSymbol() (ast.Statement, ss) {
 	switch p.peek.Kind {
 	case token.Assign:
 		s = ssNode
-		p.report(p.peek.Pin, "cannot assign to call expression")
+		p.report(p.peek.Pin, 0, "cannot assign to call expression")
 	case token.Semicolon:
 		p.advance() // skip ";"
 	default:
-		p.report(p.peek.Pin, "missing \";\" after invoke")
+		p.report(p.peek.Pin, 0, "missing \";\" after invoke")
 	}
 
 	return &ast.InvokeSymbol{

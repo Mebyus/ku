@@ -33,41 +33,30 @@ const (
 )
 
 func (p *Parser) topError(pin sx.Pin, msg string) {
-	er := ast.Error{
-		Short: msg,
-		Pin:   pin,
-	}
-
-	er.Tokens = append(er.Tokens, p.peek)
+	k := 1
 	p.advance()
-
 	for !isTopSync(&p.peek) {
-		er.Tokens = append(er.Tokens, p.peek)
+		k += 1
 		p.advance()
 
-		if len(er.Tokens) > 64 {
-			p.abort(ast.ErrorSyncFailed)
+		if k > 64 {
+			p.stop(ast.SyncFail)
 			break
 		}
 	}
-	p.addError(&er)
+	p.report(pin, 0, msg)
 }
 
 // report error and sync until after end of current expression
 func (p *Parser) syncExp(pin sx.Pin, msg string) (*ast.InvExp, ss) {
-	er := ast.Error{
-		Short: msg,
-		Pin:   pin,
-	}
-
-	er.Tokens = append(er.Tokens, p.peek)
+	k := 1
 	p.advance()
 
 syncLoop:
 	for {
-		if p.stop {
-			p.addError(&er)
-			return &ast.InvExp{Error: er}, ssAbort
+		if p.status != 0 {
+			p.report(pin, 0, msg)
+			return &ast.InvExp{Pin: pin}, ssAbort
 		}
 
 		switch p.peek.Kind {
@@ -77,40 +66,35 @@ syncLoop:
 			break syncLoop
 		case token.Fun:
 			// assume new top-level function defenition
-			p.addError(&er)
-			return &ast.InvExp{Error: er}, ssTop
+			p.report(pin, 0, msg)
+			return &ast.InvExp{Pin: pin}, ssTop
 		}
 
-		er.Tokens = append(er.Tokens, p.peek)
+		k += 1
 		p.advance()
 
-		if len(er.Tokens) > 64 {
-			p.abort(ast.ErrorSyncFailed)
-			p.addError(&er)
-			return &ast.InvExp{Error: er}, ssAbort
+		if k > 64 {
+			p.stop(ast.SyncFail)
+			p.report(pin, 0, msg)
+			return &ast.InvExp{Pin: pin}, ssAbort
 		}
 	}
 
-	p.addError(&er)
-	return &ast.InvExp{Error: er}, 0
+	p.report(pin, 0, msg)
+	return &ast.InvExp{Pin: pin}, 0
 }
 
 // report error and sync until after end of current type specifier
 func (p *Parser) syncTypeSpec(pin sx.Pin, msg string) (*ast.InvType, ss) {
-	er := ast.Error{
-		Short: msg,
-		Pin:   pin,
-	}
-
-	er.Tokens = append(er.Tokens, p.peek)
+	k := 1
 	p.advance()
 
 	// sync until type specifier ends
 syncLoop:
 	for {
-		if p.stop {
-			p.addError(&er)
-			return &ast.InvType{Error: er}, ssAbort
+		if p.status != 0 {
+			p.report(pin, 0, msg)
+			return &ast.InvType{Pin: pin}, ssAbort
 		}
 
 		switch p.peek.Kind {
@@ -122,35 +106,30 @@ syncLoop:
 			break syncLoop
 		}
 
-		er.Tokens = append(er.Tokens, p.peek)
+		k += 1
 		p.advance()
 
-		if len(er.Tokens) > 64 {
-			p.abort(ast.ErrorSyncFailed)
-			p.addError(&er)
-			return &ast.InvType{Error: er}, ssAbort
+		if k > 64 {
+			p.stop(ast.SyncFail)
+			p.report(pin, 0, msg)
+			return &ast.InvType{Pin: pin}, ssAbort
 		}
 	}
 
-	p.addError(&er)
-	return &ast.InvType{Error: er}, 0
+	p.report(pin, 0, msg)
+	return &ast.InvType{Pin: pin}, 0
 }
 
 // report error and sync until start of next statement
 func (p *Parser) syncNextNode(pin sx.Pin, msg string) ss {
-	er := ast.Error{
-		Short: msg,
-		Pin:   pin,
-	}
-
-	er.Tokens = append(er.Tokens, p.peek)
+	k := 1
 	p.advance()
 
 	// sync until next statement start
 syncLoop:
 	for {
-		if p.stop {
-			p.addError(&er)
+		if p.status != 0 {
+			p.report(pin, 0, msg)
 			return ssAbort
 		}
 
@@ -170,41 +149,36 @@ syncLoop:
 			break syncLoop
 		case token.Fun:
 			// assume new top-level function defenition
-			p.addError(&er)
+			p.report(pin, 0, msg)
 			return ssTop
 		}
 
-		er.Tokens = append(er.Tokens, p.peek)
+		k += 1
 		p.advance()
 
-		if len(er.Tokens) > 64 {
-			p.abort(ast.ErrorSyncFailed)
-			p.addError(&er)
+		if k > 64 {
+			p.stop(ast.SyncFail)
+			p.report(pin, 0, msg)
 			return ssAbort
 		}
 	}
 
-	p.addError(&er)
+	p.report(pin, 0, msg)
 	return ssNode
 }
 
-func (p *Parser) addError(er *ast.Error) {
-	p.text.Errors = append(p.text.Errors, er)
-	if len(p.text.Errors) > 16 {
-		p.abort(ast.ErrorLimitReached)
-	}
-}
+func (p *Parser) report(pin sx.Pin, typ sx.ErrorType, short string, notes ...string) {
+	p.pool.Report(pin, typ, short, notes...)
+	p.nerr += 1
 
-func (p *Parser) report(pin sx.Pin, msg string) {
-	p.addError(&ast.Error{
-		Short: msg,
-		Pin:   pin,
-	})
+	if p.nerr > 16 {
+		p.stop(ast.LimitReached)
+	}
 }
 
 func isTopSync(tok *token.Token) bool {
 	switch tok.Kind {
-	case token.Fun, token.EOF:
+	case token.Fun, token.Type, token.EOF:
 		return true
 	default:
 		return false

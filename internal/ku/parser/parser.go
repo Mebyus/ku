@@ -12,27 +12,40 @@ type Parser struct {
 
 	lx *lexer.Lexer
 
+	// used for reporting errors
+	pool *sx.Pool
+
 	// token at current parser position
 	peek token.Token
 
 	// next token after peek
 	next token.Token
 
-	// total number of invalid tokens encountered
-	invalids uint32
+	// number of skipped valid tokens (not invalid ones) due
+	// to syncs after errors
+	nskip uint32
 
-	// parsing should stop when this is set to true
-	stop bool
+	// number of reported errors
+	nerr uint32
+
+	// number of invalid tokens encountered
+	ninv uint32
+
+	// parsing should be stopped when this is not 0
+	status ast.Status
 }
 
-func FromText(text *sx.Text) *Parser {
-	p := Parser{lx: lexer.FromText(text)}
+func FromText(pool *sx.Pool, text *sx.Text) *Parser {
+	p := Parser{
+		pool: pool,
+		lx:   lexer.FromText(text),
+	}
 	p.init()
 	return &p
 }
 
-func ParseText(text *sx.Text) *ast.Text {
-	return FromText(text).Parse()
+func ParseText(pool *sx.Pool, text *sx.Text) *ast.Text {
+	return FromText(pool, text).Parse()
 }
 
 func (p *Parser) Parse() *ast.Text {
@@ -41,18 +54,19 @@ func (p *Parser) Parse() *ast.Text {
 }
 
 func (p *Parser) advance() {
-	if p.stop {
-		setEOF(&p.peek, 1) // TODO: specify EOF error code
+	if p.status != 0 {
+		setEOF(&p.peek, uint64(p.status))
 		return
 	}
 
 	var tok token.Token
 	p.lx.Lex(&tok)
 	if tok.Kind == token.INV {
-		p.invalids += 1
-		if p.invalids > 32 {
-			setEOF(&p.peek, 1) // TODO: specify EOF error code
-			p.abort(ast.ErrorIllegalTokens)
+		// TODO: consume invalid tokens with loop?
+		p.ninv += 1
+		if p.ninv > 32 {
+			p.stop(ast.InvalidTokens)
+			setEOF(&p.peek, uint64(p.status))
 			return
 		}
 	}
@@ -62,14 +76,13 @@ func (p *Parser) advance() {
 }
 
 // stop parsing with specified status/error
-func (p *Parser) abort(status ast.Status) {
-	if p.stop {
-		// ignore subsequent aborts after first
+func (p *Parser) stop(status ast.Status) {
+	if p.status != 0 {
+		// ignore subsequent status changes after first
 		return
 	}
 
-	p.text.Status = status
-	p.stop = true
+	p.status = status
 }
 
 func (p *Parser) init() {

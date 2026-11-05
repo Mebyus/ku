@@ -51,7 +51,7 @@ func (p *Parser) topFun() {
 		case token.RightParen:
 			// will be skipped at next iteration
 		case token.Word:
-			p.report(p.peek.Pin, "missing \",\" between params in function signature")
+			p.report(p.peek.Pin, 0, "missing \",\" between params in function signature")
 			// continue parsing, not a serious error
 		default:
 			p.topError(p.peek.Pin, fmt.Sprintf("expected \")\" or next param in function signature, found %s token instead", &p.peek))
@@ -65,7 +65,7 @@ func (p *Parser) topFun() {
 		p.advance() // skip "->"
 
 		if p.peek.Kind == token.LeftCurly {
-			p.report(p.peek.Pin, "missing function result type after \"->\"")
+			p.report(p.peek.Pin, 0, "missing function result type after \"->\"")
 		} else {
 			typ, s := p.TypeSpec()
 			if s != 0 {
@@ -89,7 +89,7 @@ func (p *Parser) topFun() {
 	default:
 		// try to parse as type specifier
 		// maybe it is a slight syntax mistake of missing "->"
-		p.report(p.peek.Pin, "missing \"->\" before function result type")
+		p.report(p.peek.Pin, 0, "missing \"->\" before function result type")
 
 		typ, s := p.TypeSpec()
 		if s != 0 {
@@ -115,7 +115,7 @@ func (p *Parser) topFun() {
 		})
 		return
 	default:
-		p.report(p.peek.Pin, fmt.Sprintf("expected \"{\" as function body start or \";\" as the end of function declaration, found %s token instead", &p.peek))
+		p.report(p.peek.Pin, 0, fmt.Sprintf("expected \"{\" as function body start or \";\" as the end of function declaration, found %s token instead", &p.peek))
 
 		// assume it's forward declaration with missing ";"
 		p.text.AddStub(ast.FunStub{
@@ -129,7 +129,7 @@ func (p *Parser) topFun() {
 
 func (p *Parser) funParam() (ast.Param, ss) {
 	if p.peek.Kind != token.Word {
-		p.report(p.peek.Pin, fmt.Sprintf("expected param name, found %s token instead", &p.peek))
+		p.report(p.peek.Pin, 0, fmt.Sprintf("expected param name, found %s token instead", &p.peek))
 		return ast.Param{}, ssTop
 	}
 	name := p.peek.Data
@@ -137,7 +137,7 @@ func (p *Parser) funParam() (ast.Param, ss) {
 	p.advance() // skip param name
 
 	if p.peek.Kind != token.Colon {
-		p.report(p.peek.Pin, "missing \":\" before param type specifier")
+		p.report(p.peek.Pin, 0, "missing \":\" before param type specifier")
 		// continue parsing, not a serious error
 	} else {
 		p.advance() // consume ":"
@@ -159,20 +159,15 @@ func (p *Parser) skipBadCurly() {
 		return
 	}
 
-	er := ast.Error{
-		Pin:   p.peek.Pin,
-		Short: "unbalanced curly brace",
-	}
-	er.Tokens = append(er.Tokens, p.peek)
+	pin := p.peek.Pin
 	p.advance()
 
 	for {
 		switch p.peek.Kind {
 		case token.LeftCurly, token.RightCurly:
-			er.Tokens = append(er.Tokens, p.peek)
 			p.advance()
 		default:
-			p.addError(&er)
+			p.report(pin, 0, "unbalanced curly brace")
 			return
 		}
 	}

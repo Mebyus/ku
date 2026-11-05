@@ -11,23 +11,25 @@ import (
 func (p *Parser) parse() {
 	p.imports()
 
-	for !p.stop {
+	for p.status == 0 {
 		p.top()
 	}
 
-	if p.text.IsOk() && len(p.text.Errors) != 0 {
-		p.text.Status = ast.Flawed
+	switch p.status {
+	case ast.Stop:
+		// normal exit after parsing whole text
+		if p.nerr != 0 {
+			p.text.Status = ast.Flawed
+		}
+		return
 	}
 }
 
 func (p *Parser) imports() {
-	for !p.stop {
+	for p.status == 0 {
 		switch p.peek.Kind {
 		case token.Import:
 			p.iblock()
-		case token.EOF:
-			p.abort(ast.Ok)
-			return
 		default:
 			return
 		}
@@ -47,7 +49,7 @@ func (p *Parser) top() {
 	case token.Type:
 		p.topType()
 	case token.EOF:
-		p.abort(ast.Ok)
+		p.stop(ast.Stop)
 	default:
 		p.topError(p.peek.Pin, fmt.Sprintf("expected top-level node start, found %s token instead", &p.peek))
 	}
@@ -74,12 +76,12 @@ func (p *Parser) iblock() {
 	case "pkg":
 		origin = sx.Pkg
 	default:
-		p.report(opin, fmt.Sprintf("unknown origin \"%s\"", oname))
+		p.report(opin, 0, fmt.Sprintf("unknown origin \"%s\"", oname))
 		origin = sx.Bad
 	}
 
 	if p.peek.Kind != token.LeftParen {
-		p.report(p.peek.Pin, fmt.Sprintf("expected \"(\" for import block start, found %s token instead", &p.peek))
+		p.report(p.peek.Pin, 0, fmt.Sprintf("expected \"(\" for import block start, found %s token instead", &p.peek))
 		return
 	}
 	p.advance() // skip "("
@@ -109,13 +111,13 @@ func (p *Parser) imp(origin sx.Origin) ss {
 		pin = p.peek.Pin
 		p.advance() // skip import name
 	case token.RightArrow:
-		p.report(p.peek.Pin, "missing import name")
+		p.report(p.peek.Pin, 0, "missing import name")
 	default:
-		p.report(p.peek.Pin, fmt.Sprintf("expected import name, found %s token instead", &p.peek))
+		p.report(p.peek.Pin, 0, fmt.Sprintf("expected import name, found %s token instead", &p.peek))
 	}
 
 	if p.peek.Kind != token.RightArrow {
-		p.report(p.peek.Pin, "missing \"->\" before import string")
+		p.report(p.peek.Pin, 0, "missing \"->\" before import string")
 	} else {
 		p.advance() // skip "->"
 	}
@@ -134,16 +136,16 @@ func (p *Parser) imp(origin sx.Origin) ss {
 			verr = "bad import string"
 		}
 		if verr != "" {
-			p.report(ipin, verr)
+			p.report(ipin, 0, verr)
 		}
 	case token.Semicolon:
-		p.report(p.peek.Pin, "missing import string")
+		p.report(p.peek.Pin, 0, "missing import string")
 	default:
-		p.report(p.peek.Pin, fmt.Sprintf("expected import string, found %s token instead", &p.peek))
+		p.report(p.peek.Pin, 0, fmt.Sprintf("expected import string, found %s token instead", &p.peek))
 	}
 
 	if p.peek.Kind != token.Semicolon {
-		p.report(p.peek.Pin, "missing \";\" after import")
+		p.report(p.peek.Pin, 0, "missing \";\" after import")
 	} else {
 		p.advance() // skip ";"
 	}

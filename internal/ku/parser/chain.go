@@ -13,7 +13,7 @@ func (p *Parser) Chain() (ast.Operand, ss) {
 	if p.next.Kind == token.AlterZero {
 		p.advance() // skip word (symbol name)
 		p.advance() // skip ".{}"
-		return &ast.SymZeroExp{
+		return &ast.SymZero{
 			Pin:  pin,
 			Name: name,
 		}, 0
@@ -56,7 +56,7 @@ func (p *Parser) Chain() (ast.Operand, ss) {
 					Pin:  pin,
 				})
 			default:
-				p.report(p.peek.Pin, fmt.Sprintf("expected name after select operand, found %s token instead", &p.peek))
+				p.report(p.peek.Pin, 0, fmt.Sprintf("expected name after select operand, found %s token instead", &p.peek))
 				p.advance() // TODO: sync
 			}
 		case token.LeftParen:
@@ -121,7 +121,7 @@ func (p *Parser) args() ([]ast.Exp, ss) {
 		case token.RightParen:
 			// will be skipped at next iteration
 		default:
-			p.report(p.peek.Pin, fmt.Sprintf("unexpected %s token after argument expression", &p.peek))
+			p.report(p.peek.Pin, 0, fmt.Sprintf("unexpected %s token after argument expression", &p.peek))
 			return args, ssNode
 		}
 	}

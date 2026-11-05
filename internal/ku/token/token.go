@@ -81,7 +81,7 @@ const (
 
 	// start of keyword Kinds
 	// used by some formatting functions
-	keystart
+	_keystart
 
 	Pub
 	Fun
@@ -135,7 +135,7 @@ func (k Kind) Category() string {
 		return "RUNE"
 	}
 
-	if k > keystart {
+	if k > _keystart {
 		return "KEYWORD"
 	}
 	return "OTHER"

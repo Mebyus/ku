@@ -8,18 +8,22 @@ import "github.com/mebyus/ku/internal/fbuf"
 type Status uint32
 
 const (
+	// Stop used as parser status to exit parsing after
+	// reaching EOF. Parsed texts cannot have this status.
+	Stop Status = 1 + iota
+
 	// Flawed means that text was parsed to the end, but
 	// contains parsing errors.
-	Flawed Status = 1 + iota
+	Flawed
 
 	// Parsing stopped because too many errors occured.
 	LimitReached
 
 	// Parsing stopped because sync after error failed.
-	SyncFailed
+	SyncFail
 
 	// Parsing stopped because text contains too many illegal tokens.
-	IllegalTokens
+	InvalidTokens
 )
 
 // Text represents result of parsing a single source text.

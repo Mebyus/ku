@@ -114,11 +114,7 @@ func (p *Parser) parenExp() (ast.Operand, ss) {
 	}
 
 	pin = p.peek.Pin
-	er := ast.Error{
-		Pin:   pin,
-		Short: fmt.Sprintf("expected \")\" to close parenthesized expression, found %s token instead", &p.peek),
-	}
-	p.addError(&er)
+	p.report(pin, 0, fmt.Sprintf("expected \")\" to close parenthesized expression, found %s token instead", &p.peek))
 	p.advance() // TODO: we should do a sync here
-	return &ast.InvExp{Error: er}, 0
+	return &ast.InvExp{Pin: pin}, 0
 }
