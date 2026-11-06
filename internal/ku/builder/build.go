@@ -149,7 +149,7 @@ func Build(config *Config) *Result {
 	progName := filepath.Join(config.OutDir, "genc", config.Name+".c")
 
 	start = time.Now()
-	err = genProg(progName, &prog)
+	err = genProg(config, progName, &prog)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "genc: %s\n", err)
 		os.Exit(1)
@@ -265,7 +265,7 @@ func GetLangDir() (string, error) {
 }
 
 // genProg generates C code into specified output file.
-func genProg(out string, prog *stg.Program) error {
+func genProg(c *Config, out string, prog *stg.Program) error {
 	dir := filepath.Dir(out)
 	err := os.MkdirAll(dir, 0o755)
 	if err != nil {
@@ -278,5 +278,5 @@ func genProg(out string, prog *stg.Program) error {
 	}
 	defer file.Close()
 
-	return genc.Gen(file, prog)
+	return genc.Gen(&genc.Config{LangDir: c.LangDir}, file, prog)
 }

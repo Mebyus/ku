@@ -91,7 +91,7 @@ func TestRun(t *testing.T) {
 		name := b.src
 		path := filepath.Join("src", name)
 
-		exe, err := builder.CompileFileForTestGenC(dir, path)
+		exe, err := builder.CompileFileForTestGenC(root, dir, path)
 		if err != nil {
 			t.Errorf("compile program \"%s\": %v", name, err)
 			continue

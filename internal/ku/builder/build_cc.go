@@ -9,10 +9,11 @@ package builder
 // files and resulting executable.
 //
 // Used for C backend (genc) integration tests.
-func CompileFileForTestGenC(dir string, path string) (string, error) {
+func CompileFileForTestGenC(lang, dir string, path string) (string, error) {
 	r := Build(&Config{
-		File:   path,
-		OutDir: dir,
+		LangDir: lang,
+		File:    path,
+		OutDir:  dir,
 	})
 	if r.Error != nil {
 		return "", r.Error

@@ -3,13 +3,18 @@ package genc
 import (
 	"io"
 	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/mebyus/ku/internal/ku/stg"
 )
 
-func Gen(w io.Writer, prog *stg.Program) error {
-	err := copyFile(w, "src/std/core/prelude.c")
+type Config struct {
+	LangDir string
+}
+
+func Gen(c *Config, out io.Writer, prog *stg.Program) error {
+	err := copyFile(out, filepath.Join(c.LangDir, "src/std/core/prelude.c"))
 	if err != nil {
 		return err
 	}
@@ -17,7 +22,7 @@ func Gen(w io.Writer, prog *stg.Program) error {
 	var buf Buffer
 	buf.nl()
 	buf.Gen(prog)
-	_, err = w.Write(buf.out)
+	_, err = out.Write(buf.out)
 	return err
 }
 
