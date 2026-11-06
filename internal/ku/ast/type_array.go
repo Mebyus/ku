@@ -29,6 +29,6 @@ var _ TypeSpec = &Array{}
 func (a *Array) Format(buf *fbuf.Buffer) {
 	buf.Putb('[')
 	a.Exp.Format(buf)
-	buf.Putn(']')
+	buf.Putb(']')
 	a.Type.Format(buf)
 }
