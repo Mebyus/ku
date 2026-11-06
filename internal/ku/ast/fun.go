@@ -1,6 +1,9 @@
 package ast
 
-import "github.com/mebyus/ku/internal/ku/sx"
+import (
+	"github.com/mebyus/ku/internal/fbuf"
+	"github.com/mebyus/ku/internal/ku/sx"
+)
 
 // Fun represents named function definition (signature + body).
 //
@@ -16,6 +19,14 @@ type Fun struct {
 
 	// Function name pin.
 	Pin sx.Pin
+}
+
+func (f *Fun) Format(buf *fbuf.Buffer) {
+	buf.Puts("fun ")
+	buf.Puts(f.Name)
+	f.Sig.Format(buf)
+	buf.Space()
+	f.Body.Format(buf)
 }
 
 // FunStub represents function declaration with no implementation.
@@ -49,6 +60,31 @@ type Signature struct {
 	Never bool
 }
 
+func (s *Signature) Format(buf *fbuf.Buffer) {
+	if len(s.Params) == 0 {
+		buf.Puts("()")
+	} else {
+		buf.Putb('(')
+		s.Params[0].Format(buf)
+		for _, p := range s.Params[1:] {
+			buf.Puts(", ")
+			p.Format(buf)
+		}
+		buf.Putb(')')
+	}
+
+	if s.Never {
+		buf.Puts(" -> never")
+		return
+	}
+	if s.Result == nil {
+		return
+	}
+
+	buf.Puts(" -> ")
+	s.Result.Format(buf)
+}
+
 // Param represents a single parameter in function signature.
 //
 // Formal definition:
@@ -61,4 +97,10 @@ type Param struct {
 
 	// Parameter name pin.
 	Pin sx.Pin
+}
+
+func (p *Param) Format(buf *fbuf.Buffer) {
+	buf.Puts(p.Name)
+	buf.Puts(": ")
+	p.Type.Format(buf)
 }

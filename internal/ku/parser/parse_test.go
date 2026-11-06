@@ -1,11 +1,15 @@
 package parser
 
 import (
+	"bufio"
+	"bytes"
 	"cmp"
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/mebyus/ku/internal/fbuf"
 	"github.com/mebyus/ku/internal/ku/ast"
 	"github.com/mebyus/ku/internal/ku/sx"
 )
@@ -60,7 +64,19 @@ func (e *lineDiffError) Error() string {
 
 // returns non-nil error with first diff line
 func compareTestOutput(path string, text *ast.Text) error {
+	want, err := readFileLines(path)
+	if err != nil {
+		return err
+	}
 
+	var buf fbuf.Buffer
+	text.Format(&buf)
+	got, err := readLines(bytes.NewReader(buf.Bytes()))
+	if err != nil {
+		return err
+	}
+
+	return compareLines(got, want)
 }
 
 func compareLines(got, want []string) error {
@@ -78,13 +94,46 @@ func compareLines(got, want []string) error {
 	}
 
 	if ndif != 0 {
-		// TODO: fill got and want
+		if len(got) < len(want) {
+			return &lineDiffError{
+				got:  "",
+				want: want[n],
+				line: n + 1,
+				ndif: ndif,
+			}
+		}
 		return &lineDiffError{
+			got:  got[n],
+			want: "",
+			line: n + 1,
 			ndif: ndif,
 		}
 	}
 
 	return nil
+}
+
+func readFileLines(path string) ([]string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	return readLines(file)
+}
+
+func readLines(r io.Reader) ([]string, error) {
+	s := bufio.NewScanner(r)
+	var lines []string
+	for s.Scan() {
+		lines = append(lines, s.Text())
+	}
+	err := s.Err()
+	if err != nil {
+		return nil, err
+	}
+	return lines, nil
 }
 
 func listTestProgs(dir string) ([]string, error) {

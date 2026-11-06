@@ -68,5 +68,13 @@ func (t *Text) AddConst(c Const) {
 }
 
 func (t *Text) Format(buf *fbuf.Buffer) {
+	for _, c := range t.Consts {
+		c.Format(buf)
+		buf.Line()
+	}
 
+	for _, f := range t.Funs {
+		f.Format(buf)
+		buf.Line()
+	}
 }
