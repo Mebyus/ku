@@ -422,6 +422,8 @@ func (lx *Lexer) other(tok *token.Token) {
 		lx.emitOneByteToken(tok, token.Colon)
 	case ',':
 		lx.emitOneByteToken(tok, token.Comma)
+	case '@':
+		lx.emitOneByteToken(tok, token.AtSign)
 	case '.':
 		if lx.next() == '{' {
 			lx.advance() // skip "."

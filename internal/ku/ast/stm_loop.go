@@ -5,6 +5,26 @@ import (
 	"github.com/mebyus/ku/internal/ku/sx"
 )
 
+// Loop represents a loop with no condition.
+//
+// Formal definition:
+//
+//	Loop -> "for" Block
+type Loop struct {
+	stm
+
+	Body Block
+
+	Pin sx.Pin
+}
+
+var _ Statement = &Loop{}
+
+func (p *Loop) Format(buf *fbuf.Buffer) {
+	buf.Puts("for ")
+	p.Body.Format(buf)
+}
+
 // While represents a loop with condition.
 //
 // Formal definition:
@@ -28,4 +48,33 @@ func (w *While) Format(buf *fbuf.Buffer) {
 	w.Exp.Format(buf)
 	buf.Space()
 	w.Body.Format(buf)
+}
+
+// ForNum represents a for loop that iterates specified
+// number of times.
+type ForNum struct {
+	stm
+
+	Body Block
+
+	// Range start. Can be nil if omitted.
+	A Exp
+
+	// Range end. Always not nil.
+	B Exp
+
+	Pin sx.Pin
+}
+
+var _ Statement = &ForNum{}
+
+func (f *ForNum) Format(buf *fbuf.Buffer) {
+	buf.Puts("for [")
+	if f.A != nil {
+		f.A.Format(buf)
+	}
+	buf.Putb(':')
+	f.B.Format(buf)
+	buf.Puts("] ")
+	f.Body.Format(buf)
 }

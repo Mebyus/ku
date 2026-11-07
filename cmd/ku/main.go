@@ -126,6 +126,7 @@ func parse(paths []string) error {
 	pool.DumpTimers(os.Stdout)
 
 	if pool.HasErrors() {
+		fmt.Println()
 		pool.DumpErrors(os.Stderr)
 		os.Exit(1)
 	}

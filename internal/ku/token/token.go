@@ -40,6 +40,7 @@ const (
 	Colon  // :
 	Period // .
 	Comma  // ,
+	AtSign // @
 
 	RightArrow // ->
 
@@ -87,14 +88,17 @@ const (
 	Fun
 	Var
 	Type
+	Zone
 	Const
 	Import
 
 	Struct
+	Union
 
 	If
 	Else
 	Return
+	Goto
 	For
 
 	True

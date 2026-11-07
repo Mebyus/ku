@@ -36,6 +36,10 @@ func (p *Parser) Statement() (ast.Statement, ss) {
 		return p.If()
 	case token.Return:
 		return p.Return()
+	case token.Goto:
+		return p.Goto()
+	case token.Zone:
+		return p.Zone()
 	case token.Const:
 		return p.Const()
 	case token.For:
@@ -48,6 +52,10 @@ func (p *Parser) Statement() (ast.Statement, ss) {
 		var block ast.Block
 		s := p.block(&block)
 		return &block, s
+	case token.Semicolon:
+		p.report(p.peek.Pin, 0, "empty statement before \";\"")
+		p.advance() // skip ";"
+		return nil, 0
 	default:
 		s := p.syncNextNode(p.peek.Pin, fmt.Sprintf("expected new statement, found %s token instead", &p.peek))
 		return nil, s
@@ -252,28 +260,6 @@ func (p *Parser) AssignOrInvoke() (ast.Statement, ss) {
 	// }
 }
 
-func (p *Parser) For() (ast.Statement, ss) {
-	pin := p.peek.Pin
-	p.advance() // skip "for"
-
-	exp, s := p.Exp()
-	if s != 0 {
-		return nil, s
-	}
-
-	f := ast.While{Exp: exp, Pin: pin}
-
-	if p.peek.Kind != token.LeftCurly {
-		p.report(p.peek.Pin, 0, fmt.Sprintf("expected \"{\" to start loop body in \"for\" statement, found %s token", &p.peek))
-		return &f, ssNode
-	}
-	s = p.block(&f.Body)
-	if s != 0 {
-		return &f, s
-	}
-	return &f, 0
-}
-
 func (p *Parser) If() (ast.Statement, ss) {
 	pin := p.peek.Pin
 	p.advance() // skip "if"
@@ -286,7 +272,7 @@ func (p *Parser) If() (ast.Statement, ss) {
 	f := ast.Branch{Exp: exp, Pin: pin}
 
 	switch p.peek.Kind {
-	case token.Return:
+	case token.Return, token.Goto:
 		// short form of if statement
 		stm, s := p.Statement()
 		return &ast.IfFlow{

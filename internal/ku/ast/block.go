@@ -67,3 +67,29 @@ type Statement interface {
 type stm struct{}
 
 func (stm) _stm() {}
+
+// ZoneBlock represents a code block with specified zone name.
+type ZoneBlock struct {
+	stm
+
+	// List of all statements inside the block in order as they appear
+	// in source code.
+	//
+	// Equals nil if block contains no statements.
+	Nodes []Statement
+
+	// Zone name.
+	Name string
+
+	// Zone name pin.
+	Pin sx.Pin
+}
+
+func (z *ZoneBlock) Format(buf *fbuf.Buffer) {
+	buf.Puts("zone ")
+	buf.Puts(z.Name)
+	buf.Space()
+
+	b := Block{Nodes: z.Nodes}
+	b.Format(buf)
+}
