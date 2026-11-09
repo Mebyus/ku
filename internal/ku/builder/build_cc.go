@@ -1,5 +1,7 @@
 package builder
 
+import "github.com/mebyus/ku/internal/ku/builder/kub"
+
 // CompileFileForTestGenC compiles a single source file specified by
 // its path into native test executable via genc + cc invocation.
 //
@@ -14,6 +16,9 @@ func CompileFileForTestGenC(lang, dir string, path string) (string, error) {
 		LangDir: lang,
 		File:    path,
 		OutDir:  dir,
+		Build: kub.Build{
+			Goal: kub.IntExe,
+		},
 	})
 	if r.Error != nil {
 		return "", r.Error

@@ -46,6 +46,10 @@ func TestRun(t *testing.T) {
 					args: nil,
 					want: nil,
 				},
+				{
+					args: []string{"abc"},
+					want: nil,
+				},
 			},
 		},
 	}
@@ -95,6 +99,9 @@ func TestRun(t *testing.T) {
 		if err != nil {
 			t.Errorf("compile program \"%s\": %v", name, err)
 			continue
+		}
+		if exe == "" {
+			panic("empty exe path")
 		}
 
 		for _, c := range b.tests {

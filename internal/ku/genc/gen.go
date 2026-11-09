@@ -6,10 +6,12 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/mebyus/ku/internal/ku/builder/kub"
 	"github.com/mebyus/ku/internal/ku/stg"
 )
 
 type Config struct {
+	Build   kub.Build
 	LangDir string
 }
 
@@ -23,6 +25,14 @@ func Gen(c *Config, out io.Writer, prog *stg.Program) error {
 	buf.nl()
 	buf.Gen(prog)
 	_, err = out.Write(buf.out)
+
+	if c.Build.Goal == kub.IntExe {
+		err = copyFile(out, filepath.Join(c.LangDir, "src/std/core/int_exe_main.c"))
+		if err != nil {
+			return err
+		}
+	}
+
 	return err
 }
 

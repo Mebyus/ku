@@ -25,6 +25,7 @@ type walker struct {
 	// list of unit ids with no imports in them
 	roots []uid
 
+	// TODO: remove this
 	errors []*sx.Error
 
 	// Base directory for standard library units lookup.
@@ -161,7 +162,10 @@ func (w *walker) loadfiles(item *witem, u *unit) []*sx.Text {
 		// TODO: better algorithm for generating unit name
 		// from single file name
 		name := "_file_" + strings.TrimSuffix(filepath.Base(item.file), ".ku")
-		u.name = name
+
+		if !item.intTest {
+			u.name = name
+		}
 
 		file, err := w.pool.Load(item.file)
 		if err != nil {
@@ -362,6 +366,10 @@ type witem struct {
 
 	// If true, then test files should be loaded alongside unit source files.
 	includeTestFiles bool
+
+	// If true, then this item is used to load a unit from single
+	// integration test source file.
+	intTest bool
 }
 
 // queue keeps track which units were already visited and

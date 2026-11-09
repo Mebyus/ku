@@ -91,10 +91,23 @@ func Build(config *Config) *Result {
 		std: filepath.Join(config.LangDir, "src", "std"),
 		loc: filepath.Join(config.RootDir, "src"),
 	}
-	w.init(witem{
-		path: config.unit,
-		file: config.File,
-	})
+
+	var winit witem
+	switch config.Build.Goal {
+	case kub.Auto:
+		winit = witem{
+			path: config.unit,
+			file: config.File,
+		}
+	case kub.IntExe:
+		winit = witem{
+			file:    config.File,
+			intTest: true,
+		}
+	default:
+		panic(fmt.Sprintf("invalid build goal (=%d)", config.Build.Goal))
+	}
+	w.init(winit)
 	w.walk()
 
 	if w.pool.HasErrors() && len(w.units) == 0 {
@@ -168,13 +181,24 @@ func Build(config *Config) *Result {
 	}
 
 	start = time.Now()
-	err = cc.CompileObj(config.OutPath, progName, bk.Debug)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "cc: %s\n", err)
-		os.Exit(1)
+
+	switch config.Build.Goal {
+	case kub.Auto:
+		err = cc.CompileObj(config.OutPath, progName, bk.Debug)
+	case kub.IntExe:
+		err = cc.CompileExe(config.OutPath, progName, bk.Test)
+	default:
+		panic(fmt.Sprintf("invalid build goal (=%d)", config.Build.Goal))
 	}
+
 	if debug {
 		fmt.Printf("cc:    %s\n", time.Since(start))
+	}
+
+	if err != nil {
+		r.Error = err
+	} else {
+		r.OutPath = config.OutPath
 	}
 
 	return r
@@ -233,7 +257,16 @@ func (c *Config) setDefaults() error {
 	}
 
 	if c.OutPath == "" {
-		c.OutPath = filepath.Join(c.OutDir, "obj", c.Name+".o")
+		var p string
+		switch c.Build.Goal {
+		case kub.Auto:
+			p = filepath.Join(c.OutDir, "obj", c.Name+".o")
+		case kub.IntExe:
+			p = filepath.Join(c.OutDir, "int_exe", c.Name+".exe")
+		default:
+			panic(fmt.Sprintf("invalid build goal (=%d)", c.Build.Goal))
+		}
+		c.OutPath = p
 	}
 
 	return nil
@@ -278,5 +311,8 @@ func genProg(c *Config, out string, prog *stg.Program) error {
 	}
 	defer file.Close()
 
-	return genc.Gen(&genc.Config{LangDir: c.LangDir}, file, prog)
+	return genc.Gen(&genc.Config{
+		Build:   c.Build,
+		LangDir: c.LangDir,
+	}, file, prog)
 }
