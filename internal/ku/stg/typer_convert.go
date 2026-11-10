@@ -765,7 +765,7 @@ func (t *Typer) convertChain(c *context, chain *ast.Chain) Exp {
 
 	symbol := c.scope.Lookup(name)
 	if symbol == nil {
-		t.report(pin, sx.UnknownSymbol, fmt.Sprintf("unknown symbol \"%s\" used as expression", name))
+		t.report(pin, sx.ETypUnknownSymbol, fmt.Sprintf("unknown symbol \"%s\" used as expression", name))
 		return t.makeInvExp(pin)
 	}
 

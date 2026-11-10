@@ -47,7 +47,7 @@ func (t *Typer) indexConst(i int, c *ast.Const) {
 
 	symbol := t.unit.Scope.Get(name)
 	if symbol != nil {
-		t.report(pin, sx.DupSymbol, fmt.Sprintf("symbol with name \"%s\" was already declared inside this unit", name))
+		t.report(pin, sx.ETypDupSymbol, fmt.Sprintf("symbol with name \"%s\" was already declared inside this unit", name))
 		return
 	}
 
@@ -63,7 +63,7 @@ func (t *Typer) indexStub(i int, s *ast.FunStub) {
 
 	symbol := t.unit.Scope.Get(name)
 	if symbol != nil {
-		t.report(pin, sx.DupSymbol, fmt.Sprintf("symbol with name \"%s\" was already declared inside this unit", name))
+		t.report(pin, sx.ETypDupSymbol, fmt.Sprintf("symbol with name \"%s\" was already declared inside this unit", name))
 		return
 	}
 
@@ -81,7 +81,7 @@ func (t *Typer) indexFun(i int, f *ast.Fun) {
 
 	symbol := t.unit.Scope.Get(name)
 	if symbol != nil {
-		t.report(pin, sx.DupSymbol, fmt.Sprintf("symbol with name \"%s\" was already declared inside this unit", name))
+		t.report(pin, sx.ETypDupSymbol, fmt.Sprintf("symbol with name \"%s\" was already declared inside this unit", name))
 		return
 	}
 
@@ -112,7 +112,7 @@ func (t *Typer) indexType(i int, s *ast.Type) {
 
 	symbol := t.unit.Scope.Get(name)
 	if symbol != nil {
-		t.report(pin, sx.DupSymbol, fmt.Sprintf("symbol with name \"%s\" was already declared inside this unit", name))
+		t.report(pin, sx.ETypDupSymbol, fmt.Sprintf("symbol with name \"%s\" was already declared inside this unit", name))
 		return
 	}
 

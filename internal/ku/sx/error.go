@@ -16,11 +16,21 @@ import (
 // about the error. Encoding scheme:
 //
 // Two most significant bytes encode violation level and compilation
-// phase/compiler sybsystem/module that reported the error
+// phase/compiler sybsystem/module that reported the error.
 //
 // Violation level is stored in 4 most significant bits. It determines
 // how errors should be treated: light warnings, warnings that become
 // errors in production builds, errors which block codegeneration, etc.
+//
+// Next bit stores system error flag. If set means that error originated
+// from interaction with host OS. Most often this can be the case
+// when reading a file or listing directory entries when compiler
+// loads program source code. Most likely other cause is error with
+// creating and writing intermediate or final output file(s).
+// System errors are always fatal.
+//
+// Next 6 bits store compilation phase/subsystem identifier where
+// error is reported.
 type ErrorType uint64
 
 func (t ErrorType) Level() Viol {
@@ -53,7 +63,7 @@ const (
 	// go further with compilation up until backend phases.
 	Break
 
-	// Fatal means that there is no sense trying to going further
+	// Fatal means that there is no sense trying to go further
 	// during compilation. Error is so significant that it breaks
 	// current and all subsequent phases of compilation.
 	//
@@ -76,7 +86,7 @@ const (
 )
 
 func (t ErrorType) String() string {
-	p := Phase((t >> 54) & 0b111111)
+	p := Phase((t >> 53) & 0b111111)
 
 	var phase string
 	switch p {
@@ -96,7 +106,7 @@ func (t ErrorType) String() string {
 	return fmt.Sprintf("%s.%04d", phase, x)
 }
 
-// Error describes compiler error with source position.
+// Error describes compiler message/warning/error with source position.
 type Error struct {
 	// Possibly long error description and additional info
 	// with meaning varying based on type of error.
@@ -177,13 +187,38 @@ func (p *Pool) FormatError(out io.Writer, e *Error) {
 	io.WriteString(out, "======\n")
 }
 
+const sysError ErrorType = 1 << 59
+
+const (
+	violBreak = ErrorType(Break) << 60
+	violFatal = ErrorType(Fatal) << 60
+)
+
+const (
+	phaseWalk = ErrorType(Walk) << 53
+	phaseTypc = ErrorType(Typc) << 53
+)
+
+const (
+	prefixSysWalk = violFatal | sysError | phaseWalk
+
+	// System error when loading/reading program source file.
+	ETypLoadSourceFile ErrorType = prefixSysWalk | iota
+
+	// System error when listing source files in unit directory.
+	ETypListUnitDir
+
+	// Source file is too large to load.
+	ETypLargeSourceFile
+)
+
 const (
 	// break errors in stg/typechecking
-	prefixBreakTypc = ErrorType(Break)<<60 | ErrorType(Typc)<<54
+	prefixBreakTypc = violBreak | phaseTypc
 
 	// Definition/declaration of multiple symbols with the same name
 	// in the same scope.
-	DupSymbol ErrorType = prefixBreakTypc | iota
+	ETypDupSymbol ErrorType = prefixBreakTypc | iota
 
-	UnknownSymbol
+	ETypUnknownSymbol
 )

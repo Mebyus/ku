@@ -2,7 +2,6 @@ package builder
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -24,9 +23,6 @@ type walker struct {
 
 	// list of unit ids with no imports in them
 	roots []uid
-
-	// TODO: remove this
-	errors []*sx.Error
 
 	// Base directory for standard library units lookup.
 	std string
@@ -58,10 +54,6 @@ func Walk(path string) []sx.Path {
 	var w walker
 	w.init(witem{path: p})
 	w.walk()
-
-	for _, e := range w.errors {
-		w.pool.FormatError(os.Stderr, e)
-	}
 
 	if len(w.units) == 0 {
 		return nil
@@ -169,10 +161,7 @@ func (w *walker) loadfiles(item *witem, u *unit) []*sx.Text {
 
 		file, err := w.pool.Load(item.file)
 		if err != nil {
-			w.report(&sx.Error{
-				Pin:   item.pin,
-				Short: fmt.Sprintf("load unit \"%s\" source file: %v", name, err),
-			})
+			w.report(item.pin, sx.ETypLoadSourceFile, fmt.Sprintf("load unit \"%s\" source file: %v", name, err))
 			return nil
 		}
 		return []*sx.Text{file}
@@ -192,10 +181,7 @@ func (w *walker) loadfiles(item *witem, u *unit) []*sx.Text {
 		IncludeTestFiles: item.includeTestFiles,
 	})
 	if err != nil {
-		w.report(&sx.Error{
-			Pin:   item.pin,
-			Short: fmt.Sprintf("load unit \"%s\" source files: %v", item.path, err),
-		})
+		w.report(item.pin, sx.ETypLoadSourceFile, fmt.Sprintf("load unit \"%s\" source files: %v", item.path, err))
 		return nil
 	}
 
@@ -234,19 +220,13 @@ func (w *walker) load(item *witem, u *unit) bool {
 				}
 
 				if p.Path == item.path {
-					w.report(&sx.Error{
-						Pin:   p.ImpPin,
-						Short: fmt.Sprintf("unit \"%s\" imports itself", item.path),
-					})
+					w.report(p.ImpPin, 0, fmt.Sprintf("unit \"%s\" imports itself", item.path))
 					continue
 				}
 
 				_, ok := w.iset[p.Path]
 				if ok {
-					w.report(&sx.Error{
-						Pin:   p.ImpPin,
-						Short: fmt.Sprintf("unit \"%s\" imported multiple times", p.Path),
-					})
+					w.report(p.ImpPin, 0, fmt.Sprintf("unit \"%s\" imported multiple times", p.Path))
 					continue
 				}
 				w.iset[p.Path] = struct{}{}
@@ -290,8 +270,8 @@ func (w *walker) resolve(path sx.Path) string {
 	return ""
 }
 
-func (w *walker) report(e *sx.Error) {
-	w.errors = append(w.errors, e)
+func (w *walker) report(pin sx.Pin, typ sx.ErrorType, short string, notes ...string) {
+	w.pool.Report(pin, typ, short, notes...)
 }
 
 // import site represents a place in source code which imports a unit
