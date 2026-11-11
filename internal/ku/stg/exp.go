@@ -123,42 +123,6 @@ func (b *BinExp) Target() bool {
 	return false
 }
 
-// Boolean represents a boolean constant true/false (directly from source or evaluated)
-// which value is known at compile time.
-type Boolean struct {
-	operand
-
-	pin sx.Pin
-
-	typ *Type
-
-	Val bool
-}
-
-// Explicit interface implementation check.
-var _ Operand = &Boolean{}
-
-func (b *Boolean) Type() *Type {
-	return b.typ
-}
-
-func (b *Boolean) Pin() sx.Pin {
-	return b.pin
-}
-
-func (b *Boolean) Target() bool {
-	return false
-}
-
-// create static boolean value.
-func (t *Typer) makeBoolean(pin sx.Pin, v bool) *Boolean {
-	return &Boolean{
-		pin: pin,
-		Val: v,
-		typ: t.common.Types.Static.Boolean,
-	}
-}
-
 // SymExp represents expression formed from symbol usage (as operand or part of chain)
 // inside an expression.
 type SymExp struct {

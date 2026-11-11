@@ -68,8 +68,8 @@ const (
 	// // buildtime
 	// StaticParam
 
-	// // Symbol created by importing other unit.
-	// Import
+	// Symbol created by importing other unit.
+	Import
 )
 
 var text = [...]string{
@@ -84,8 +84,8 @@ var text = [...]string{
 	Car: "car",
 	Var: "var",
 	// Gen:    "gen",
-	// Import: "import",
-	Param: "param",
+	Import: "import",
+	Param:  "param",
 
 	// Receiver:  "receiver",
 	// OmitParam: "param.omit",

@@ -13,6 +13,7 @@ func (t *Typer) alloc(texts []*ast.Text) {
 
 // NodeBox is a container for gathering AST nodes from all unit texts.
 type NodeBox struct {
+	imps   []ast.Import
 	funs   []ast.Fun
 	stubs  []ast.FunStub
 	types  []ast.Type
@@ -24,6 +25,7 @@ func (b *NodeBox) alloc(texts []*ast.Text) {
 	// b.texts = append(b.texts, texts...)
 
 	funs := 0
+	imps := 0
 	// vars := 0
 	// tests := 0
 	types := 0
@@ -32,6 +34,7 @@ func (b *NodeBox) alloc(texts []*ast.Text) {
 	consts := 0
 	for _, t := range texts {
 		funs += len(t.Funs)
+		imps += len(t.Imports)
 		// vars += len(t.Variables)
 		// tests += len(t.Tests)
 		types += len(t.Types)
@@ -40,6 +43,7 @@ func (b *NodeBox) alloc(texts []*ast.Text) {
 		// methods += len(t.Methods)
 	}
 
+	b.imps = slices.Grow(b.imps, imps)
 	b.funs = slices.Grow(b.funs, funs)
 	// b.vars = slices.Grow(b.vars, vars)
 	// b.tests = slices.Grow(b.tests, tests)
@@ -55,8 +59,10 @@ func (b *NodeBox) alloc(texts []*ast.Text) {
 
 func (b *NodeBox) reset() {
 	// b.texts = b.texts[:0]
-	b.consts = b.consts[:0]
+
+	b.imps = b.imps[:0]
 	b.funs = b.funs[:0]
+	b.consts = b.consts[:0]
 	b.stubs = b.stubs[:0]
 	// b.tests = b.tests[:0]
 	// b.vars = b.vars[:0]
@@ -65,6 +71,9 @@ func (b *NodeBox) reset() {
 }
 
 func (b *NodeBox) gather(text *ast.Text) {
+	for _, p := range text.Imports {
+		b.imps = append(b.imps, p)
+	}
 	for _, c := range text.Consts {
 		b.consts = append(b.consts, c)
 	}

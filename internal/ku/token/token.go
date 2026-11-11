@@ -80,6 +80,8 @@ const (
 
 	SliceAll // [:]
 
+	HashSquare // #[
+
 	// start of keyword Kinds
 	// used by some formatting functions
 	_keystart

@@ -703,6 +703,9 @@ func (t *Typer) convertSymExp(c *context, exp *ast.SymExp) Exp {
 	}
 
 	switch symbol.Kind {
+	case symk.Import:
+		t.report(pin, 0, fmt.Sprintf("imported unit (under name \"%s\") cannot be used as operand", name))
+		return t.makeInvExp(pin)
 	case symk.Const:
 		return symbol.Def.(*StaticValue).Exp
 	case

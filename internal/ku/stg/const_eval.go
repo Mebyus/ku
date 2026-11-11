@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mebyus/ku/internal/ku/ast"
+	"github.com/mebyus/ku/internal/ku/enums/symk"
 	"github.com/mebyus/ku/internal/ku/sx"
 	"github.com/mebyus/ku/internal/ku/token"
 )
@@ -29,19 +30,48 @@ func (t *Typer) evalConstExp(exp ast.Exp) Exp {
 		return t.makeInvExp(e.Pin)
 		// already reported during parsing
 	case *ast.Integer:
+		return t.makeInteger(e.Pin, e.Val, uint16(e.Aux))
 	case *ast.True:
+		return t.makeBoolean(e.Pin, true)
 	case *ast.False:
+		return t.makeBoolean(e.Pin, false)
 	case *ast.String:
 	case *ast.Rune:
 	case *ast.SymExp:
+		return t.evalConstSymExp(e)
 	case *ast.ParenExp:
 		return t.evalConstExp(e.Exp)
 	case *ast.UnExp:
 	case *ast.BinExp:
+		return t.evalConstBinExp(e)
 	default:
 		panic(fmt.Sprintf("unexpected %T expression", e))
 	}
 
+	panic(fmt.Sprintf("TODO: %T", exp))
+}
+
+func (t *Typer) evalConstSymExp(exp *ast.SymExp) Exp {
+	name := exp.Name
+	pin := exp.Pin
+
+	symbol := t.unit.Scope.Lookup(name)
+	if symbol == nil {
+		t.report(pin, sx.ETypUnknownSymbol, fmt.Sprintf("unknown symbol \"%s\" used as expression", name))
+		return t.makeInvExp(pin)
+	}
+
+	switch symbol.Kind {
+	case symk.Const:
+		symbol.rnum += 1
+		return symbol.Def.(*StaticValue).Exp
+	default:
+		t.report(pin, 0, fmt.Sprintf("symbol \"%s\" cannot be used as operand in compile-time expression", name))
+		return t.makeInvExp(pin)
+	}
+}
+
+func (t *Typer) evalConstBinExp(exp *ast.BinExp) Exp {
 	panic("TODO")
 }
 
@@ -113,5 +143,41 @@ func (t *Typer) makeInteger(pin sx.Pin, v uint64, style uint16) *Integer {
 		Val:   v,
 		typ:   t.common.Types.Static.Integer,
 		Style: style,
+	}
+}
+
+// Boolean represents a boolean constant true/false (directly from source or evaluated)
+// which value is known at compile time.
+type Boolean struct {
+	operand
+
+	pin sx.Pin
+
+	typ *Type
+
+	Val bool
+}
+
+// Explicit interface implementation check.
+var _ Operand = &Boolean{}
+
+func (b *Boolean) Type() *Type {
+	return b.typ
+}
+
+func (b *Boolean) Pin() sx.Pin {
+	return b.pin
+}
+
+func (b *Boolean) Target() bool {
+	return false
+}
+
+// create static boolean value.
+func (t *Typer) makeBoolean(pin sx.Pin, v bool) *Boolean {
+	return &Boolean{
+		pin: pin,
+		Val: v,
+		typ: t.common.Types.Static.Boolean,
 	}
 }

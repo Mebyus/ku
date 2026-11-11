@@ -32,13 +32,14 @@ type Unit struct {
 	LinkName string
 }
 
-func (u *Unit) init(global *Scope) {
-	u.Scope.Init(scok.Unit, global)
+type Import struct {
+	symdef
+
+	Unit *Unit
 }
 
-type Error struct {
-	Short string
-	Pin   sx.Pin
+func (u *Unit) init(global *Scope) {
+	u.Scope.Init(scok.Unit, global)
 }
 
 // AssignLinkNames generates and assigns unique link names for each unit in

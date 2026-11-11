@@ -11,10 +11,17 @@ import (
 )
 
 func (t *Typer) index() {
+	t.indexImports()
 	t.indexConsts()
 	t.indexStubs()
 	t.indexFuns()
 	t.indexTypes()
+}
+
+func (t *Typer) indexImports() {
+	for i, p := range t.box.imps {
+		t.indexImport(i, &p)
+	}
 }
 
 func (t *Typer) indexConsts() {
@@ -39,6 +46,25 @@ func (t *Typer) indexTypes() {
 	for i, s := range t.box.types {
 		t.indexType(i, &s)
 	}
+}
+
+func (t *Typer) indexImport(i int, p *ast.Import) {
+	name := p.Name
+	pin := p.Pin
+
+	unit, ok := t.common.Units[p.Path]
+	if !ok || unit == nil {
+		panic("imported unit not found")
+	}
+
+	symbol := t.unit.Scope.Get(name)
+	if symbol != nil {
+		t.report(pin, sx.ETypDupSymbol, fmt.Sprintf("symbol with name \"%s\" was already declared inside this unit", name))
+		return
+	}
+
+	symbol = t.unit.Scope.New(symk.Import, name, pin)
+	symbol.Def = &Import{Unit: unit}
 }
 
 func (t *Typer) indexConst(i int, c *ast.Const) {

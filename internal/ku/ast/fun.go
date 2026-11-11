@@ -5,7 +5,7 @@ import (
 	"github.com/mebyus/ku/internal/ku/sx"
 )
 
-// Fun represents named function definition (signature + body).
+// Fun represents unit-level named function definition (signature + body).
 //
 // Formal definition:
 //
@@ -15,18 +15,41 @@ import (
 type Fun struct {
 	Sig  Signature
 	Body Block
+
+	Charms []Charm
+
 	Name string
 
 	// Function name pin.
 	Pin sx.Pin
+
+	// True when function is marked as public.
+	Pub bool
 }
 
 func (f *Fun) Format(buf *fbuf.Buffer) {
+	for _, c := range f.Charms {
+		c.Format(buf)
+		buf.Line()
+	}
+	if f.Pub {
+		buf.Puts("pub\n")
+	}
 	buf.Puts("fun ")
 	buf.Puts(f.Name)
 	f.Sig.Format(buf)
 	buf.Space()
 	f.Body.Format(buf)
+}
+
+func (f *Fun) Stub() FunStub {
+	return FunStub{
+		Sig:    f.Sig,
+		Charms: f.Charms,
+		Name:   f.Name,
+		Pin:    f.Pin,
+		Pub:    f.Pub,
+	}
 }
 
 // FunStub represents function declaration with no implementation.
@@ -35,11 +58,17 @@ func (f *Fun) Format(buf *fbuf.Buffer) {
 //
 //	Fun  -> "fun" Name Signature ";"
 type FunStub struct {
-	Sig  Signature
+	Sig Signature
+
+	Charms []Charm
+
 	Name string
 
 	// Function name pin.
 	Pin sx.Pin
+
+	// True when function is marked as public.
+	Pub bool
 }
 
 // Signature represents function signature (params + return result).

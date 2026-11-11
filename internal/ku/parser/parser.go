@@ -10,16 +10,19 @@ import (
 type Parser struct {
 	text ast.Text
 
-	lx *lexer.Lexer
-
-	// used for reporting errors
-	pool *sx.Pool
+	// stored charms for later parsed things
+	charms []ast.Charm
 
 	// token at current parser position
 	peek token.Token
 
 	// next token after peek
 	next token.Token
+
+	lx *lexer.Lexer
+
+	// used for reporting errors
+	pool *sx.Pool
 
 	// number of skipped valid tokens (not invalid ones) due
 	// to syncs after errors
@@ -33,6 +36,10 @@ type Parser struct {
 
 	// parsing should be stopped when this is not 0
 	status ast.Status
+
+	// parsed "pub" keyword stored for later, works
+	// the same way as stored charms
+	pub bool
 }
 
 func FromText(pool *sx.Pool, text *sx.Text) *Parser {

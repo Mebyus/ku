@@ -15,14 +15,16 @@ func (p *Parser) topFun() {
 		return
 	}
 
-	var fun ast.Fun
-
 	name := p.peek.Data
 	pin := p.peek.Pin
 	p.advance() // skip function name
 
-	fun.Name = name
-	fun.Pin = pin
+	fun := ast.Fun{
+		Name:   name,
+		Pin:    pin,
+		Charms: p.charms,
+		Pub:    p.pub,
+	}
 
 	if p.peek.Kind != token.LeftParen {
 		p.topError(p.peek.Pin, fmt.Sprintf("expected \"(\" before function param list, found %s token instead", &p.peek))
@@ -80,11 +82,7 @@ func (p *Parser) topFun() {
 	case token.Semicolon:
 		// function forward declaration
 		p.advance() // skip ";"
-		p.text.AddStub(ast.FunStub{
-			Sig:  fun.Sig,
-			Name: fun.Name,
-			Pin:  fun.Pin,
-		})
+		p.text.AddStub(fun.Stub())
 		return
 	default:
 		// try to parse as type specifier
@@ -108,21 +106,13 @@ func (p *Parser) topFun() {
 	case token.Semicolon:
 		// function forward declaration
 		p.advance() // skip ";"
-		p.text.AddStub(ast.FunStub{
-			Sig:  fun.Sig,
-			Name: fun.Name,
-			Pin:  fun.Pin,
-		})
+		p.text.AddStub(fun.Stub())
 		return
 	default:
 		p.report(p.peek.Pin, 0, fmt.Sprintf("expected \"{\" as function body start or \";\" as the end of function declaration, found %s token instead", &p.peek))
 
 		// assume it's forward declaration with missing ";"
-		p.text.AddStub(ast.FunStub{
-			Sig:  fun.Sig,
-			Name: fun.Name,
-			Pin:  fun.Pin,
-		})
+		p.text.AddStub(fun.Stub())
 		// syncronize
 	}
 }

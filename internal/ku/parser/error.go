@@ -22,7 +22,8 @@ import (
 type ss int
 
 const (
-	// caller should continue parsing from next statement
+	// caller should continue parsing from next statement or similar
+	// adjacent node
 	ssNode ss = iota + 1
 
 	// caller should continue parsing from next top-level node

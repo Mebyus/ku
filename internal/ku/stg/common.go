@@ -18,11 +18,14 @@ type Common struct {
 
 	Build kub.Build
 
+	Units map[sx.Path]*Unit
+
 	Pool *sx.Pool
 }
 
 func (c *Common) Init(build kub.Build, pool *sx.Pool) {
 	c.Pool = pool
+	c.Units = make(map[sx.Path]*Unit)
 	c.Build = build
 	c.Types.init(build.Target.Arch.Size())
 	c.Global.InitGlobal()

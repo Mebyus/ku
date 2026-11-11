@@ -37,9 +37,7 @@ func (p *Parser) imports() {
 }
 
 func (p *Parser) top() {
-	if p.peek.Kind == token.Pub {
-		p.advance() // skip "pub"
-	}
+	p.topCharms()
 
 	switch p.peek.Kind {
 	case token.Const:

@@ -132,13 +132,14 @@ func Build(config *Config) *Result {
 	for _, cohort := range tower.Cohorts {
 		for _, id := range cohort.Symbols {
 			u := w.units[id]
-
-			typer := pool.Get()
 			unit := &stg.Unit{
 				Path: u.path,
 				Dir:  u.dir,
 				Name: u.name,
 			}
+			pool.Common.Units[unit.Path] = unit
+
+			typer := pool.Get()
 			typer.Do(unit, u.texts)
 			pool.Put(typer)
 
