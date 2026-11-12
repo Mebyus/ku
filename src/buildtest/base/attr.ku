@@ -1,12 +1,13 @@
-#[entry(main)]
+// #[entry(main)]
+#[entry]
 fun main() {}
 
 #[export("add")]
 pub
 fun add_with_attr(a: u32, b: u32) -> u32 {
-
+    return a + b;
 }
 
 #[link.name("write")]
-#[link.lib("c")]
+// #[link.lib("c")]
 fun libc_write(fd: u32, data: []u8) -> sint;

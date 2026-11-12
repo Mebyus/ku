@@ -98,6 +98,11 @@ func (t *Typer) indexStub(i int, s *ast.FunStub) {
 	symbol.Def = t.newFunDef()
 	symbol.Flags |= SymbolStub
 
+	if s.Pub {
+		symbol.Flags |= SymbolPublic
+	}
+	t.applyCharms(symbol, s.Charms)
+
 	t.unit.Funs = append(t.unit.Funs, symbol)
 }
 
@@ -115,13 +120,10 @@ func (t *Typer) indexFun(i int, f *ast.Fun) {
 	symbol.Aux = uint32(i)
 	symbol.Def = t.newFunDef()
 
-	// if f.Pub {
-	// 	symbol.Flags |= SymbolPublic
-	// }
-	// if f.Export {
-	// 	symbol.Flags |= SymbolExport
-	// 	t.unit.Export = append(t.unit.Export, symbol)
-	// }
+	if f.Pub {
+		symbol.Flags |= SymbolPublic
+	}
+	t.applyCharms(symbol, f.Charms)
 
 	t.unit.Funs = append(t.unit.Funs, symbol)
 }
@@ -145,6 +147,10 @@ func (t *Typer) indexType(i int, s *ast.Type) {
 	symbol = t.unit.Scope.New(symk.Type, name, pin)
 	symbol.Aux = uint32(i)
 	symbol.Def = t.newTypeDef(symbol)
+
+	if s.Pub {
+		symbol.Flags |= SymbolPublic
+	}
 }
 
 func (t *Typer) newTypeDef(s *Symbol) *Type {

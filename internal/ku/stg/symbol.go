@@ -29,9 +29,9 @@ type Symbol struct {
 	// naming scheme cannot have accidental collisions.
 	Name string
 
-	// Link name. Not empty only if it differs from standard link name
-	// mangling algorithm.
-	// Link string
+	// Link or export name. Not empty only if it differs from standard
+	// link name mangling algorithm.
+	Link string
 
 	// Source position of symbol origin (where this symbol was declared).
 	Pin sx.Pin

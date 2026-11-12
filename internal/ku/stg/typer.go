@@ -72,6 +72,9 @@ type Typer struct {
 
 	// Signature of current function or method being converted to STG form.
 	sig *Signature
+
+	// reusable map for counting charm usage for current symbol/field
+	charms map[ /* charm name */ string]int
 }
 
 func NewTyper(c *Common) *Typer {

@@ -45,4 +45,7 @@ type Type struct {
 
 	// pin of type name
 	Pin sx.Pin
+
+	// True when type is marked as public.
+	Pub bool
 }

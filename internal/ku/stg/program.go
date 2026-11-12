@@ -20,6 +20,9 @@ type Unit struct {
 
 	Consts []*Symbol
 
+	// List of function symbols that should be exported in produced object file.
+	Exports []*Symbol
+
 	// Unit path.
 	Path sx.Path
 
@@ -30,6 +33,14 @@ type Unit struct {
 
 	// Used to generate unique names (during codegen phase) for symbols from this unit.
 	LinkName string
+
+	// Function (cannot be method) symbol marked as program entrypoint.
+	// Each unit can have at most one such function.
+	//
+	// In practice most units do not have entrypoint symbol.
+	//
+	// When unit does not contain entrypoint this field equals nil.
+	Entry *Symbol
 }
 
 type Import struct {

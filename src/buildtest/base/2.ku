@@ -1,5 +1,5 @@
 import std (
-    chars  -> "chars";
+    // chars  -> "chars";
 )
 
 fun test_func(a: u32) {
