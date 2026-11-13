@@ -128,6 +128,10 @@ func (s *Symbol) IsStub() bool {
 	return s.Flags&SymbolStub != 0
 }
 
+func (s *Symbol) Skip() bool {
+	return s.Flags&SymbolSkip != 0
+}
+
 type SymDef interface {
 	// Discriminator method for interface implementations.
 	// Only serves as a trick to enhance Go typechecking in

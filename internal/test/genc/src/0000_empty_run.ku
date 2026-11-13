@@ -1,1 +1,2 @@
+#[entry]
 fun run(args: []str) {}

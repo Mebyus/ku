@@ -127,8 +127,13 @@ func Build(config *Config) *Result {
 		os.Exit(1)
 	}
 
+	if debug {
+		fmt.Printf("uwalk: %s\n", time.Since(start))
+	}
+
 	var prog stg.Program
-	pool := stg.NewPool(config.Build, w.pool)
+	prog.Init(config.Build, w.pool)
+	typers := stg.NewPool(&prog.Common)
 	for _, cohort := range tower.Cohorts {
 		for _, id := range cohort.Symbols {
 			u := w.units[id]
@@ -137,28 +142,21 @@ func Build(config *Config) *Result {
 				Dir:  u.dir,
 				Name: u.name,
 			}
-			pool.Common.Units[unit.Path] = unit
 
-			typer := pool.Get()
-			typer.Do(unit, u.texts)
-			pool.Put(typer)
+			t := typers.Get()
+			t.Do(unit, u.texts)
+			typers.Put(t)
 
-			prog.Units = append(prog.Units, unit)
+			prog.Add(unit)
 		}
 	}
 	stg.AssignLinkNames(prog.Units)
-
-	if debug {
-		fmt.Printf("uwalk: %s\n", time.Since(start))
-	}
+	stg.Prune(&prog)
 
 	if w.pool.HasErrors() {
 		w.pool.DumpErrors(os.Stderr)
 		os.Exit(1)
 	}
-
-	// TODO: should we pass Common to pool by pointer from Program instead?
-	prog.Common = pool.Common
 
 	progName := filepath.Join(config.OutDir, "genc", config.Name+".c")
 

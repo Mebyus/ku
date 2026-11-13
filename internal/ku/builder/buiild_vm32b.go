@@ -23,25 +23,23 @@ func CompileForVM32B(path string) (*vm32b.Prog, error) {
 	text := parser.ParseText(pool, tf)
 
 	var prog stg.Program
-	typers := stg.NewPool(kub.Build{
+	prog.Init(kub.Build{
 		Target: kub.Target{
 			Arch: kub.ArchVM32B,
 			OS:   kub.Bare,
 		},
 	}, pool)
-	typer := typers.Get()
+	typers := stg.NewPool(&prog.Common)
+	t := typers.Get()
 	unit := stg.Unit{Name: "ku"}
-	typer.Do(&unit, []*ast.Text{text})
-	typers.Put(typer)
+	t.Do(&unit, []*ast.Text{text})
+	typers.Put(t)
 	prog.Units = append(prog.Units, &unit)
 
 	if pool.HasErrors() {
 		pool.DumpErrors(os.Stderr)
 		os.Exit(1)
 	}
-
-	// TODO: should we pass Common to pool by pointer from Program instead?
-	prog.Common = typers.Common
 
 	funs := genb.Gen(&prog)
 	return vm32b.Compile(funs), nil

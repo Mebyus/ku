@@ -2,16 +2,14 @@ package stg
 
 import (
 	"github.com/mebyus/ku/internal/ku/ast"
-	"github.com/mebyus/ku/internal/ku/builder/kub"
 	"github.com/mebyus/ku/internal/ku/stg/hg"
-	"github.com/mebyus/ku/internal/ku/sx"
 )
 
 // Pool is a collection of Typer objects. Client code can request available
 // object from Pool or return an object that is no longer needed. Pool automatically
 // manages objects allocation, reuse and resetting state.
 type Pool struct {
-	Common
+	common *Common
 
 	// Objects available for reuse. Operates as stack.
 	free []*Typer
@@ -22,39 +20,27 @@ type Pool struct {
 	// m map[*Unit]*Typer
 }
 
-func NewPool(build kub.Build, pool *sx.Pool) *Pool {
-	p := &Pool{}
-	p.init(build, pool)
+func NewPool(c *Common) *Pool {
+	p := &Pool{common: c}
 	return p
-}
-
-func (p *Pool) init(build kub.Build, pool *sx.Pool) {
-	p.Common.Init(build, pool)
 }
 
 // Get returns a Typer object attached to a given unit.
 // Allocates a new object if specified unit has no Typer attached to it.
 func (p *Pool) Get() *Typer {
-	// t := p.m[u]
-	// if t != nil {
-	// 	return t
-	// }
-
 	var t *Typer
 	n := len(p.free)
 	if n == 0 {
-		t = NewTyper(&p.Common)
+		t = NewTyper(p.common)
 	} else {
 		t = p.free[n-1]
 		p.free = p.free[:n-1]
 		t.reset()
 	}
-	// p.m[u] = t
 	return t
 }
 
 func (p *Pool) Put(t *Typer) {
-	// delete(p.m, t.unit)
 	t.unit = nil
 	p.free = append(p.free, t)
 }

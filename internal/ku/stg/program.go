@@ -3,6 +3,7 @@ package stg
 import (
 	"strconv"
 
+	"github.com/mebyus/ku/internal/ku/builder/kub"
 	"github.com/mebyus/ku/internal/ku/enums/scok"
 	"github.com/mebyus/ku/internal/ku/sx"
 )
@@ -11,11 +12,26 @@ type Program struct {
 	Common
 
 	Units []*Unit
+
+	// Program entrypoint function.
+	//
+	// Can be nil if no entrypoint was specified.
+	Entry *Symbol
+}
+
+func (p *Program) Init(build kub.Build, pool *sx.Pool) {
+	p.Common.Init(build, pool)
+}
+
+func (p *Program) Add(u *Unit) {
+	p.Common.Units[u.Path] = u
+	p.Units = append(p.Units, u)
 }
 
 type Unit struct {
 	Scope Scope
 
+	// Contains both functions and function stubs.
 	Funs []*Symbol
 
 	Consts []*Symbol
