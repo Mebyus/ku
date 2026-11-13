@@ -2,7 +2,7 @@ package genc
 
 import "github.com/mebyus/ku/internal/ku/stg"
 
-func (g *Buffer) funsig(name string, export bool, f *stg.FunDef) {
+func (g *genbuf) funsig(name string, export bool, f *stg.FunDef) {
 	if !export {
 		g.puts("static ")
 	}
@@ -11,7 +11,7 @@ func (g *Buffer) funsig(name string, export bool, f *stg.FunDef) {
 	} else {
 		g.typ(f.Result)
 	}
-	g.nl()
+	g.line()
 
 	g.puts(name)
 
@@ -32,16 +32,16 @@ func (g *Buffer) funsig(name string, export bool, f *stg.FunDef) {
 	}
 }
 
-func (g *Buffer) fun(s *stg.Symbol) {
+func (g *genbuf) fun(s *stg.Symbol) {
 	f := s.Def.(*stg.FunDef)
 	g.funsig(g.getName(s), s.IsExport(), f)
 	g.space()
 	g.block(&f.Body)
-	g.nl()
+	g.line()
 }
 
-func (g *Buffer) funstub(s *stg.Symbol) {
+func (g *genbuf) funstub(s *stg.Symbol) {
 	g.funsig(g.getName(s), s.IsExport(), s.Def.(*stg.FunDef))
 	g.semi()
-	g.nl()
+	g.line()
 }

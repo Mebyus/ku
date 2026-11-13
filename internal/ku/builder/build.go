@@ -310,7 +310,7 @@ func genProg(c *Config, out string, prog *stg.Program) error {
 	}
 	defer file.Close()
 
-	return genc.Gen(&genc.Config{
+	return genc.WriteProg(&genc.Config{
 		Build:   c.Build,
 		LangDir: c.LangDir,
 	}, file, prog)

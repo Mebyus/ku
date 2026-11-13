@@ -6,26 +6,26 @@ import (
 	"github.com/mebyus/ku/internal/ku/stg"
 )
 
-func (g *Buffer) block(block *stg.Block) {
+func (g *genbuf) block(block *stg.Block) {
 	if len(block.Nodes) == 0 {
 		g.puts("{}")
 		return
 	}
 
 	g.puts("{")
-	g.nl()
+	g.line()
 	g.inc()
 	for _, s := range block.Nodes {
 		g.indent()
 		g.node(s)
-		g.nl()
+		g.line()
 	}
 	g.dec()
 	g.indent()
 	g.puts("}")
 }
 
-func (g *Buffer) node(s stg.Statement) {
+func (g *genbuf) node(s stg.Statement) {
 	switch s := s.(type) {
 	case *stg.Return:
 		g.ret(s)
@@ -48,7 +48,7 @@ func (g *Buffer) node(s stg.Statement) {
 	}
 }
 
-func (g *Buffer) invokefun(f *stg.InvokeFun) {
+func (g *genbuf) invokefun(f *stg.InvokeFun) {
 	g.puts(g.getName(f.Symbol))
 	if len(f.Args) == 0 {
 		g.puts("();")
@@ -63,13 +63,13 @@ func (g *Buffer) invokefun(f *stg.InvokeFun) {
 	g.puts(");")
 }
 
-func (g *Buffer) discexp(d *stg.DiscardExp) {
+func (g *genbuf) discexp(d *stg.DiscardExp) {
 	g.puts("(void)(")
 	g.exp(d.Exp)
 	g.puts(");")
 }
 
-func (g *Buffer) initvar(v *stg.InitVar) {
+func (g *genbuf) initvar(v *stg.InitVar) {
 	g.typ(v.Symbol.Type)
 	g.space()
 	g.puts(v.Symbol.Name)
@@ -78,7 +78,7 @@ func (g *Buffer) initvar(v *stg.InitVar) {
 	g.semi()
 }
 
-func (g *Buffer) ifret(f *stg.IfRet) {
+func (g *genbuf) ifret(f *stg.IfRet) {
 	g.puts("if (")
 	g.exp(f.Exp)
 	g.puts(") return ")
@@ -89,7 +89,7 @@ func (g *Buffer) ifret(f *stg.IfRet) {
 	g.semi()
 }
 
-func (g *Buffer) branch(f *stg.Branch) {
+func (g *genbuf) branch(f *stg.Branch) {
 	g.puts("if (")
 	g.exp(f.Exp)
 	g.puts(") ")
@@ -102,14 +102,14 @@ func (g *Buffer) branch(f *stg.Branch) {
 	g.block(f.Else)
 }
 
-func (g *Buffer) while(w *stg.While) {
+func (g *genbuf) while(w *stg.While) {
 	g.puts("while (")
 	g.exp(w.Exp)
 	g.puts(") ")
 	g.block(&w.Body)
 }
 
-func (g *Buffer) ret(r *stg.Return) {
+func (g *genbuf) ret(r *stg.Return) {
 	if r.Exp == nil {
 		g.puts("return;")
 		return

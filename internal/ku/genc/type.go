@@ -7,11 +7,11 @@ import (
 	"github.com/mebyus/ku/internal/ku/stg"
 )
 
-func (g *Buffer) typ(t *stg.Type) {
+func (g *genbuf) typ(t *stg.Type) {
 	g.puts(g.getTypeName(t))
 }
 
-func (g *Buffer) getTypeName(t *stg.Type) string {
+func (g *genbuf) getTypeName(t *stg.Type) string {
 	s, ok := g.types[t]
 	if ok {
 		return s
@@ -22,7 +22,7 @@ func (g *Buffer) getTypeName(t *stg.Type) string {
 	return s
 }
 
-func (g *Buffer) newTypeName(t *stg.Type) string {
+func (g *genbuf) newTypeName(t *stg.Type) string {
 	switch t.Kind {
 	case typk.Ref:
 		return g.getTypeName(t.Def.(*stg.Ref).Type) + "*"

@@ -5,7 +5,7 @@ import (
 	"github.com/mebyus/ku/internal/ku/stg"
 )
 
-func (g *Buffer) getName(s *stg.Symbol) string {
+func (g *genbuf) getName(s *stg.Symbol) string {
 	if s.Link != "" {
 		return s.Link
 	}

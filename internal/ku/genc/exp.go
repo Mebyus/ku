@@ -7,7 +7,7 @@ import (
 	"github.com/mebyus/ku/internal/ku/stg"
 )
 
-func (g *Buffer) exp(exp stg.Exp) {
+func (g *genbuf) exp(exp stg.Exp) {
 	switch e := exp.(type) {
 	case *stg.Integer:
 		if e.Neg {
@@ -42,7 +42,7 @@ func (g *Buffer) exp(exp stg.Exp) {
 	}
 }
 
-func (g *Buffer) binExp(exp *stg.BinExp) {
+func (g *genbuf) binExp(exp *stg.BinExp) {
 	a, ok := exp.A.(*stg.BinExp)
 	if ok {
 		if shouldParen(a.Op.Kind, exp.Op.Kind) {

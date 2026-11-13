@@ -4,8 +4,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strconv"
 
+	"github.com/mebyus/ku/internal/fbuf"
 	"github.com/mebyus/ku/internal/ku/builder/kub"
 	"github.com/mebyus/ku/internal/ku/stg"
 )
@@ -15,16 +15,16 @@ type Config struct {
 	LangDir string
 }
 
-func Gen(c *Config, out io.Writer, prog *stg.Program) error {
+func WriteProg(c *Config, out io.Writer, prog *stg.Program) error {
 	err := copyFile(out, filepath.Join(c.LangDir, "src/std/core/prelude.c"))
 	if err != nil {
 		return err
 	}
 
-	var buf Buffer
-	buf.nl()
-	buf.Gen(prog)
-	_, err = out.Write(buf.out)
+	var g genbuf
+	g.line()
+	g.Gen(prog)
+	_, err = g.buf.WriteTo(out)
 
 	if c.Build.Goal == kub.IntExe {
 		err = copyFile(out, filepath.Join(c.LangDir, "src/std/core/int_exe_main.c"))
@@ -47,21 +47,17 @@ func copyFile(w io.Writer, path string) error {
 	return err
 }
 
-type Buffer struct {
-	// output buffer.
-	out []byte
+type genbuf struct {
+	buf fbuf.Buffer
 
 	// name prefix for top-level symbols
 	prefix string
 
 	// maps type to its name in codegen output
 	types map[*stg.Type]string
-
-	// indentation level
-	ilevel int
 }
 
-func (g *Buffer) Gen(prog *stg.Program) {
+func (g *genbuf) Gen(prog *stg.Program) {
 	g.types = make(map[*stg.Type]string)
 
 	for _, u := range prog.Units {
@@ -74,7 +70,7 @@ func (g *Buffer) Gen(prog *stg.Program) {
 			}
 
 			g.funstub(f)
-			g.nl()
+			g.line()
 		}
 
 		// definitions for all unit functions except stubs
@@ -84,46 +80,44 @@ func (g *Buffer) Gen(prog *stg.Program) {
 			}
 
 			g.fun(f)
-			g.nl()
+			g.line()
 		}
 	}
 }
 
-func (g *Buffer) putb(b byte) {
-	g.out = append(g.out, b)
+func (g *genbuf) putb(b byte) {
+	g.buf.Putb(b)
 }
 
-func (g *Buffer) puts(s string) {
-	g.out = append(g.out, s...)
+func (g *genbuf) puts(s string) {
+	g.buf.Puts(s)
 }
 
 // put decimal formatted integer into output buffer
-func (g *Buffer) putn(n uint64) {
-	g.puts(strconv.FormatUint(n, 10))
+func (g *genbuf) putn(n uint64) {
+	g.buf.Putn(n)
 }
 
-func (g *Buffer) space() {
-	g.putb(' ')
+func (g *genbuf) space() {
+	g.buf.Space()
 }
 
-func (g *Buffer) semi() {
-	g.putb(';')
+func (g *genbuf) semi() {
+	g.buf.Semi()
 }
 
-func (g *Buffer) nl() {
-	g.putb('\n')
+func (g *genbuf) line() {
+	g.buf.Line()
 }
 
-func (g *Buffer) indent() {
-	for range g.ilevel {
-		g.putb('\t')
-	}
+func (g *genbuf) indent() {
+	g.buf.Indent()
 }
 
-func (g *Buffer) inc() {
-	g.ilevel += 1
+func (g *genbuf) inc() {
+	g.buf.Inc()
 }
 
-func (g *Buffer) dec() {
-	g.ilevel -= 1
+func (g *genbuf) dec() {
+	g.buf.Dec()
 }
