@@ -6,6 +6,10 @@ import (
 )
 
 func (g *Buffer) getName(s *stg.Symbol) string {
+	if s.Link != "" {
+		return s.Link
+	}
+
 	if s.Scope.Kind == scok.Unit {
 		return g.prefix + s.Name
 	}

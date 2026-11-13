@@ -1,0 +1,9 @@
+#[entry]
+fun main() {
+    var x: uint = 0;
+    _ = x;
+    unused(x);
+}
+
+// #[export("unused")]
+fun unused(x: uint) {}

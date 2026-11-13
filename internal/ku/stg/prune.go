@@ -1,6 +1,8 @@
 package stg
 
 import (
+	"fmt"
+
 	"github.com/mebyus/ku/internal/ku/enums/symk"
 	"github.com/mebyus/ku/internal/ku/stg/hg"
 )
@@ -115,8 +117,8 @@ func (w *swalker) add(s *Symbol) {
 	}
 
 	if s.Kind == symk.Fun {
-		// other unit-level symbols do need further inspection
-		// they do not have walkable dependencies
+		// other unit-level symbols do not need further inspection
+		// since they do not have walkable dependencies
 		//
 		// TODO: add methods to condition
 		w.backlog = append(w.backlog, s)
@@ -125,5 +127,45 @@ func (w *swalker) add(s *Symbol) {
 }
 
 func (w *swalker) walkFun(s *Symbol) {
+	def := s.Def.(*FunDef)
+	w.walkBlock(&def.Body)
+}
 
+func (w *swalker) walkBlock(block *Block) {
+	for _, node := range block.Nodes {
+		w.walkStm(node)
+	}
+}
+
+func (w *swalker) walkStm(s Statement) {
+	switch s := s.(type) {
+	case *Block:
+		w.walkBlock(s)
+	case *InitVar:
+		w.walkExp(s.Exp)
+	case *DiscardExp:
+		w.walkExp(s.Exp)
+	case *InvokeFun:
+		w.walkInvokeFun(s)
+	default:
+		panic(fmt.Sprintf("unexpected %T statement", s))
+	}
+}
+
+func (w *swalker) walkExp(exp Exp) {
+	switch e := exp.(type) {
+	case *InvExp, *Integer, *String, *Boolean:
+		// do nothing
+	case *SymExp:
+		w.add(e.Symbol)
+	default:
+		panic(fmt.Sprintf("unexpected %T expression", e))
+	}
+}
+
+func (w *swalker) walkInvokeFun(f *InvokeFun) {
+	w.add(f.Symbol)
+	for _, arg := range f.Args {
+		w.walkExp(arg)
+	}
 }

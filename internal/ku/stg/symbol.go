@@ -117,7 +117,7 @@ func (s *Symbol) IsPublic() bool {
 }
 
 func (s *Symbol) IsExport() bool {
-	return s.Flags*SymbolExport != 0
+	return s.Flags&SymbolExport != 0
 }
 
 func (s *Symbol) IsLocal() bool {

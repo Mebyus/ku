@@ -2,8 +2,10 @@ package genc
 
 import "github.com/mebyus/ku/internal/ku/stg"
 
-func (g *Buffer) funsig(name string, f *stg.FunDef) {
-	g.puts("static ")
+func (g *Buffer) funsig(name string, export bool, f *stg.FunDef) {
+	if !export {
+		g.puts("static ")
+	}
 	if f.Result == nil {
 		g.puts("void")
 	} else {
@@ -32,14 +34,14 @@ func (g *Buffer) funsig(name string, f *stg.FunDef) {
 
 func (g *Buffer) fun(s *stg.Symbol) {
 	f := s.Def.(*stg.FunDef)
-	g.funsig(g.getName(s), f)
+	g.funsig(g.getName(s), s.IsExport(), f)
 	g.space()
 	g.block(&f.Body)
 	g.nl()
 }
 
 func (g *Buffer) funstub(s *stg.Symbol) {
-	g.funsig(g.getName(s), s.Def.(*stg.FunDef))
+	g.funsig(g.getName(s), s.IsExport(), s.Def.(*stg.FunDef))
 	g.semi()
 	g.nl()
 }
