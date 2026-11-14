@@ -100,6 +100,12 @@ func (t *Typer) checkArgType(pt *Type, exp Exp) {
 		}
 	}
 
+	if pt.Kind == typk.String && typ.Kind == typk.String {
+		if typ.IsStatic() {
+			return
+		}
+	}
+
 	t.report(exp.Pin(), 0, fmt.Sprintf("cannot use expression of %s value as %s call argument", typ, pt))
 }
 

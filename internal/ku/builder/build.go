@@ -158,6 +158,32 @@ func Build(config *Config) *Result {
 		os.Exit(1)
 	}
 
+	switch config.Build.Goal {
+	case kub.Auto:
+		if prog.Entry == nil {
+			config.Build.Goal = kub.Obj
+			if config.OutPath == "" {
+				config.OutPath = filepath.Join(config.OutDir, "obj", config.Name+".o")
+			}
+		} else {
+			config.Build.Goal = kub.Exe
+			if config.OutPath == "" {
+				config.OutPath = filepath.Join(config.OutDir, "exe", config.Name+".exe")
+			}
+		}
+	case kub.Check:
+		return r
+	case kub.Exe:
+		if prog.Entry == nil {
+			fmt.Fprintf(os.Stderr, "no entrypoint function\n")
+			os.Exit(1)
+		}
+	case kub.IntExe:
+		// do nothing
+	default:
+		panic(fmt.Sprintf("invalid build goal (=%d)", config.Build.Goal))
+	}
+
 	progName := filepath.Join(config.OutDir, "genc", config.Name+".c")
 
 	start = time.Now()
@@ -186,6 +212,8 @@ func Build(config *Config) *Result {
 		err = cc.CompileObj(config.OutPath, progName, bk.Debug)
 	case kub.IntExe:
 		err = cc.CompileExe(config.OutPath, progName, bk.Test)
+	case kub.Exe:
+		err = cc.CompileExe(config.OutPath, progName, bk.Safe)
 	default:
 		panic(fmt.Sprintf("invalid build goal (=%d)", config.Build.Goal))
 	}
@@ -259,7 +287,7 @@ func (c *Config) setDefaults() error {
 		var p string
 		switch c.Build.Goal {
 		case kub.Auto:
-			p = filepath.Join(c.OutDir, "obj", c.Name+".o")
+			// p = filepath.Join(c.OutDir, "obj", c.Name+".o")
 		case kub.IntExe:
 			p = filepath.Join(c.OutDir, "int_exe", c.Name+".exe")
 		default:

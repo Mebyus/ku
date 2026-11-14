@@ -1,133 +1,129 @@
+// Fixed buffer is a format buffer that operates stricly inside a given
+// memory block (span of bytes) without any additional allocations.
+//
+// Due to its nature this buffer can only hold as much formatted
+// text as the size of given memory allows. Any extra formatted bytes
+// that do not fit are dropped.
 pub
-type FixedBuffer struct {
+type Fixbuf struct {
 	// Pointer to buffer memory.
 	// Always not nil for initialized struct.
 	ptr: [*]u8
 
-	// Content length. How many bytes is already written to buffer.
-	// Length cannot be greater than capacity.
-	len: uint
+	// Number of bytes that is already written to buffer.
+	// Cannot be greater than capacity.
+	num: uint
 
 	// Buffer storage capacity. Max bytes it can hold.
 	cap: uint
 
-    // Indicates that buffer is full and no more formatted data can be written to it.
+    // Indicates that buffer is full and no more formatted
+    // data can be written to it.
     eof: bool
 }
 
-fun (&FixedBuffer) reset() {
-	g.len = 0;
+fun (&Fixbuf) reset() {
+	g.num = 0;
     g.eof = false;
 }
 
-const buffer_eof := "(...)";
-
-fun (&FixedBuffer) init(s: []u8) {
-    const min_initial_size := 1 << 8;
-    // must(min_initial_size > buffer_eof.len); // could be #must, but C compiler is unable to work with that
-	must(s.len >= min_initial_size);
+#[init]
+fun (&Fixbuf) init(s: []u8) {
+	must(s.num != 0);
 	must(s.ptr != nil);
 
 	g.ptr = s.ptr;
-	g.cap = s.len;
+	g.cap = s.num;
     g.reset();
 }
 
-fun (&FixedBuffer) tail() -> []u8 {
+fun (&Fixbuf) tail() -> []u8 {
     if g.eof {
-        ret nil;
+        return nil;
     }
-    if g.len >= g.cap {
+    if g.num >= g.cap {
         g.eof = true;
-        ret nil;
+        return nil;
     }
 
-    var body: []u8 = g.ptr.[:g.cap];
-    ret body[g.len:];
+    body := g.ptr.[:g.cap];
+    return body[g.num:];
 }
 
-fun (&FixedBuffer) take() -> str {
-    var body: []u8 = g.ptr.[:g.cap];
-
-    var s: str;
-    if !g.eof {
-        s = cast(str, body[:g.len]);
-    } else {
-        var pos: uint = min(g.len, g.cap - 5); // TODO: replace magic 5 with buffer_eof length
-        var tail: []u8 = body[pos:];
-        copy(tail, buffer_eof);
-        s = body[:pos + buffer_eof.len];
-    }
+fun (&Fixbuf) take() -> str {
+    body := g.ptr.[:g.cap];
+    s := cast(str, body[:g.num]);
 
     g.reset();
-    ret s;
+    return s;
 }
 
-fun (&FixedBuffer) put_byte(x: u8) {
-    var tail: []u8 = g.tail(buf);
-    if tail.len == 0 {
-        ret;
-    } else if tail.len == 1 {
+fun (&Fixbuf) putb(x: u8) {
+    tail := g.tail(buf);
+    if tail.num == 0 {
+        return;
+    }
+    if tail.num == 1 {
         g.eof = true;
     }
 
     tail.ptr.[0] = x;
-    g.len += 1;
+    g.num += 1;
 }
 
-fun (&FixedBuffer) put_byte_repeat(x: u8, k: uint) {
-    var tail: []u8 = g.tail(buf);
-    if tail.len == 0 {
-        ret;
+fun (&Fixbuf) putb_rep(x: u8, k: uint) {
+    tail := g.tail();
+    if tail.num == 0 {
+        return;
     }
 
-    var n: uint = min_uint(tail.len, k);
-    for i = [:n] {
+    n := min(tail.num, k);
+    for i := [:n] {
         tail.ptr.[i] = x;
     }
-    g.len += n;
+    g.num += n;
     if n < k {
         g.eof = true;
     }
 }
 
-fun (&FixedBuffer) put_newline() {
-    g.put_byte('\n');
+fun (&Fixbuf) line() {
+    g.putb('\n');
 }
 
-fun (&FixedBuffer) put_space() {
-    g.put_byte(buf, ' ');
+fun (&Fixbuf) space() {
+    g.putb(' ');
 }
 
-fun (&FixedBuffer) put_space_repeat(k: uint) {
-    g.put_byte_repeat(' ', k);
+fun (&Fixbuf) space_rep(k: uint) {
+    g.putb_rep(' ', k);
 }
 
-fun (&FixedBuffer) put_str(s: str) {
-    if s.len == 0 {
-        ret;
+fun (&Fixbuf) puts(s: str) {
+    if s.num == 0 {
+        return;
     }
 
-    var tail: []u8 = g.tail(buf);
-    if tail.len == 0 {
-        ret;
+    tail := g.tail();
+    if tail.num == 0 {
+        return;
     }
 
-    var n: uint = copy(tail, s);
-    g.len += n;
+    n := copy(tail, s);
+    g.num += n;
     if n < s.len {
         g.eof = true;
     }
 }
 
-fun (&FixedBuffer) put_dec_u64(x: u64) {
-    var tail: []u8 = g.tail();
-    if tail.len == 0 {
-        ret;
+fun (&Fixbuf) dec_u64(x: u64) {
+    tail := g.tail();
+    if tail.num == 0 {
+        return;
     }
 
-    var n: uint = put_dec_u64(tail, x);
-    g.len += n;
+    n := put_dec_u64(tail, x);
+    g.num += n;
     if n == 0 {
         g.eof = true;
     }
@@ -189,7 +185,7 @@ fun (&FixedBuffer) put_bin_bytes_u32(x: u32) {
     g.len += bin_bytes_u32_length;
 }
 
-fun (&FixedBuffer) put_bits_f32(f: f32) {
+fun (&Fixbuf) put_bits_f32(f: f32) {
     var tail: []u8 = g.tail();
     if tail.len == 0 {
         ret;
@@ -203,9 +199,9 @@ fun (&FixedBuffer) put_bits_f32(f: f32) {
     g.len += fmt_bits_f32_length;
 }
 
-fun (&FixedBuffer) put_hex_bytes(s: []u8) {
-    if s.len == 0 {
-        ret;
+fun (&Fixbuf) hex_bytes(s: []u8) {
+    if s.num == 0 {
+        return;
     }
 
     var tail: []u8 = g.tail();

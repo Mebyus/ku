@@ -2,7 +2,6 @@ package genc
 
 import (
 	"io"
-	"os"
 	"path/filepath"
 
 	"github.com/mebyus/ku/internal/fbuf"
@@ -16,34 +15,32 @@ type Config struct {
 }
 
 func WriteProg(c *Config, out io.Writer, prog *stg.Program) error {
-	err := copyFile(out, filepath.Join(c.LangDir, "src/std/core/prelude.c"))
+	var g genbuf
+	err := g.file(filepath.Join(c.LangDir, "src/std/core/prelude.c"))
 	if err != nil {
 		return err
 	}
 
-	var g genbuf
+	g.line()
+	err = g.file(filepath.Join(c.LangDir, "src/std/core/os_linux_amd64_1.c"))
+	if err != nil {
+		return err
+	}
+
 	g.line()
 	g.Gen(prog)
-	_, err = g.buf.WriteTo(out)
 
-	if c.Build.Goal == kub.IntExe {
-		err = copyFile(out, filepath.Join(c.LangDir, "src/std/core/int_exe_main.c"))
+	switch c.Build.Goal {
+	case kub.Exe:
+		g.genMain(prog.Entry)
+	case kub.IntExe:
+		err = g.file(filepath.Join(c.LangDir, "src/std/core/int_exe_main.c"))
 		if err != nil {
 			return err
 		}
 	}
 
-	return err
-}
-
-func copyFile(w io.Writer, path string) error {
-	file, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	_, err = io.Copy(w, file)
+	_, err = g.buf.WriteTo(out)
 	return err
 }
 
@@ -120,4 +117,10 @@ func (g *genbuf) inc() {
 
 func (g *genbuf) dec() {
 	g.buf.Dec()
+}
+
+// write file contents into stored output
+func (g *genbuf) file(path string) error {
+	_, err := g.buf.ReadFile(path)
+	return err
 }

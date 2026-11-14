@@ -44,6 +44,11 @@ func (c *Common) bindBuiltinSymbols() {
 	c.bindBuiltinTypeSymbol("bool", c.Types.Known.Bool)
 
 	c.bindBuiltinTypeSymbol("str", c.Types.Known.Str)
+
+	c.bindBuiltinFunStubSymbol("print", &FunDef{
+		// TODO: do we need to fill params here?
+		Inputs: []*Type{c.Types.Known.Str},
+	})
 }
 
 func (c *Common) bindBuiltinTypeSymbol(name string, t *Type) {
@@ -57,5 +62,15 @@ func (c *Common) bindBuiltinTypeSymbol(name string, t *Type) {
 
 func (c *Common) bindType(s *Symbol, t *Type) {
 	s.Def = t
+	c.Global.Bind(s)
+}
+
+func (c *Common) bindBuiltinFunStubSymbol(name string, def *FunDef) {
+	s := &Symbol{
+		Name:  name,
+		Kind:  symk.Fun,
+		Flags: SymbolBuiltin | SymbolStub,
+		Def:   def,
+	}
 	c.Global.Bind(s)
 }

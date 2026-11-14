@@ -52,6 +52,40 @@ func (f *Fun) Stub() FunStub {
 	}
 }
 
+type Method struct {
+	Sig  Signature
+	Body Block
+	Recv Receiver
+
+	Charms []Charm
+
+	Name string
+
+	// Method name pin.
+	Pin sx.Pin
+
+	// True when method is marked as public.
+	Pub bool
+}
+
+type Receiver struct {
+	Name string
+	Pin  sx.Pin
+}
+
+func (m *Method) Format(buf *fbuf.Buffer) {
+	for _, c := range m.Charms {
+		c.Format(buf)
+		buf.Line()
+	}
+	if m.Pub {
+		buf.Puts("pub\n")
+	}
+	buf.Puts("fun (")
+	buf.Puts(") ")
+	buf.Puts(m.Name)
+}
+
 // FunStub represents function declaration with no implementation.
 //
 // Formal definition:

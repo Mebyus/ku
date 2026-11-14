@@ -38,6 +38,10 @@ typedef struct {
     uint num;
 } s_u8, str, c_string;
 
+// Simple bootstrap print to stdout.
+static void
+print(str);
+
 // construct a runtime string from its bytes array pointer and number of bytes
 static str
 make_str(u8* ptr, uint num) {

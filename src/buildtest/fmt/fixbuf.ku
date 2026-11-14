@@ -1,0 +1,12 @@
+pub
+type Fixbuf struct {
+	ptr: [*]u8
+	num: uint
+	cap: uint
+    eof: bool
+}
+
+fun (&Fixbuf) reset() {
+	g.num = 0;
+    g.eof = false;
+}
