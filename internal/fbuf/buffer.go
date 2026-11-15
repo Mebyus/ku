@@ -99,6 +99,11 @@ func (g *Buffer) ReadFile(path string) (int64, error) {
 	return g.ReadFrom(file)
 }
 
+// Len returns number of bytes currently stored in output buffer.
+func (g *Buffer) Len() int {
+	return len(g.out)
+}
+
 // Bytes returns stored output for reading. Callers must not take
 // ownership of returned slice.
 func (g *Buffer) Bytes() []byte {
@@ -108,7 +113,7 @@ func (g *Buffer) Bytes() []byte {
 	return g.out
 }
 
-// Putb append single into stored output.
+// Putb append single byte into stored output.
 func (g *Buffer) Putb(b byte) {
 	g.out = append(g.out, b)
 }
@@ -128,6 +133,30 @@ func (g *Buffer) Put(data []byte) {
 	_, _ = g.Write(data)
 }
 
+// RepPutb append single byte into stored output specified number of times.
+func (g *Buffer) RepPutb(b byte, n int) {
+	if n <= 0 {
+		return
+	}
+	g.Grow(n)
+
+	for range n {
+		g.Putb(b)
+	}
+}
+
+// Puts append string into stored output specified number of times.
+func (g *Buffer) RepPuts(s string, n int) {
+	if n <= 0 || s == "" {
+		return
+	}
+	g.Grow(n * len(s))
+
+	for range n {
+		g.Puts(s)
+	}
+}
+
 // Space append space character into stored output.
 func (g *Buffer) Space() {
 	g.Putb(' ')
@@ -145,9 +174,12 @@ func (g *Buffer) Line() {
 
 // Indent append indentation (with current level) into stored output.
 func (g *Buffer) Indent() {
-	for range g.il {
-		g.Putb('\t')
-	}
+	g.RepPutb('\t', g.il)
+}
+
+// RepSpace append space character into stored output specified number of times.
+func (g *Buffer) RepSpace(n int) {
+	g.RepPutb(' ', n)
 }
 
 // Inc increase indentation level by 1.

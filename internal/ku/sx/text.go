@@ -3,6 +3,8 @@ package sx
 import (
 	"hash/fnv"
 	"io"
+
+	"github.com/mebyus/ku/internal/ku/char"
 )
 
 // Text represents something that contains source text.
@@ -32,6 +34,14 @@ type Text struct {
 	//	- ".h"
 	Ext string
 
+	// Table with line offsets.
+	//
+	// Contains byte offsets at which line with specific index starts.
+	//
+	// Computed lazily, meaning that for newly loaded texts this field
+	// will be nil and will only be filled when line information is needed.
+	linetab []uint32
+
 	// Contains consistent hash of bytes stored in Data field.
 	Hash uint64
 
@@ -50,6 +60,59 @@ func (t *Text) Label() string {
 		return t.Path
 	}
 	return t.label
+}
+
+// LineTab returns table with line offsets. It stores start offset for each
+// line by its zero-based index. For example:
+//
+//	tab := text.LineTab()
+//	offset := tab[4] // gives starting offset of text line 5
+//
+// Returns nil only if text is empty.
+func (t *Text) LineTab() []uint32 {
+	if t.linetab != nil {
+		return t.linetab
+	}
+
+	text := t.Data
+	n := uint32(len(text))
+	if n == 0 {
+		return nil
+	}
+
+	tab := []uint32{0} // first line always starts at offset 0
+	var i uint32
+	for i < n {
+		if text[i] == '\n' {
+			// line starts at next byte after newline character
+			tab = append(tab, i+1)
+		}
+		i += 1
+	}
+
+	t.linetab = tab
+	return tab
+}
+
+// FindPos find text position (line + column) for the given
+// byte offset.
+func (t *Text) FindPos(p uint32) TextPos {
+	text := t.Data
+	tab := t.LineTab()
+	line := FindLine(tab, p)
+
+	i := tab[line]
+	var column uint32 // current column, zero-based value
+	for i < p {
+		if char.IsCodePointStart(text[i]) {
+			column += 1
+		}
+		i += 1
+	}
+	return TextPos{
+		Line:   line,
+		Column: column,
+	}
 }
 
 // hash provided string with the same method that is used

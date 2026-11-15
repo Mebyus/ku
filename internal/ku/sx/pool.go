@@ -45,7 +45,7 @@ func (p *Pool) DecodePin(pin Pin) FilePos {
 	}
 	return FilePos{
 		Label: text.Label(),
-		Pos:   FindTextPos(text.Data, pos.Offset),
+		Pos:   text.FindPos(pos.Offset),
 	}
 }
 

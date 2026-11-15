@@ -93,3 +93,46 @@ func FindTextPos(text string, offset uint32) TextPos {
 		Column: column,
 	}
 }
+
+// FindLine returns line zero-based index for given table of
+// line offsets and text offset position.
+//
+// Note that function always expects that tab[0] = 0 and sorted. The only
+// exception to this is tab=nil, which is used for empty texts.
+func FindLine(tab []uint32, p uint32) uint32 {
+	n := uint32(len(tab))
+	if n == 0 {
+		return 0
+	}
+
+	if n < 200 {
+		// search via linear scan for small tables
+		for i := uint32(1); i < n; i += 1 {
+			if p < tab[i] {
+				return i - 1
+			}
+		}
+		return n - 1
+	}
+
+	// do binary search
+	a := uint32(0)
+	b := n - 1
+	for a < b {
+		i := a + (b-a)/2
+
+		if tab[i] == p {
+			return i
+		}
+
+		if tab[i] < p {
+			a = i + 1
+		} else {
+			b = i - 1
+		}
+	}
+	if p >= tab[a] {
+		return a
+	}
+	return a - 1
+}

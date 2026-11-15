@@ -23,6 +23,13 @@ func main() {
 	switch cname {
 	case "clean":
 		err = clean()
+	case "lex":
+		if len(args) == 0 {
+			fmt.Fprintf(os.Stderr, "source file not specified\n")
+			os.Exit(1)
+		}
+		path := args[0]
+		err = lex(path)
 	case "vmc":
 		// compile single source file into VM bytecode instructions
 		if len(args) == 0 {

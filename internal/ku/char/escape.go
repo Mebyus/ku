@@ -32,9 +32,21 @@ func Escape(s string) string {
 
 	for ; i < len(s); i += 1 {
 		switch s[i] {
-		case '\\', '\n', '\t', '\r', '"':
+		case '\\':
 			g.WriteByte('\\')
-			g.WriteByte(s[i])
+			g.WriteByte('\\')
+		case '\n':
+			g.WriteByte('\\')
+			g.WriteByte('n')
+		case '\t':
+			g.WriteByte('\\')
+			g.WriteByte('t')
+		case '\r':
+			g.WriteByte('\\')
+			g.WriteByte('r')
+		case '"':
+			g.WriteByte('\\')
+			g.WriteByte('"')
 		default:
 			if IsTextByte(s[i]) {
 				g.WriteByte(s[i])
