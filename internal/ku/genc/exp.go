@@ -3,6 +3,7 @@ package genc
 import (
 	"fmt"
 
+	"github.com/mebyus/ku/goku/compiler/char"
 	"github.com/mebyus/ku/internal/ku/enums/bop"
 	"github.com/mebyus/ku/internal/ku/stg"
 )
@@ -25,7 +26,7 @@ func (g *genbuf) exp(exp stg.Exp) {
 			g.puts("make_str(nil, 0)")
 		} else {
 			g.puts("make_str((u8*)(\"")
-			g.puts(e.Val)
+			g.puts(char.Escape(e.Val))
 			g.puts("\"), ")
 			g.putn(uint64(len(e.Val))) // TODO: need to escape strings
 			g.puts(")")

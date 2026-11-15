@@ -63,6 +63,19 @@ func IsDecDigitOrPeriod(c byte) bool {
 	return IsDecDigit(c) || c == '.'
 }
 
+// DecDigit transforms number 0 <= x <= 9 to decimal digit character.
+func DecDigit(x uint8) byte {
+	return x + '0'
+}
+
+// HexDigit transforms number 0 <= x <= 15 to hexadecimal digit character.
+func HexDigit(x uint8) byte {
+	if x <= 9 {
+		return DecDigit(x)
+	}
+	return x - 10 + 'A'
+}
+
 func DecDigitNum(c byte) uint8 {
 	return c - '0'
 }

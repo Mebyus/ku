@@ -375,12 +375,12 @@ func (lx *Lexer) str(tok *token.Token) {
 	lx.advance() // skip quote
 
 	if esc != 0 {
-		// data, ok = char.Unescape(data)
-		// if !ok {
-		// 	tok.SetError(token.BadEscapeInString)
-		// 	return
-		// }
-		panic("stub")
+		data, ok = char.Unescape(data)
+		if !ok {
+			panic("TODO")
+			// tok.SetError(token.BadEscapeInString)
+			// return
+		}
 	}
 
 	tok.Kind = token.String
