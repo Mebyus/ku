@@ -2,8 +2,25 @@ package token
 
 import "github.com/mebyus/ku/internal/ku/sx"
 
-type Kind uint32
+// Kind the most significant token property which determines
+// its lexical meaning and serves as discriminator for all
+// other token properties.
+type Kind uint8
 
+// Token represents a minimal unit of language lexicon.
+// Meaning of each token is determined by its kind.
+//
+// Ultimately when it comes to malformed or invalid tokens
+// this struct can represent 3 distinct token states:
+//
+//   - normal  (well formed token, with no "flaws")
+//   - flawed  (recognized by lexer, but contains "flaws")
+//   - invalid (piece of text unrecognizable by lexer)
+//
+// It worth noting that a program cannot be fully compiled
+// if it has at least one flawed or invalid token. This is
+// also true if program does not have any other parsing or
+// typechecking errors.
 type Token struct {
 	// Not empty only for tokens which do not have static literal.
 	//
@@ -23,9 +40,48 @@ type Token struct {
 
 	Pin sx.Pin
 
-	Kind Kind
+	// Auxiliary value. Often used for specifying flaw or error type.
+	Aux uint32
 
-	Flags uint32
+	// Used for some types of tokens:
+	//
+	//	Integer: specifies literal style (decimal, binary, etc.)
+	Style Style
+
+	// Carry additional token properties which can vary
+	// for the same token type.
+	//
+	// Bitflags field.
+	Flags Flag
+
+	Kind Kind
+}
+
+type Flag uint8
+
+const (
+	// Token has a flaw if flag is set.
+	FlagFlaw Flag = 1 << iota
+
+	// Token is a keyword if flag is set.
+	FlagKey
+
+	// Token is a compiler directive if flag is set.
+	FlagDir
+)
+
+type Style uint8
+
+const (
+	Dec Style = iota
+	Bin
+	Oct
+	Hex
+)
+
+// Flaw returns true if token has a flaw.
+func (t *Token) Flaw() bool {
+	return t.Flags&FlagFlaw != 0
 }
 
 const (
@@ -107,18 +163,13 @@ const (
 	False
 	Nil
 
+	_keyend
+
 	// Identifiers and basic type literals.
 	Word
 	Integer
 	String
 	Rune
-)
-
-const (
-	DecInt = iota
-	BinInt
-	OctInt
-	HexInt
 )
 
 // Category returns token kind category in string format.

@@ -61,7 +61,9 @@ func (p *Parser) operand() (ast.Operand, ss) {
 		return &ast.Integer{
 			Pin: tok.Pin,
 			Val: tok.Val,
-			Aux: tok.Flags,
+
+			// TODO: dedicated style field?
+			Aux: uint32(tok.Flags),
 		}, 0
 	case token.String:
 		tok := p.peek

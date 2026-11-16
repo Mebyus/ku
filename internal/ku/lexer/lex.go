@@ -65,6 +65,7 @@ func (lx *Lexer) word(tok *token.Token) {
 	kind, ok := token.Keyword(word)
 	if ok {
 		tok.Kind = kind
+		tok.Flags |= token.FlagKey
 		return
 	}
 
@@ -107,7 +108,7 @@ func (lx *Lexer) number(tok *token.Token) {
 	lx.advance()
 	tok.Kind = token.Integer
 	tok.Val = 0
-	tok.Flags = token.DecInt
+	tok.Style = token.Dec
 }
 
 func (lx *Lexer) decNumber(tok *token.Token) {
@@ -159,7 +160,7 @@ func (lx *Lexer) decNumber(tok *token.Token) {
 
 		tok.Kind = token.Integer
 		tok.Val = n
-		tok.Flags = token.DecInt
+		tok.Style = token.Dec
 		return
 	}
 
@@ -217,7 +218,7 @@ func (lx *Lexer) hexNumber(tok *token.Token) {
 	}
 
 	tok.Val = char.ParseHexDigits(lx.view())
-	tok.Flags = token.HexInt
+	tok.Style = token.Hex
 }
 
 func (lx *Lexer) rune(tok *token.Token) {

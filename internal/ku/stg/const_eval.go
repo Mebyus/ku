@@ -115,10 +115,10 @@ const (
 
 // Styles for integer constant values.
 const (
-	IntDec = token.DecInt
-	IntBin = token.BinInt
-	IntOct = token.OctInt
-	IntHex = token.HexInt
+	IntDec = token.Dec
+	IntBin = token.Bin
+	IntOct = token.Oct
+	IntHex = token.Hex
 )
 
 // Explicit interface implementation check.
