@@ -29,6 +29,11 @@ func (c *Chain) Format(buf *fbuf.Buffer) {
 	}
 }
 
+func (c *Chain) Last() Part {
+	n := len(c.Parts)
+	return c.Parts[n-1]
+}
+
 type Part interface {
 	// Discriminator method for interface implementations.
 	// Only serves as a trick to enhance Go typechecking in

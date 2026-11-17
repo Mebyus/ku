@@ -17,7 +17,7 @@ type Assign struct {
 
 	// Represents value being assigned.
 	//
-	// Always being nil.
+	// Always not nil.
 	Exp Exp
 }
 

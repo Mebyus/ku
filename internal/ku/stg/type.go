@@ -71,6 +71,10 @@ func (t *Type) String() string {
 	switch t.Kind {
 	case typk.Span:
 		return "[]" + t.Def.(*Span).Type.String()
+	case typk.Ref:
+		return "&" + t.Def.(*Ref).Type.String()
+	case typk.Custom:
+		return t.Def.(*Custom).Symbol.Name
 	case typk.String:
 		if t.IsStatic() {
 			return "<str>"

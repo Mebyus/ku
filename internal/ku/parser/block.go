@@ -231,14 +231,45 @@ func (p *Parser) AssignOrInvoke() (ast.Statement, ss) {
 	case token.LeftParen:
 		return p.invokeSymbol()
 	}
-	// if p.next.Kind == token.LeftParen {
-	// 	exp, s := p.symCall()
-	// 	return
-	// }
 
-	p.report(p.peek.Pin, 0, "stub")
-	p.advance()
-	return nil, ssNode
+	c, s := p.Chain()
+	if s != 0 {
+		return nil, s
+	}
+
+	if p.peek.Kind == token.Assign {
+		p.advance() // skip "="
+
+		if p.peek.Kind == token.Semicolon {
+			p.report(p.peek.Pin, 0, "empty expression in assignment")
+			exp := &ast.InvExp{Pin: p.peek.Pin}
+			p.advance() // skip ";"
+			return &ast.Assign{
+				Target: c,
+				Exp:    exp,
+			}, 0
+		}
+
+		exp, s := p.Exp()
+		if s != 0 {
+			return &ast.Assign{Target: c, Exp: exp}, s
+		}
+
+		if p.peek.Kind != token.Semicolon {
+			p.report(p.peek.Pin, 0, "missing \";\" after assignment")
+		} else {
+			p.advance() // skip ";"
+		}
+
+		return &ast.Assign{
+			Target: c,
+			Exp:    exp,
+		}, 0
+	}
+
+	panic(fmt.Sprintf("TODO: token %s", &p.peek))
+
+	_ = c.(*ast.Chain).Last()
 	// panic("stub")
 	// left, s := p.Exp()
 	// if s != 0 {
@@ -258,6 +289,7 @@ func (p *Parser) AssignOrInvoke() (ast.Statement, ss) {
 	// 	p.report(p.peek.Pin, fmt.Sprintf("expected call or assign operator, found %s token instead", &p.peek))
 	// 	return nil, ssNode
 	// }
+	return nil, 0
 }
 
 func (p *Parser) If() (ast.Statement, ss) {

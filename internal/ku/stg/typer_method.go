@@ -41,7 +41,7 @@ func (t *Typer) bindMethod(name string, rtyp uint32, r, s *Symbol) {
 	case ast.RecvVal:
 		rt = typ
 	case ast.RecvRef:
-		t.common.Types.getRef(typ)
+		rt = t.common.Types.getRef(typ)
 	case ast.RecvPtr:
 		panic("TODO")
 	default:
