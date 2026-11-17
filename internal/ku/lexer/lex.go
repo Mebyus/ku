@@ -171,11 +171,11 @@ func (lx *Lexer) decNumber(tok *token.Token) {
 }
 
 func (lx *Lexer) binNumber(tok *token.Token) {
-
+	panic("TODO")
 }
 
 func (lx *Lexer) octNumber(tok *token.Token) {
-
+	panic("TODO")
 }
 
 func (lx *Lexer) hexNumber(tok *token.Token) {
@@ -410,6 +410,18 @@ func (lx *Lexer) other(tok *token.Token) {
 			tok.Kind = token.LeftSquare
 			return
 		}
+		if lx.next() == '*' {
+			lx.advance() // skip "["
+			if lx.next() == ']' {
+				lx.advance() // skip "*"
+				lx.advance() // skip "]"
+				tok.Kind = token.ArrayPointer
+				return
+			}
+			tok.Kind = token.LeftSquare
+			return
+		}
+
 		lx.emitOneByteToken(tok, token.LeftSquare)
 	case ']':
 		lx.emitOneByteToken(tok, token.RightSquare)

@@ -31,7 +31,7 @@ func (p *Program) Add(u *Unit) {
 type Unit struct {
 	Scope Scope
 
-	// Contains both functions and function stubs.
+	// Contains functions, function stubs and methods.
 	Funs []*Symbol
 
 	Consts []*Symbol

@@ -12,8 +12,8 @@ const (
 	// Function (produced from declaration or definition).
 	Fun Kind = iota
 
-	// // Method (produced from declaration or definition).
-	// Method
+	// Method (produced from declaration or definition).
+	Method
 
 	// // Unit test.
 	// Test
@@ -51,8 +51,8 @@ const (
 	// Runtime function or method parameter.
 	Param
 
-	// // Method receiver.
-	// Receiver
+	// Method receiver.
+	Receiver
 
 	// // Parameter which name is omitted. Such symbols are used in cases:
 	// //
@@ -87,7 +87,7 @@ var text = [...]string{
 	Import: "import",
 	Param:  "param",
 
-	// Receiver:  "receiver",
+	Receiver: "receiver",
 	// OmitParam: "param.omit",
 	// Loop:      "var.loop",
 

@@ -10,6 +10,36 @@ import (
 func (p *Parser) topFun() {
 	p.advance() // skip "fun"
 
+	var recv ast.Receiver
+	if p.peek.Kind == token.LeftParen {
+		p.advance() // skip "("
+
+		switch p.peek.Kind {
+		case token.Ampersand:
+			recv.Type = ast.RecvRef
+			p.advance() // skip "&"
+		case token.Asterisk:
+			recv.Type = ast.RecvPtr
+			p.advance() // skip "*"
+		default:
+			recv.Type = ast.RecvVal
+		}
+
+		if p.peek.Kind != token.Word {
+			p.report(p.peek.Pin, 0, fmt.Sprintf("expected receiver name, found %s token instead", &p.peek))
+		} else {
+			recv.Pin = p.peek.Pin
+			recv.Name = p.peek.Data
+			p.advance() // skip receiver name
+		}
+
+		if p.peek.Kind == token.RightParen {
+			p.advance() // skip ")"
+		} else {
+			p.report(p.peek.Pin, 0, "missing \")\" after method receiver")
+		}
+	}
+
 	if p.peek.Kind != token.Word {
 		p.topError(p.peek.Pin, fmt.Sprintf("expected function name, found %s token instead", &p.peek))
 		return
@@ -28,7 +58,11 @@ func (p *Parser) topFun() {
 
 	if p.peek.Kind != token.LeftParen {
 		p.topError(p.peek.Pin, fmt.Sprintf("expected \"(\" before function param list, found %s token instead", &p.peek))
-		p.text.AddFun(fun)
+		if recv.Type == 0 {
+			p.text.AddFun(fun)
+		} else {
+			p.text.AddMethod(fun.Method(recv))
+		}
 		return
 	}
 	p.advance() // skip "("
@@ -42,7 +76,11 @@ func (p *Parser) topFun() {
 		param, s := p.funParam()
 		switch s {
 		case ssTop, ssAbort:
-			p.text.AddFun(fun)
+			if recv.Type == 0 {
+				p.text.AddFun(fun)
+			} else {
+				p.text.AddMethod(fun.Method(recv))
+			}
 			return
 		}
 		fun.Sig.Params = append(fun.Sig.Params, param)
@@ -57,7 +95,11 @@ func (p *Parser) topFun() {
 			// continue parsing, not a serious error
 		default:
 			p.topError(p.peek.Pin, fmt.Sprintf("expected \")\" or next param in function signature, found %s token instead", &p.peek))
-			p.text.AddFun(fun)
+			if recv.Type == 0 {
+				p.text.AddFun(fun)
+			} else {
+				p.text.AddMethod(fun.Method(recv))
+			}
 			return
 		}
 	}
@@ -71,7 +113,11 @@ func (p *Parser) topFun() {
 		} else {
 			typ, s := p.TypeSpec()
 			if s != 0 {
-				p.text.AddFun(fun)
+				if recv.Type == 0 {
+					p.text.AddFun(fun)
+				} else {
+					p.text.AddMethod(fun.Method(recv))
+				}
 				return
 			}
 			fun.Sig.Result = typ
@@ -91,7 +137,11 @@ func (p *Parser) topFun() {
 
 		typ, s := p.TypeSpec()
 		if s != 0 {
-			p.text.AddFun(fun)
+			if recv.Type == 0 {
+				p.text.AddFun(fun)
+			} else {
+				p.text.AddMethod(fun.Method(recv))
+			}
 			return
 		}
 		fun.Sig.Result = typ
@@ -101,7 +151,11 @@ func (p *Parser) topFun() {
 	case token.LeftCurly:
 		p.block(&fun.Body)
 		p.skipBadCurly()
-		p.text.AddFun(fun)
+		if recv.Type == 0 {
+			p.text.AddFun(fun)
+		} else {
+			p.text.AddMethod(fun.Method(recv))
+		}
 		return
 	case token.Semicolon:
 		// function forward declaration

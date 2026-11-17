@@ -15,10 +15,8 @@ func (t *Token) Format(g *fbuf.Buffer) {
 	g.RepSpace(12 - len(cat))
 
 	var flaw string
-	if t.Kind == INV {
-		flaw = fmt.Sprintf("AUX=%d", t.Aux)
-	} else if t.Flaw() {
-		flaw = fmt.Sprintf("AUX=%d", t.Aux)
+	if t.Kind == INV || t.Flaw() {
+		flaw = strconv.FormatUint(uint64(t.Aux), 10)
 	}
 	g.Puts(flaw)
 	g.RepSpace(12 - len(flaw))
@@ -161,7 +159,7 @@ var ktext = [...]string{
 	// Chain:          ".?",
 	// PairSquare:     "[]",
 	// AutoLen:        "[_]",
-	// ArrayPointer:   "[*]",
+	ArrayPointer: "[*]",
 	// ArrayRef:       "[&]",
 	// CapBuf:         "[^]",
 

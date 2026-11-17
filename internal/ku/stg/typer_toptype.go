@@ -11,6 +11,11 @@ import (
 // assigns types for top-level variables and function params and results
 func (t *Typer) toptype() {
 	for _, s := range t.unit.Funs {
+		if s.Kind == symk.Method {
+			t.typeFun(s.Def.(*FunDef), &t.box.methods[s.Aux].Sig)
+			continue
+		}
+
 		if s.IsStub() {
 			t.typeFun(s.Def.(*FunDef), &t.box.stubs[s.Aux].Sig)
 		} else {
@@ -33,6 +38,12 @@ func (t *Typer) typeFun(def *FunDef, sig *ast.Signature) {
 	}
 
 	scope := &def.Body.Scope
+	if def.Receiver != nil {
+		// TODO: proper pin for method receiver
+		r := scope.New(symk.Receiver, "g", 0)
+		r.Type = def.Receiver
+	}
+
 	var inputs []*Type
 	var params []*Symbol
 	if len(sig.Params) != 0 {

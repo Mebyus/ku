@@ -52,6 +52,18 @@ func (f *Fun) Stub() FunStub {
 	}
 }
 
+func (f *Fun) Method(r Receiver) Method {
+	return Method{
+		Recv:   r,
+		Sig:    f.Sig,
+		Body:   f.Body,
+		Charms: f.Charms,
+		Name:   f.Name,
+		Pin:    f.Pin,
+		Pub:    f.Pub,
+	}
+}
+
 type Method struct {
 	Sig  Signature
 	Body Block
@@ -71,7 +83,21 @@ type Method struct {
 type Receiver struct {
 	Name string
 	Pin  sx.Pin
+
+	// zero means regular function
+	Type uint32
 }
+
+const (
+	// Value receiver
+	RecvVal = 1 + iota
+
+	// Reference receiver
+	RecvRef
+
+	// Pointer receiver
+	RecvPtr
+)
 
 func (m *Method) Format(buf *fbuf.Buffer) {
 	for _, c := range m.Charms {

@@ -36,6 +36,8 @@ type Text struct {
 
 	Stubs []FunStub
 
+	Methods []Method
+
 	Types []Type
 
 	Consts []Const
@@ -57,6 +59,10 @@ func (t *Text) AddFun(f Fun) {
 
 func (t *Text) AddStub(s FunStub) {
 	t.Stubs = append(t.Stubs, s)
+}
+
+func (t *Text) AddMethod(m Method) {
+	t.Methods = append(t.Methods, m)
 }
 
 func (t *Text) AddType(typ Type) {

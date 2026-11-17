@@ -13,9 +13,10 @@ import (
 func (t *Typer) index() {
 	t.indexImports()
 	t.indexConsts()
+	t.indexTypes()
 	t.indexStubs()
 	t.indexFuns()
-	t.indexTypes()
+	t.indexMethods()
 }
 
 func (t *Typer) indexImports() {
@@ -39,6 +40,12 @@ func (t *Typer) indexFuns() {
 func (t *Typer) indexStubs() {
 	for i, s := range t.box.stubs {
 		t.indexStub(i, &s)
+	}
+}
+
+func (t *Typer) indexMethods() {
+	for i, m := range t.box.methods {
+		t.indexMethod(i, &m)
 	}
 }
 
@@ -126,6 +133,29 @@ func (t *Typer) indexFun(i int, f *ast.Fun) {
 	t.applyCharms(symbol, f.Charms)
 
 	t.unit.Funs = append(t.unit.Funs, symbol)
+}
+
+func (t *Typer) indexMethod(i int, m *ast.Method) {
+	pin := m.Pin
+	name := m.Recv.Name + "." + m.Name
+
+	symbol := t.unit.Scope.Get(name)
+	if symbol != nil {
+		t.report(pin, sx.ETypDupSymbol, fmt.Sprintf("method with name \"%s\" was already declared inside this unit", name))
+		return
+	}
+
+	symbol = t.unit.Scope.New(symk.Method, name, pin)
+	symbol.Aux = uint32(i)
+	symbol.Def = t.newFunDef()
+
+	if m.Pub {
+		symbol.Flags |= SymbolPublic
+	}
+	t.applyCharms(symbol, m.Charms)
+
+	t.unit.Funs = append(t.unit.Funs, symbol)
+	t.methods = append(t.methods, symbol)
 }
 
 func (t *Typer) newFunDef() *FunDef {

@@ -51,6 +51,8 @@ type Typer struct {
 	box   NodeBox
 	deps  hg.DepSet
 
+	methods []*Symbol
+
 	common *Common
 
 	// Unit that is currently being processed by typer.
@@ -69,6 +71,7 @@ func NewTyper(c *Common) *Typer {
 
 func (t *Typer) reset() {
 	t.unit = nil
+	t.methods = t.methods[:0]
 	t.box.reset()
 }
 
@@ -83,6 +86,7 @@ func (t *Typer) Do(unit *Unit, texts []*ast.Text) {
 
 	t.alloc(texts)
 	t.index()
+	t.bind()
 	t.expand()
 	t.toptype()
 	t.convert()

@@ -16,7 +16,19 @@ func (t *Typer) convert() {
 			continue
 		}
 
-		t.convertFun(s.Def.(*FunDef), &t.box.funs[s.Aux])
+		switch s.Kind {
+		case symk.Fun:
+			t.convertFun(s.Def.(*FunDef), &t.box.funs[s.Aux])
+		case symk.Method:
+			// TODO: should we unify methods, stubs and functions in AST?
+			m := t.box.methods[s.Aux]
+			t.convertFun(s.Def.(*FunDef), &ast.Fun{
+				Sig:  m.Sig,
+				Body: m.Body,
+			})
+		default:
+			panic(fmt.Sprintf("unexpected symbol kind (=%d)", s.Kind))
+		}
 	}
 }
 

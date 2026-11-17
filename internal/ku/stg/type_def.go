@@ -31,6 +31,16 @@ type Custom struct {
 	m map[ /* method name */ string]*Symbol
 }
 
+// bind method to custom type
+func (c *Custom) bind(name string, s *Symbol) {
+	if c.m == nil {
+		c.m = make(map[string]*Symbol)
+	}
+
+	c.m[name] = s
+	c.Methods = append(c.Methods, s)
+}
+
 type Span struct {
 	typdef
 

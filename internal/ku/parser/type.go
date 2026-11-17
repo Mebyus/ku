@@ -51,6 +51,11 @@ func (p *Parser) TypeSpec() (ast.TypeSpec, ss) {
 		p.advance() // skip "&"
 		typ, s := p.TypeSpec()
 		return &ast.Ref{Pin: pin, Type: typ}, s
+	case token.ArrayPointer:
+		pin := p.peek.Pin
+		p.advance() // skip "[*]"
+		typ, s := p.TypeSpec()
+		return &ast.ArrayPointer{Pin: pin, Type: typ}, s
 	case token.LeftSquare:
 		switch p.next.Kind {
 		case token.RightSquare:

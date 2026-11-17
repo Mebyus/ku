@@ -134,7 +134,8 @@ const (
 	Alter     // .{
 	AlterZero // .{}
 
-	SliceAll // [:]
+	SliceAll     // [:]
+	ArrayPointer // [*]
 
 	HashSquare // #[
 
