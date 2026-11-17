@@ -5,6 +5,11 @@ typedef unsigned int       u32;
 typedef unsigned long int  u64;
 typedef __uint128_t        u128;
 
+static_assert(sizeof(u8)  == 1);
+static_assert(sizeof(u16) == 2);
+static_assert(sizeof(u32) == 4);
+static_assert(sizeof(u64) == 8);
+
 // Signed integers of fixed size.
 typedef signed char      s8;
 typedef signed short int s16;
@@ -12,13 +17,26 @@ typedef signed int       s32;
 typedef signed long int  s64;
 typedef __int128_t       s128;
 
+static_assert(sizeof(s8)  == 1);
+static_assert(sizeof(s16) == 2);
+static_assert(sizeof(s32) == 4);
+static_assert(sizeof(s64) == 8);
+
 // Target architecture dependant integer types.
 typedef u64 uint;
 typedef s64 sint;
+typedef s64 ku_int;
+
+static_assert(sizeof(uint)   == sizeof(void*));
+static_assert(sizeof(sint)   == sizeof(void*));
+static_assert(sizeof(ku_int) == sizeof(void*));
 
 typedef float      f32;
 typedef double     f64;
 typedef __float128 f128;
+
+static_assert(sizeof(f32) == 4);
+static_assert(sizeof(f64) == 8);
 
 // This should only be used with pointer types.
 #define nil 0

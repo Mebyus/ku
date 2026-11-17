@@ -23,42 +23,21 @@ func (g *genbuf) getTypeName(t *stg.Type) string {
 }
 
 func (g *genbuf) newTypeName(t *stg.Type) string {
+	if t.Name != "" {
+		if t.Name == "int" {
+			return "ku_int"
+		}
+		if t.Unit == nil {
+			return t.Name
+		}
+		return "t_" + t.Unit.LinkName + "_" + t.Name
+	}
+
 	switch t.Kind {
-	case typk.Ref:
+	case typk.Ref, typk.ArrayPointer:
 		return g.getTypeName(t.Def.(*stg.Ref).Type) + "*"
 	case typk.Span:
 		return "s_" + g.getTypeName(t.Def.(*stg.Span).Type)
-	case typk.String:
-		return "str"
-	case typk.Integer:
-		if t.IsSigned() {
-			switch t.Size {
-			case 1:
-				return "s8"
-			case 2:
-				return "s16"
-			case 4:
-				return "s32"
-			case 8:
-				return "s64"
-			default:
-				panic(fmt.Sprintf("unexpected integer size %d", t.Size))
-			}
-		}
-		switch t.Size {
-		case 1:
-			return "u8"
-		case 2:
-			return "u16"
-		case 4:
-			return "u32"
-		case 8:
-			return "u64"
-		default:
-			panic(fmt.Sprintf("unexpected integer size %d", t.Size))
-		}
-	case typk.Boolean:
-		return "bool"
 	default:
 		panic(fmt.Sprintf("unexpected %s type", t.Kind))
 	}

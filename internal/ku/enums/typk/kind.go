@@ -108,7 +108,7 @@ const (
 
 	// Pointer to continuous region of memory holding
 	// variable number of elements of another type.
-	// ArrayPointer
+	ArrayPointer
 
 	// ArrayRef
 
@@ -165,7 +165,7 @@ var text = [...]string{
 	Ref: "ref",
 	// Pointer:      "pointer",
 	// VoidPointer:  "void pointer",
-	// ArrayPointer: "array pointer",
+	ArrayPointer: "array pointer",
 	// ArrayRef:     "array ref",
 
 	// Import: "import",

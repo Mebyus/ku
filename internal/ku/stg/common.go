@@ -33,6 +33,7 @@ func (c *Common) Init(build kub.Build, pool *sx.Pool) {
 }
 
 func (c *Common) bindBuiltinSymbols() {
+	c.bindBuiltinTypeSymbol("int", c.Types.Known.Int)
 	c.bindBuiltinTypeSymbol("uint", c.Types.Known.Uint)
 	c.bindBuiltinTypeSymbol("sint", c.Types.Known.Sint)
 
@@ -52,6 +53,7 @@ func (c *Common) bindBuiltinSymbols() {
 }
 
 func (c *Common) bindBuiltinTypeSymbol(name string, t *Type) {
+	t.Name = name
 	s := &Symbol{
 		Name:  name,
 		Kind:  symk.Type,

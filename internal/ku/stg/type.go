@@ -11,6 +11,10 @@ import (
 type Type struct {
 	symdef // can be used as symbol definition of type symbol
 
+	// Local (inside the unit) name of the type. Mainly used for
+	// custom and builtin types.
+	Name string
+
 	// For some types this field is nil, since all necessary properties
 	// are stored in other fields.
 	//
@@ -22,6 +26,11 @@ type Type struct {
 	//	- rune
 	//	- *void
 	Def TypeDef
+
+	// Points to unit where this type was first instantiated.
+	//
+	// Can be nil for builtin and compiler known types.
+	Unit *Unit
 
 	// Byte size of this type's value. May be 0 for some types.
 	// More specifically this field equals the stride between two
@@ -47,11 +56,14 @@ const (
 	// Type is a builtin.
 	TypeBuiltin
 
-	// Type has recursive definition.
-	TypeRecursive
+	// Target architecture dependant integer.
+	TypeArchInt
 
 	// Signed integer type.
 	TypeSigned
+
+	// Type has recursive definition.
+	TypeRecursive
 )
 
 // applicable only for integer types
@@ -68,55 +80,20 @@ func (t *Type) IsStaticInteger() bool {
 }
 
 func (t *Type) String() string {
+	if t.Name != "" {
+		if t.Unit == nil {
+			return t.Name
+		}
+		return t.Unit.Name + "." + t.Name
+	}
+
 	switch t.Kind {
 	case typk.Span:
 		return "[]" + t.Def.(*Span).Type.String()
 	case typk.Ref:
 		return "&" + t.Def.(*Ref).Type.String()
-	case typk.Custom:
-		return t.Def.(*Custom).Symbol.Name
-	case typk.String:
-		if t.IsStatic() {
-			return "<str>"
-		}
-		return "str"
-	case typk.Integer:
-		if t.Size == 0 {
-			return "<int>"
-		}
-		if t.IsSigned() {
-			switch t.Size {
-			case 1:
-				return "s8"
-			case 2:
-				return "s16"
-			case 4:
-				return "s32"
-			case 8:
-				return "s64"
-			default:
-				panic(fmt.Sprintf("unexpected integer size %d", t.Size))
-			}
-		}
-		switch t.Size {
-		case 1:
-			return "u8"
-		case 2:
-			return "u16"
-		case 4:
-			return "u32"
-		case 8:
-			return "u64"
-		default:
-			panic(fmt.Sprintf("unexpected integer size %d", t.Size))
-		}
-	case typk.Boolean:
-		if t.IsStatic() {
-			return "<bool>"
-		}
-		return "bool"
 	default:
-		panic(fmt.Sprintf("unexpected %d kind", t.Kind))
+		panic(fmt.Sprintf("unexpected kind (=%d)", t.Kind))
 	}
 }
 
@@ -262,7 +239,7 @@ type StaticTypes struct {
 	// For nil literal.
 	// Nil *Type
 
-	// Unsized.
+	// Unsized and signed.
 	Integer *Type
 
 	Boolean *Type
@@ -279,17 +256,20 @@ func (t *StaticTypes) init() {
 	// }
 
 	t.Integer = &Type{
+		Name:  "<int>",
 		Size:  0, // unsized static integer can hold arbitrary large integer number
 		Flags: TypeBuiltin | TypeSigned | TypeStatic,
 		Kind:  typk.Integer,
 	}
 
 	t.Boolean = &Type{
+		Name:  "<bool>",
 		Flags: TypeBuiltin | TypeStatic,
 		Kind:  typk.Boolean,
 	}
 
 	t.String = &Type{
+		Name:  "<str>",
 		Flags: TypeBuiltin | TypeStatic,
 		Kind:  typk.String,
 	}
@@ -309,6 +289,7 @@ type KnownTypes struct {
 	// &void
 	// VoidRef *Type
 
+	Int  *Type
 	Uint *Type
 	Sint *Type
 
@@ -323,14 +304,19 @@ type KnownTypes struct {
 }
 
 func (t *KnownTypes) init(archPointerSize uint32) {
+	t.Int = &Type{
+		Size:  archPointerSize,
+		Flags: TypeBuiltin | TypeArchInt | TypeSigned,
+		Kind:  typk.Integer,
+	}
 	t.Uint = &Type{
 		Size:  archPointerSize,
-		Flags: TypeBuiltin,
+		Flags: TypeBuiltin | TypeArchInt,
 		Kind:  typk.Integer,
 	}
 	t.Sint = &Type{
 		Size:  archPointerSize,
-		Flags: TypeBuiltin | TypeSigned,
+		Flags: TypeBuiltin | TypeArchInt | TypeSigned,
 		Kind:  typk.Integer,
 	}
 

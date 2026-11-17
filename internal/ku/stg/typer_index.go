@@ -186,6 +186,8 @@ func (t *Typer) indexType(i int, s *ast.Type) {
 func (t *Typer) newTypeDef(s *Symbol) *Type {
 	def := &Custom{Symbol: s}
 	typ := &Type{
+		Name: s.Name,
+		Unit: t.unit,
 		Def:  def,
 		Kind: typk.Custom,
 	}
