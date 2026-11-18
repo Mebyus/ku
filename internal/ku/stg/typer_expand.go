@@ -34,6 +34,8 @@ import (
 func (t *Typer) expand() {
 	t.gatherConstDeps()
 	t.hoistEvalConsts()
+	t.gatherTypeDeps()
+	t.hoistLayoutTypes()
 }
 
 // Inspect AST and gather dependencies between unit-level constants.
@@ -163,5 +165,150 @@ func (t *Typer) scanConstSymExpDeps(exp *ast.SymExp) {
 	loop := t.deps.Add(s.RawSym())
 	if loop {
 		t.report(pin, 0, fmt.Sprintf("definition for constant \"%s\" references itself", name))
+	}
+}
+
+// Inspect AST and gather dependencies between unit-level custom types.
+func (t *Typer) gatherTypeDeps() {
+	t.graph.Reset(len(t.types))
+	for _, s := range t.types {
+		def := &t.box.types[s.Aux]
+		t.scanTypeDeps(s, def.Spec)
+	}
+}
+
+// Hoist and rank usage of unit-level custom types based on dependencies
+// between them. After hoisting is done calculate layout of each type.
+func (t *Typer) hoistLayoutTypes() {
+	t.graph.Build()
+
+	const debug = false
+
+	isolated := t.graph.Isolated()
+	components := t.graph.Components()
+
+	if debug {
+		symbols := t.graph.Symbols()
+		if len(symbols) != 0 {
+			fmt.Printf("[thst] type symbols (n=%d): %s\n", len(symbols), strings.Join(getSymbolNames(symbols), ", "))
+		}
+
+		if len(isolated) != 0 {
+			fmt.Printf("[thst] found %d isolated types:\n", len(isolated))
+			fmt.Printf("     | %s\n", strings.Join(getSymbolNames(isolated), ", "))
+		}
+
+		if len(components) != 0 {
+			fmt.Printf("[thst] found %d components:\n", len(components))
+			for i := range len(components) {
+				c := &components[i]
+				fmt.Printf("     | %s\n", strings.Join(getSymbolNames(c.Symbols()), ", "))
+			}
+		}
+	}
+
+	for _, sym := range isolated {
+		s := getSymbol(sym)
+		def := &t.box.types[s.Aux]
+		t.evalTypeDef(s, def.Spec)
+
+		if debug {
+			typ := s.Def.(*Type)
+			fmt.Printf("[thst] type %s layout: size=%d, align=%d\n", s.Name, typ.Size, typ.Align)
+		}
+	}
+
+	for i := range len(components) {
+		c := &components[i]
+		t.rank.Reset(c)
+		tower, cycle := t.rank.RankOrFindCycle()
+
+		if len(cycle) != 0 {
+			s := getSymbol(cycle[0])
+			cycleText := strings.Join(getSymbolNames(cycle), " -> ")
+			t.report(s.Pin, 0, fmt.Sprintf("cycle dependency in type definitions (%s)", cycleText))
+			continue
+		}
+
+		if debug {
+			fmt.Printf("[thst] tower %d:\n", i)
+
+			for _, c := range tower.Cohorts {
+				fmt.Printf("     | %s\n", strings.Join(getSymbolNames(c.Symbols), ", "))
+			}
+		}
+
+		for _, cohort := range tower.Cohorts {
+			for _, sym := range cohort.Symbols {
+				s := getSymbol(sym)
+				def := &t.box.types[s.Aux]
+				t.evalTypeDef(s, def.Spec)
+
+				if debug {
+					typ := s.Def.(*Type)
+					fmt.Printf("[thst] type %s layout: size=%d, align=%d\n", s.Name, typ.Size, typ.Align)
+				}
+			}
+		}
+	}
+}
+
+// Perform deep scan of unit-level dependencies inside
+// custom type defenitions.
+//
+// Only direct type inclusions count as dependency.
+// Inclusions of pointers, references, spans, etc. are indirect.
+func (t *Typer) scanTypeDeps(s *Symbol, spec ast.TypeSpec) {
+	t.deps.Reset(s.RawSym())
+	t.scanTypeSpecDeps(spec)
+	t.graph.Take(&t.deps)
+}
+
+func (t *Typer) scanTypeSpecDeps(spec ast.TypeSpec) {
+	switch p := spec.(type) {
+	case *ast.InvType:
+		// already reported during parsing
+	case *ast.Ref, *ast.Span, *ast.ArrayPointer:
+		// indirect inclusions do not count as dependencies
+	case *ast.TypeName:
+		t.scanTypeNameDeps(p)
+	case *ast.Array:
+		t.scanTypeSpecDeps(p.Type)
+	case *ast.Struct:
+		t.scanStructDeps(p)
+	default:
+		panic(fmt.Sprintf("unexpected %T type specifier", p))
+	}
+}
+
+func (t *Typer) scanTypeNameDeps(p *ast.TypeName) {
+	name := p.Name
+	pin := p.Pin
+
+	s := t.unit.Scope.Lookup(name)
+	if s == nil {
+		t.report(pin, 0, fmt.Sprintf("unresolved symbol \"%s\" in type definition", name))
+		return
+	}
+	if s.Kind != symk.Type {
+		t.report(pin, 0, fmt.Sprintf("symbol \"%s\" is not a type, but used in type definition", name))
+		return
+	}
+
+	if s.Scope.Kind != scok.Unit {
+		// we are gathering dependencies only between unit-level
+		// symbols in current unit
+		return
+	}
+
+	loop := t.deps.Add(s.RawSym())
+	if loop {
+		t.report(pin, 0, fmt.Sprintf("definition for type \"%s\" references itself", name))
+	}
+}
+
+func (t *Typer) scanStructDeps(p *ast.Struct) {
+	for _, f := range p.Fields {
+		t.scanTypeSpecDeps(f.Type)
 	}
 }

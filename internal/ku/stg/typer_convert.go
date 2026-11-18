@@ -122,7 +122,7 @@ func (t *Typer) convertBlock(block *Block, b *ast.Block) {
 func (t *Typer) checkSymbolUsage(block *Block) {
 	for _, s := range block.Scope.Symbols {
 		switch s.Kind {
-		case symk.Param:
+		case symk.Param, symk.Receiver:
 			continue
 		}
 
@@ -871,13 +871,34 @@ func (t *Typer) applySelect(c *context, exp Exp, s *ast.Select) Exp {
 			panic("stub")
 		default:
 			t.report(s.Pin, 0, fmt.Sprintf("span type %s does not have \"%s\" field", typ, s.Name))
-			return &InvExp{
-				pin: s.Pin,
-				typ: t.common.Types.Invalid,
-			}
+			return t.makeInvExp(s.Pin)
 		}
 	case typk.Invalid:
 		return exp
+	case typk.Ref:
+		r := typ.Def.(*Ref).Type
+		switch r.Kind {
+		case typk.Custom:
+			c := r.Def.(*Custom)
+			switch c.Type.Kind {
+			case typk.Struct:
+				st := c.Type.Def.(*Struct)
+				f := st.getField(s.Name)
+				if f != nil {
+					return &DelectField{
+						pin:   s.Pin,
+						Exp:   exp,
+						Field: f,
+					}
+				}
+				panic("TODO: search methods")
+			default:
+				panic(fmt.Sprintf("TODO: %T type", c.Type))
+			}
+		default:
+			t.report(s.Pin, 0, fmt.Sprintf("cannot use select operation on %s type", typ))
+			return t.makeInvExp(s.Pin)
+		}
 	default:
 		t.report(s.Pin, 0, fmt.Sprintf("cannot use select operation on %s type", typ))
 		return t.makeInvExp(s.Pin)

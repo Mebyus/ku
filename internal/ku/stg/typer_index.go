@@ -181,6 +181,8 @@ func (t *Typer) indexType(i int, s *ast.Type) {
 	if s.Pub {
 		symbol.Flags |= SymbolPublic
 	}
+
+	t.types = append(t.types, symbol)
 }
 
 func (t *Typer) newTypeDef(s *Symbol) *Type {

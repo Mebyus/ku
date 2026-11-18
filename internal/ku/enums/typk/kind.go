@@ -130,7 +130,7 @@ const (
 
 	// Enum
 
-	// Struct
+	Struct
 
 	// Union
 
@@ -157,7 +157,7 @@ var text = [...]string{
 	Span:  "span",
 	// Enum:   "enum",
 	Custom: "custom",
-	// Struct: "struct",
+	Struct: "struct",
 	// Union:  "union",
 	// Tuple:  "tuple",
 	// Map:    "map",

@@ -73,6 +73,10 @@ func (t *Typer) checkAssignType(at *Type, exp Exp) {
 		return
 	}
 
+	if at.Kind == typk.Boolean && typ.Kind == typk.Boolean {
+		return
+	}
+
 	if at.Kind == typk.Integer && typ.Kind == typk.Integer {
 		if typ.IsStatic() && typ.Size == 0 {
 			// TODO: check sizes for static and signedness sized integers

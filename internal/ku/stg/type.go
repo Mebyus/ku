@@ -2,6 +2,7 @@ package stg
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/mebyus/ku/internal/ku/ast"
 	"github.com/mebyus/ku/internal/ku/enums/symk"
@@ -36,6 +37,10 @@ type Type struct {
 	// More specifically this field equals the stride between two
 	// consecutive elements of this type inside an array.
 	Size uint32
+
+	// Natural alignment of this type.
+	// May be 0 for some types.
+	Align uint32
 
 	Flags TypeFlag
 
@@ -111,8 +116,12 @@ func (t *Typer) LookupType(s *Scope, spec ast.TypeSpec) *Type {
 		return t.lookupSpan(s, p)
 	case *ast.Ref:
 		return t.lookupRef(s, p)
+	case *ast.ArrayPointer:
+		return t.lookupArrayPointer(s, p)
 	case *ast.Array:
 		return t.lookupArray(s, p)
+	case *ast.Struct:
+		return t.lookupStruct(s, p)
 	case *ast.InvType:
 		return t.common.Types.Invalid
 	default:
@@ -155,6 +164,15 @@ func (t *Typer) lookupRef(s *Scope, r *ast.Ref) *Type {
 	return t.common.Types.getRef(typ)
 }
 
+func (t *Typer) lookupArrayPointer(s *Scope, p *ast.ArrayPointer) *Type {
+	typ := t.LookupType(s, p.Type)
+	if typ.IsInvalid() {
+		return typ
+	}
+
+	return t.common.Types.getArrayPointer(typ)
+}
+
 func (t *Typer) lookupArray(s *Scope, a *ast.Array) *Type {
 	c := context{
 		scope:  s,
@@ -176,6 +194,64 @@ func (t *Typer) lookupArray(s *Scope, a *ast.Array) *Type {
 	}
 
 	return t.common.Types.getArray(typ, num)
+}
+
+func (t *Typer) lookupStruct(s *Scope, p *ast.Struct) *Type {
+	if len(p.Fields) == 0 {
+		// TODO: return void type
+		panic("TODO")
+	}
+
+	key, fields := t.lookupFields(s, p.Fields)
+
+	list := t.common.Types.Structs[key]
+	for _, typ := range list {
+		if equalFieldTypes(fields, typ.Def.(*Struct).Fields) {
+			return typ
+		}
+	}
+
+	def := &Struct{Fields: fields}
+	def.layout()
+	typ := &Type{
+		Def:   def,
+		Size:  def.Size,
+		Align: def.Align,
+		Unit:  t.unit,
+		Kind:  typk.Struct,
+	}
+	t.common.Types.Structs[key] = append(t.common.Types.Structs[key], typ)
+	return typ
+}
+
+func (t *Typer) lookupFields(s *Scope, list []ast.Field) (string, []Field) {
+	n := 0 // total length of joined field names
+	fields := make([]Field, 0, len(list))
+	for _, f := range list {
+		t := t.LookupType(s, f.Type)
+
+		name := f.Name
+		fields = append(fields, Field{
+			Name: name,
+			Type: t,
+		})
+		n += len(name)
+	}
+	n += len(fields) - 1 // for field separators
+
+	// builds joined field names in the form:
+	//	"field_1|field_2|field_3"
+	var buf strings.Builder
+	buf.Grow(n)
+
+	buf.WriteString(fields[0].Name)
+	for _, f := range fields[1:] {
+		buf.WriteByte('|')
+		buf.WriteString(f.Name)
+	}
+	key := buf.String()
+
+	return key, fields
 }
 
 // Try to convert static expression into array
@@ -209,12 +285,19 @@ type TypeIndex struct {
 	// reference type.
 	Refs map[ /* type referred by reference */ *Type]*Type
 
+	// Maps type referred by array pointer to corresponding array pointer type.
+	ArrayPointers map[ /* type referred by pointer */ *Type]*Type
+
 	// Maps span element type to the corresponding span type.
 	Spans map[ /* span element type */ *Type]*Type
 
 	// Maps array type definition (element type + size)
 	// to the corresponding array type.
 	Arrays map[Array]*Type
+
+	// Maps joined field names to a list of struct types with the same field
+	// names (including field order).
+	Structs map[ /* joined field names */ string][]*Type
 
 	Invalid *Type
 
@@ -230,8 +313,10 @@ func (x *TypeIndex) init(archPointerSize uint32) {
 	x.Invalid = &Type{Kind: typk.Invalid}
 
 	x.Refs = make(map[*Type]*Type)
+	x.ArrayPointers = make(map[*Type]*Type)
 	x.Spans = make(map[*Type]*Type)
 	x.Arrays = make(map[Array]*Type)
+	x.Structs = make(map[string][]*Type)
 }
 
 // StaticTypes contains instances of various predefined (builtin) static types.
@@ -306,46 +391,54 @@ type KnownTypes struct {
 func (t *KnownTypes) init(archPointerSize uint32) {
 	t.Int = &Type{
 		Size:  archPointerSize,
+		Align: archPointerSize,
 		Flags: TypeBuiltin | TypeArchInt | TypeSigned,
 		Kind:  typk.Integer,
 	}
 	t.Uint = &Type{
 		Size:  archPointerSize,
+		Align: archPointerSize,
 		Flags: TypeBuiltin | TypeArchInt,
 		Kind:  typk.Integer,
 	}
 	t.Sint = &Type{
 		Size:  archPointerSize,
+		Align: archPointerSize,
 		Flags: TypeBuiltin | TypeArchInt | TypeSigned,
 		Kind:  typk.Integer,
 	}
 
 	t.U8 = &Type{
 		Size:  1,
+		Align: 1,
 		Flags: TypeBuiltin,
 		Kind:  typk.Integer,
 	}
 
 	t.U32 = &Type{
 		Size:  4,
+		Align: 4,
 		Flags: TypeBuiltin,
 		Kind:  typk.Integer,
 	}
 
 	t.S32 = &Type{
 		Size:  4,
+		Align: 4,
 		Flags: TypeBuiltin | TypeSigned,
 		Kind:  typk.Integer,
 	}
 
 	t.Bool = &Type{
 		Size:  1,
+		Align: 1,
 		Flags: TypeBuiltin,
 		Kind:  typk.Boolean,
 	}
 
 	t.Str = &Type{
 		Size:  2 * archPointerSize,
+		Align: archPointerSize,
 		Flags: TypeBuiltin,
 		Kind:  typk.String,
 	}
@@ -357,9 +450,25 @@ func (x *TypeIndex) getRef(t *Type) *Type {
 		return typ
 	}
 	typ = &Type{
-		Def:  &Ref{Type: t},
-		Size: x.ArchPointerSize,
-		Kind: typk.Ref,
+		Def:   &Ref{Type: t},
+		Size:  x.ArchPointerSize,
+		Align: x.ArchPointerSize,
+		Kind:  typk.Ref,
+	}
+	x.Refs[t] = typ
+	return typ
+}
+
+func (x *TypeIndex) getArrayPointer(t *Type) *Type {
+	typ, ok := x.ArrayPointers[t]
+	if ok {
+		return typ
+	}
+	typ = &Type{
+		Def:   &Ref{Type: t},
+		Size:  x.ArchPointerSize,
+		Align: x.ArchPointerSize,
+		Kind:  typk.ArrayPointer,
 	}
 	x.Refs[t] = typ
 	return typ
@@ -371,9 +480,10 @@ func (x *TypeIndex) getSpan(t *Type) *Type {
 		return typ
 	}
 	typ = &Type{
-		Def:  &Span{Type: t},
-		Size: 2 * x.ArchPointerSize,
-		Kind: typk.Span,
+		Def:   &Span{Type: t},
+		Size:  2 * x.ArchPointerSize,
+		Align: x.ArchPointerSize,
+		Kind:  typk.Span,
 	}
 	x.Spans[t] = typ
 	return typ
@@ -386,9 +496,10 @@ func (x *TypeIndex) getArray(elem *Type, num uint) *Type {
 		return typ
 	}
 	typ = &Type{
-		Def:  &a,
-		Size: uint32(num) * elem.Size,
-		Kind: typk.Array,
+		Def:   &a,
+		Size:  uint32(num) * elem.Size,
+		Align: elem.Align,
+		Kind:  typk.Array,
 	}
 	x.Arrays[a] = typ
 	return typ
