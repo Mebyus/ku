@@ -100,7 +100,7 @@ const (
 
 	// Pointer to another Type. An example of such a Type could be *str
 	// (pointer to a string)
-	// Pointer
+	Pointer
 
 	// Reference pointer to another Type. In Ku reference type is simply
 	// a pointer type which cannot be nil.
@@ -162,8 +162,8 @@ var text = [...]string{
 	// Tuple:  "tuple",
 	// Map:    "map",
 
-	Ref: "ref",
-	// Pointer:      "pointer",
+	Ref:     "ref",
+	Pointer: "pointer",
 	// VoidPointer:  "void pointer",
 	ArrayPointer: "array pointer",
 	// ArrayRef:     "array ref",

@@ -1,0 +1,14 @@
+#[entry]
+fun main() {
+    print("Hello, world!\n");
+
+    var x: custom;
+    x.exit(0);
+    x.exit2();
+}
+
+type custom int;
+
+fun (custom) exit(x: int) {}
+
+fun (&custom) exit2() {}

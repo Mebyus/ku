@@ -41,6 +41,12 @@ func (c *Custom) bind(name string, s *Symbol) {
 	c.Methods = append(c.Methods, s)
 }
 
+// get method of custom type by its name
+// returns nil if method with this name is not found
+func (c *Custom) method(name string) *Symbol {
+	return c.m[name]
+}
+
 type Span struct {
 	typdef
 

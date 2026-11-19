@@ -63,3 +63,35 @@ func (d *DelectField) Type() *Type {
 func (d *DelectField) Target() bool {
 	return true
 }
+
+// BoundMethod represents expression which is formed by binding
+// a method with receiver expression.
+//
+// For example:
+//
+//	buf.push
+//	file.write
+type BoundMethod struct {
+	operand
+
+	// Bound receiver.
+	Recv Exp
+
+	// Which method was bound.
+	Symbol *Symbol
+
+	// pin where binding happens
+	pin sx.Pin
+}
+
+func (m *BoundMethod) Pin() sx.Pin {
+	return m.pin
+}
+
+func (m *BoundMethod) Type() *Type {
+	panic("TODO")
+}
+
+func (m *BoundMethod) Target() bool {
+	return false
+}

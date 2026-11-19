@@ -10,6 +10,8 @@ import (
 
 func (g *genbuf) exp(exp stg.Exp) {
 	switch e := exp.(type) {
+	case *stg.Zero:
+		g.puts("{}")
 	case *stg.Integer:
 		if e.Neg {
 			g.putb('-')
@@ -33,6 +35,9 @@ func (g *genbuf) exp(exp stg.Exp) {
 		}
 	case *stg.SymExp:
 		g.puts(g.getName(e.Symbol))
+	case *stg.TakeRef:
+		g.putb('&')
+		g.exp(e.Exp)
 	case *stg.BinExp:
 		g.binExp(e)
 	case *stg.SpanNum:

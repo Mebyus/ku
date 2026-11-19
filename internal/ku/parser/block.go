@@ -237,6 +237,26 @@ func (p *Parser) AssignOrInvoke() (ast.Statement, ss) {
 		return nil, s
 	}
 
+	if p.peek.Kind == token.Semicolon {
+		c, ok := c.(*ast.Call)
+		if !ok {
+			p.report(p.peek.Pin, 0, "expected invoke or assign statement")
+			return nil, 0
+		}
+
+		if p.peek.Kind != token.Semicolon {
+			p.report(p.peek.Pin, 0, "missing \";\" after invoke")
+		} else {
+			p.advance() // skip ";"
+		}
+
+		return &ast.Invoke{
+			Chain: c.Chain,
+			Args:  c.Args,
+			Pin:   c.Pin,
+		}, 0
+	}
+
 	if p.peek.Kind == token.Assign {
 		p.advance() // skip "="
 

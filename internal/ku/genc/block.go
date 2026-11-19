@@ -43,6 +43,8 @@ func (g *genbuf) node(s stg.Statement) {
 		g.discexp(s)
 	case *stg.InvokeFun:
 		g.invokefun(s)
+	case *stg.InvokeMethod:
+		g.invokeMethod(s)
 	default:
 		panic(fmt.Sprintf("unexpected %T statement", s))
 	}
@@ -63,6 +65,17 @@ func (g *genbuf) invokefun(f *stg.InvokeFun) {
 	g.puts(");")
 }
 
+func (g *genbuf) invokeMethod(m *stg.InvokeMethod) {
+	g.puts(g.getName(m.Symbol))
+	g.putb('(')
+	g.exp(m.Recv)
+	for _, arg := range m.Args {
+		g.puts(", ")
+		g.exp(arg)
+	}
+	g.puts(");")
+}
+
 func (g *genbuf) discexp(d *stg.DiscardExp) {
 	g.puts("(void)(")
 	g.exp(d.Exp)
@@ -70,7 +83,7 @@ func (g *genbuf) discexp(d *stg.DiscardExp) {
 }
 
 func (g *genbuf) initvar(v *stg.InitVar) {
-	g.typ(v.Symbol.Type)
+	g.typespec(v.Symbol.Type)
 	g.space()
 	g.puts(v.Symbol.Name)
 	g.puts(" = ")

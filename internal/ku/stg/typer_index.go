@@ -182,7 +182,7 @@ func (t *Typer) indexType(i int, s *ast.Type) {
 		symbol.Flags |= SymbolPublic
 	}
 
-	t.types = append(t.types, symbol)
+	t.unit.Types = append(t.unit.Types, symbol)
 }
 
 func (t *Typer) newTypeDef(s *Symbol) *Type {

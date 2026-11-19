@@ -7,7 +7,11 @@ import (
 	"github.com/mebyus/ku/internal/ku/stg"
 )
 
-func (g *genbuf) typ(t *stg.Type) {
+// produce a type specifier suitable for usage in places like:
+//   - variable type declaration
+//   - function return type
+//   - type of function parameter
+func (g *genbuf) typespec(t *stg.Type) {
 	g.puts(g.getTypeName(t))
 }
 
@@ -24,13 +28,7 @@ func (g *genbuf) getTypeName(t *stg.Type) string {
 
 func (g *genbuf) newTypeName(t *stg.Type) string {
 	if t.Name != "" {
-		if t.Name == "int" {
-			return "ku_int"
-		}
-		if t.Unit == nil {
-			return t.Name
-		}
-		return "t_" + t.Unit.LinkName + "_" + t.Name
+		return g.mangleTypeName(t)
 	}
 
 	switch t.Kind {
@@ -41,4 +39,34 @@ func (g *genbuf) newTypeName(t *stg.Type) string {
 	default:
 		panic(fmt.Sprintf("unexpected %s type", t.Kind))
 	}
+}
+
+func (g *genbuf) typedef(t *stg.Symbol) {
+	g.puts("typedef ")
+	g.typ(t.Def.(*stg.Type).Def.(*stg.Custom).Type)
+	g.space()
+	g.puts(g.getName(t))
+	g.semi()
+	g.line()
+}
+
+// produce type definition suitable for C typedef
+func (g *genbuf) typ(t *stg.Type) {
+	if t.Name != "" {
+		g.puts(g.getTypeName(t))
+		return
+	}
+
+	panic("TODO")
+}
+
+// get C typename for a type that has non-empty Type.Name
+func (g *genbuf) mangleTypeName(t *stg.Type) string {
+	if t.Name == "int" {
+		return "ku_int"
+	}
+	if t.Unit == nil {
+		return t.Name
+	}
+	return t.Unit.LinkName + "_t_" + t.Name
 }

@@ -170,8 +170,8 @@ func (t *Typer) scanConstSymExpDeps(exp *ast.SymExp) {
 
 // Inspect AST and gather dependencies between unit-level custom types.
 func (t *Typer) gatherTypeDeps() {
-	t.graph.Reset(len(t.types))
-	for _, s := range t.types {
+	t.graph.Reset(len(t.unit.Types))
+	for _, s := range t.unit.Types {
 		def := &t.box.types[s.Aux]
 		t.scanTypeDeps(s, def.Spec)
 	}

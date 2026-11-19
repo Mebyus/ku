@@ -88,3 +88,38 @@ func (x *Index) Format(buf *fbuf.Buffer) {
 	x.Exp.Format(buf)
 	buf.Putb(']')
 }
+
+type Call struct {
+	operand
+
+	// What is being called.
+	Chain Chain
+
+	// Can be empty for call with no args.
+	Args []Exp
+
+	// opening paren of a call
+	Pin sx.Pin
+}
+
+var _ Operand = &Call{}
+
+func (c *Call) Format(buf *fbuf.Buffer) {
+	c.Chain.Format(buf)
+	formatArgs(buf, c.Args)
+}
+
+func formatArgs(buf *fbuf.Buffer, args []Exp) {
+	if len(args) == 0 {
+		buf.Puts("()")
+		return
+	}
+
+	buf.Putb('(')
+	args[0].Format(buf)
+	for _, arg := range args[1:] {
+		buf.Puts(", ")
+		arg.Format(buf)
+	}
+	buf.Putb(')')
+}

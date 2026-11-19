@@ -11,21 +11,21 @@ import (
 func (t *Typer) bind() {
 	for i, s := range t.methods {
 		m := t.box.methods[i]
-		name := m.Recv.Name
+		rname := m.Recv.Name
 		pin := m.Recv.Pin
 		rtyp := m.Recv.Type
 
-		r := t.unit.Scope.Get(name)
+		r := t.unit.Scope.Get(rname)
 		if r == nil {
-			t.report(pin, 0, fmt.Sprintf("method receiver \"%s\" refers to undefined symbol", name))
+			t.report(pin, 0, fmt.Sprintf("method receiver \"%s\" refers to undefined symbol", rname))
 			continue
 		}
 		if r.Kind != symk.Type {
-			t.report(pin, 0, fmt.Sprintf("method receiver \"%s\" refers to %s symbol (instead of custom type)", name, r.Kind))
+			t.report(pin, 0, fmt.Sprintf("method receiver \"%s\" refers to %s symbol (instead of custom type)", rname, r.Kind))
 			continue
 		}
 
-		t.bindMethod(name, rtyp, r, s)
+		t.bindMethod(m.Name, rtyp, r, s)
 	}
 }
 

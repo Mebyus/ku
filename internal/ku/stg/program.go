@@ -31,6 +31,9 @@ func (p *Program) Add(u *Unit) {
 type Unit struct {
 	Scope Scope
 
+	// Contains custom types defined in this unit.
+	Types []*Symbol
+
 	// Contains functions, function stubs and methods.
 	Funs []*Symbol
 

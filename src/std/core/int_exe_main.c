@@ -18,5 +18,5 @@ int main(int argc, char** argv) {
 	}
 
     s_str args = make_span_str(args_buf, n);
-    ku_run(args);
+    ku_f_run(args);
 }

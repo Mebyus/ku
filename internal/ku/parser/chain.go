@@ -60,6 +60,7 @@ func (p *Parser) Chain() (ast.Operand, ss) {
 				p.advance() // TODO: sync
 			}
 		case token.LeftParen:
+			pin := p.peek.Pin
 			args, s := p.args()
 			if s != 0 {
 				// return &ast.InvExp{Error: }, 0
@@ -72,7 +73,11 @@ func (p *Parser) Chain() (ast.Operand, ss) {
 					Pin:  chain.Pin,
 				}, 0
 			}
-			panic("stub")
+			return &ast.Call{
+				Args:  args,
+				Chain: chain,
+				Pin:   pin,
+			}, 0
 		case token.LeftSquare:
 			pin := p.peek.Pin
 			x, s := p.index()

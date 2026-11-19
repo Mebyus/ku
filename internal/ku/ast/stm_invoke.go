@@ -37,3 +37,21 @@ func (s *InvokeSymbol) Format(buf *fbuf.Buffer) {
 	}
 	buf.Puts(");")
 }
+
+// Invoke represents statement formed by calling a chain.
+type Invoke struct {
+	stm
+
+	Chain Chain
+
+	Args []Exp
+
+	Pin sx.Pin
+}
+
+var _ Statement = &Invoke{}
+
+func (v *Invoke) Format(buf *fbuf.Buffer) {
+	v.Chain.Format(buf)
+	formatArgs(buf, v.Args)
+}

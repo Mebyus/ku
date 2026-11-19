@@ -206,22 +206,3 @@ type DiscardExp struct {
 func (c *DiscardExp) Pin() sx.Pin {
 	return c.pin
 }
-
-// InvokeFun represents statement which calls a specific function.
-type InvokeFun struct {
-	stm
-
-	// can be empty, if call has no arguments
-	Args []Exp
-
-	// pin of call site
-	pin sx.Pin
-
-	Symbol *Symbol
-}
-
-var _ Statement = &InvokeFun{}
-
-func (c *InvokeFun) Pin() sx.Pin {
-	return c.pin
-}

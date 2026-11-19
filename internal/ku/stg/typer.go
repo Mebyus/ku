@@ -53,9 +53,6 @@ type Typer struct {
 
 	methods []*Symbol
 
-	// unit-level custom type symbols defined in this unit
-	types []*Symbol
-
 	common *Common
 
 	// Unit that is currently being processed by typer.
@@ -75,7 +72,6 @@ func NewTyper(c *Common) *Typer {
 func (t *Typer) reset() {
 	t.unit = nil
 	t.methods = t.methods[:0]
-	t.types = t.types[:0]
 	t.box.reset()
 }
 

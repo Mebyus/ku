@@ -203,37 +203,6 @@ func (s *SymDeref) Target() bool {
 	return true
 }
 
-// FunCall represents expression which calls a specific function.
-type FunCall struct {
-	operand
-
-	// can be empty, if call has no arguments
-	Args []Exp
-
-	// pin of call site
-	pin sx.Pin
-
-	Symbol *Symbol
-
-	// Call result type. Always not nil.
-	typ *Type
-}
-
-// Explicit interface implementation check.
-var _ Operand = &FunCall{}
-
-func (c *FunCall) Type() *Type {
-	return c.typ
-}
-
-func (c *FunCall) Pin() sx.Pin {
-	return c.pin
-}
-
-func (c *FunCall) Target() bool {
-	return false
-}
-
 // SpanNum represents expression of selecting span elements number via ".num".
 type SpanNum struct {
 	operand

@@ -169,6 +169,8 @@ func (t *Typer) convertNode(c *Scope, s ast.Statement) (Statement, nodestat) {
 		return t.convertAssign(c, s)
 	case *ast.InvokeSymbol:
 		return t.convertInvokeSymbol(c, s)
+	case *ast.Invoke:
+		return t.convertInvoke(c, s)
 	// case ast.DeferCall:
 	// 	return t.translateDeferCall(s)
 	// case ast.Loop:
@@ -588,6 +590,29 @@ func (t *Typer) convertSymDeref(c *context, exp *ast.SymDeref) Exp {
 	}
 }
 
+func (t *Typer) convertInvoke(s *Scope, v *ast.Invoke) (Statement, nodestat) {
+	c := context{scope: s}
+	chain := t.convertChain(&c, &v.Chain)
+
+	switch x := chain.(type) {
+	case *BoundMethod:
+		def := x.Symbol.Def.(*FunDef)
+		if def.Result != nil {
+			t.report(v.Pin, 0, fmt.Sprintf("implicit discard of method \"%s\" call result", x.Symbol.Name))
+		}
+
+		args := t.convertCallArgs(&c, x.Symbol.Name, def.Inputs, v.Args)
+		return &InvokeMethod{
+			pin:    v.Pin,
+			Args:   args,
+			Recv:   x.Recv,
+			Symbol: x.Symbol,
+		}, nodestat{}
+	default:
+		panic(fmt.Sprintf("unexpected chain %T expression", x))
+	}
+}
+
 func (t *Typer) convertInvokeSymbol(c *Scope, s *ast.InvokeSymbol) (Statement, nodestat) {
 	name := s.Name
 	pin := s.Pin
@@ -899,6 +924,37 @@ func (t *Typer) applySelect(c *context, exp Exp, s *ast.Select) Exp {
 			t.report(s.Pin, 0, fmt.Sprintf("cannot use select operation on %s type", typ))
 			return t.makeInvExp(s.Pin)
 		}
+	case typk.Custom:
+		custom := typ.Def.(*Custom)
+		m := custom.method(s.Name)
+		if m != nil {
+			def := m.Def.(*FunDef)
+			if def.Receiver == typ {
+				return &BoundMethod{
+					pin:    s.Pin,
+					Recv:   exp,
+					Symbol: m,
+				}
+			}
+
+			switch def.Receiver.Kind {
+			case typk.Ref, typk.Pointer:
+				ref := &TakeRef{
+					pin: s.Pin,
+					Exp: exp,
+					typ: t.common.Types.getRef(typ),
+				}
+				return &BoundMethod{
+					pin:    s.Pin,
+					Recv:   ref,
+					Symbol: m,
+				}
+			default:
+				panic(fmt.Sprintf("unexpected receiver type kind (=%d)", def.Receiver.Kind))
+			}
+		}
+
+		panic("TODO")
 	default:
 		t.report(s.Pin, 0, fmt.Sprintf("cannot use select operation on %s type", typ))
 		return t.makeInvExp(s.Pin)

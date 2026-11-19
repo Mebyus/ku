@@ -147,6 +147,8 @@ func (w *swalker) walkStm(s Statement) {
 		w.walkExp(s.Exp)
 	case *InvokeFun:
 		w.walkInvokeFun(s)
+	case *InvokeMethod:
+		w.walkInvokeMethod(s)
 	default:
 		panic(fmt.Sprintf("unexpected %T statement", s))
 	}
@@ -154,10 +156,12 @@ func (w *swalker) walkStm(s Statement) {
 
 func (w *swalker) walkExp(exp Exp) {
 	switch e := exp.(type) {
-	case *InvExp, *Integer, *String, *Boolean:
+	case *InvExp, *Integer, *String, *Boolean, *Zero:
 		// do nothing
 	case *SymExp:
 		w.add(e.Symbol)
+	case *TakeRef:
+		w.walkExp(e.Exp)
 	default:
 		panic(fmt.Sprintf("unexpected %T expression", e))
 	}
@@ -166,6 +170,14 @@ func (w *swalker) walkExp(exp Exp) {
 func (w *swalker) walkInvokeFun(f *InvokeFun) {
 	w.add(f.Symbol)
 	for _, arg := range f.Args {
+		w.walkExp(arg)
+	}
+}
+
+func (w *swalker) walkInvokeMethod(m *InvokeMethod) {
+	w.add(m.Symbol)
+	w.walkExp(m.Recv)
+	for _, arg := range m.Args {
 		w.walkExp(arg)
 	}
 }

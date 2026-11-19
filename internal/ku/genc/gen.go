@@ -60,6 +60,11 @@ func (g *genbuf) Gen(prog *stg.Program) {
 	for _, u := range prog.Units {
 		g.prefix = u.LinkName + "_"
 
+		for _, t := range u.Types {
+			g.typedef(t)
+			g.line()
+		}
+
 		// forward declarations for all unit functions
 		for _, f := range u.Funs {
 			if f.Skip() {

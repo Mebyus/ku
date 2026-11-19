@@ -9,27 +9,36 @@ func (g *genbuf) funsig(name string, export bool, f *stg.FunDef) {
 	if f.Result == nil {
 		g.puts("void")
 	} else {
-		g.typ(f.Result)
+		g.typespec(f.Result)
 	}
 	g.line()
 
 	g.puts(name)
 
-	if len(f.Inputs) == 0 {
+	if len(f.Inputs) == 0 && f.Receiver == nil {
 		g.puts("(void)")
+		return
+	}
+
+	g.puts("(")
+	var start int
+	if f.Receiver != nil {
+		g.typespec(f.Receiver)
+		g.space()
+		g.putb('g')
 	} else {
-		g.puts("(")
-		g.typ(f.Inputs[0])
+		g.typespec(f.Inputs[0])
 		g.space()
 		g.puts(g.getName(f.Params[0]))
-		for i := 1; i < len(f.Inputs); i += 1 {
-			g.puts(", ")
-			g.typ(f.Inputs[i])
-			g.space()
-			g.puts(g.getName(f.Params[i]))
-		}
-		g.puts(")")
+		start = 1
 	}
+	for i := start; i < len(f.Inputs); i += 1 {
+		g.puts(", ")
+		g.typespec(f.Inputs[i])
+		g.space()
+		g.puts(g.getName(f.Params[i]))
+	}
+	g.puts(")")
 }
 
 func (g *genbuf) fun(s *stg.Symbol) {
